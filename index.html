@@ -67,7 +67,6 @@
         .logout-btn { background: #e50914; }
         .admin-btn { background: #54b9c5; color: black; }
 
-        /* Category Tabs */
         .category-tabs-container {
             position: sticky; top: 70px; z-index: 50;
             background: #141414; padding: 15px 20px;
@@ -97,7 +96,6 @@
         }
         .category-tab.active .category-count { background: rgba(255,255,255,0.3); }
 
-        /* Content Grid */
         .content-section { padding: 20px; }
         .section-header {
             display: flex; justify-content: space-between; align-items: center;
@@ -163,7 +161,6 @@
         .loading { text-align: center; padding: 40px; color: #888; grid-column: 1/-1; }
         .no-content { text-align: center; padding: 60px 20px; color: #666; grid-column: 1/-1; }
 
-        /* Player */
         .player-modal {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #000; z-index: 2000; justify-content: center; align-items: center;
@@ -212,7 +209,6 @@
         }
         .close-player:hover { background: #e50914; }
 
-        /* Admin */
         .admin-modal {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.95); z-index: 1500; overflow-y: auto; padding: 20px;
@@ -266,6 +262,7 @@
         .import-log { background: #0a0a0a; padding: 15px; border-radius: 4px; margin-top: 15px; max-height: 200px; overflow-y: auto; font-family: monospace; font-size: 12px; display: none; }
         .log-item { padding: 3px 0; color: #46d369; }
         .log-item.error { color: #e50914; }
+        .log-item.warning { color: #ffc107; }
 
         @media (max-width: 768px) {
             .header { padding: 12px 15px; }
@@ -320,18 +317,16 @@
         <header class="header" id="header">
             <div class="logo">IPTV MAX</div>
             <div class="user-section">
-                <input type="text" class="search-input" id="searchInput" placeholder=" بحث..." oninput="searchContent(this.value)">
+                <input type="text" class="search-input" id="searchInput" placeholder="🔍 بحث..." oninput="searchContent(this.value)">
                 <button class="admin-btn" id="adminBtn" onclick="openAdmin()" style="display:none;">⚙️ لوحة التحكم</button>
                 <button class="logout-btn" onclick="logout()">خروج</button>
             </div>
         </header>
 
-        <!-- Category Tabs -->
         <div class="category-tabs-container">
             <div class="category-tabs" id="categoryTabs"></div>
         </div>
 
-        <!-- Content Section -->
         <section class="content-section">
             <div class="section-header">
                 <h2 class="section-title" id="currentSectionTitle">📺 جميع القنوات</h2>
@@ -346,7 +341,7 @@
 
     <!-- Player Modal -->
     <div class="player-modal" id="playerModal">
-        <button class="close-player" onclick="closePlayer()">✕</button>
+        <button class="close-player" onclick="closePlayer()"></button>
         <div class="player-container">
             <div class="video-wrapper" id="videoWrapper">
                 <video id="videoPlayer" controls playsinline></video>
@@ -358,7 +353,7 @@
                 </div>
                 <div class="player-controls">
                     <span id="playerStatus" style="color:#46d369;font-weight:700;font-size:13px;"></span>
-                    <button class="ctrl-btn" onclick="toggleFitMode()" id="fitBtn"> احتواء</button>
+                    <button class="ctrl-btn" onclick="toggleFitMode()" id="fitBtn">🔲 احتواء</button>
                     <button class="ctrl-btn" onclick="toggleFullscreen()">⛶ ملء الشاشة</button>
                 </div>
             </div>
@@ -375,9 +370,9 @@
             <div class="admin-body">
                 <div class="admin-tabs">
                     <button class="admin-tab active" onclick="showAdminTab('stats')">📊 الإحصائيات</button>
-                    <button class="admin-tab" onclick="showAdminTab('add')"> إضافة قناة</button>
-                    <button class="admin-tab" onclick="showAdminTab('import')"> استيراد M3U</button>
-                    <button class="admin-tab" onclick="showAdminTab('manage')">📋 إدارة القنوات</button>
+                    <button class="admin-tab" onclick="showAdminTab('add')">➕ إضافة قناة</button>
+                    <button class="admin-tab" onclick="showAdminTab('import')">📥 استيراد M3U</button>
+                    <button class="admin-tab" onclick="showAdminTab('manage')"> إدارة القنوات</button>
                 </div>
 
                 <div class="admin-section active" id="statsSection">
@@ -400,14 +395,14 @@
                                 <select id="addCategory">
                                     <option value="رياضة">⚽ رياضة</option>
                                     <option value="أخبار">📰 أخبار</option>
-                                    <option value="أطفال">👶 أطفال</option>
+                                    <option value="أطفال"> أطفال</option>
                                     <option value="أفلام">🎬 أفلام</option>
                                     <option value="مسلسلات">📺 مسلسلات</option>
                                     <option value="وثائقي">🌍 وثائقي</option>
-                                    <option value="موسيقى">🎵 موسيقى</option>
+                                    <option value="موسيقى"> موسيقى</option>
                                     <option value="ترفيه">🎭 ترفيه</option>
-                                    <option value="ديني"> ديني</option>
-                                    <option value="عام">📡 عام</option>
+                                    <option value="ديني">🕌 ديني</option>
+                                    <option value="عام"> عام</option>
                                 </select>
                             </div>
                         </div>
@@ -430,19 +425,33 @@
 
                 <div class="admin-section" id="importSection">
                     <div class="admin-form">
-                        <h3> استيراد قائمة M3U</h3>
-                        <div class="import-info">💡 <strong>كيف يعمل؟</strong> الصق رابط قائمة M3U أو محتوى القائمة مباشرة، وسيتم استيراد جميع القنوات تلقائياً!</div>
+                        <h3>📥 استيراد قائمة M3U</h3>
+                        <div class="import-info">
+                            💡 <strong>كيف يعمل؟</strong> الصق رابط قائمة M3U أو محتوى القائمة مباشرة، وسيتم استيراد جميع القنوات تلقائياً!<br><br>
+                            ⚠️ <strong>ملاحظة:</strong> إذا فشل تحميل الرابط، جرب طريقة "لصق محتوى القائمة" أو انتظر قليلاً ثم أعد المحاولة.
+                        </div>
                         <div class="success-msg" id="importSuccess"></div>
                         <div class="form-group">
                             <label>طريقة الاستيراد</label>
                             <select id="importMethod" onchange="toggleImportMethod()">
-                                <option value="url">رابط قائمة M3U</option>
-                                <option value="text">لصق محتوى القائمة</option>
+                                <option value="url">🔗 رابط قائمة M3U (تلقائي مع عدة proxies)</option>
+                                <option value="text">📋 لصق محتوى القائمة (الأكثر موثوقية)</option>
                             </select>
                         </div>
-                        <div class="form-group" id="importUrlGroup"><label>رابط قائمة M3U</label><input type="text" id="importUrl" placeholder="https://example.com/playlist.m3u"></div>
-                        <div class="form-group" id="importTextGroup" style="display:none;"><label>محتوى القائمة (M3U)</label><textarea id="importText" placeholder="#EXTM3U&#10;#EXTINF:-1,Channel Name&#10;http://..."></textarea></div>
-                        <div class="form-group"><label><input type="checkbox" id="importOverwrite"> استبدال القنوات الحالية (احذف القديم أولاً)</label></div>
+                        <div class="form-group" id="importUrlGroup">
+                            <label>رابط قائمة M3U</label>
+                            <input type="text" id="importUrl" placeholder="https://iptv-org.github.io/iptv/index.m3u">
+                            <small style="color:#888;display:block;margin-top:5px;">
+                                 سيتم تجربة عدة خوادم تلقائياً إذا فشل الأول
+                            </small>
+                        </div>
+                        <div class="form-group" id="importTextGroup" style="display:none;">
+                            <label>محتوى القائمة (M3U)</label>
+                            <textarea id="importText" placeholder="#EXTM3U&#10;#EXTINF:-1,Channel Name&#10;http://..."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label><input type="checkbox" id="importOverwrite" checked> استبدال القنوات الحالية (احذف القديم أولاً)</label>
+                        </div>
                         <button class="btn-submit" onclick="importM3U()">🚀 بدء الاستيراد</button>
                         <div class="import-progress" id="importProgress"><div class="import-progress-bar" id="importProgressBar"></div></div>
                         <div class="import-log" id="importLog"></div>
@@ -451,7 +460,7 @@
 
                 <div class="admin-section" id="manageSection">
                     <div class="admin-form">
-                        <h3>📋 إدارة القنوات</h3>
+                        <h3> إدارة القنوات</h3>
                         <div class="form-group"><input type="text" id="manageSearch" placeholder="🔍 ابحث عن قناة..." oninput="filterChannels(this.value)"></div>
                     </div>
                     <div class="channels-list" id="channelsList"><div class="loading">جاري التحميل...</div></div>
@@ -481,7 +490,7 @@
             { id: 'all', name: 'الكل', icon: '📺' },
             { id: 'أخبار', name: 'أخبار', icon: '📰' },
             { id: 'رياضة', name: 'رياضة', icon: '⚽' },
-            { id: 'أطفال', name: 'أطفال', icon: '' },
+            { id: 'أطفال', name: 'أطفال', icon: '👶' },
             { id: 'أفلام', name: 'أفلام', icon: '🎬' },
             { id: 'مسلسلات', name: 'مسلسلات', icon: '📺' },
             { id: 'ترفيه', name: 'ترفيه', icon: '🎭' },
@@ -906,6 +915,54 @@
             document.getElementById('importTextGroup').style.display = method === 'text' ? 'block' : 'none';
         }
 
+        // ===== دالة تحميل مع عدة proxies =====
+        async function fetchWithProxies(url, logElement) {
+            const proxies = [
+                { name: 'AllOrigins', url: `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}` },
+                { name: 'CORS Proxy', url: `https://corsproxy.io/?${encodeURIComponent(url)}` },
+                { name: 'CORS Anywhere', url: `https://cors-anywhere.herokuapp.com/${url}` }
+            ];
+
+            for (let i = 0; i < proxies.length; i++) {
+                const proxy = proxies[i];
+                try {
+                    if (logElement) {
+                        logElement.innerHTML += `<div class="log-item warning">🔄 محاولة ${i + 1}: ${proxy.name}...</div>`;
+                        logElement.scrollTop = logElement.scrollHeight;
+                    }
+                    
+                    const response = await fetch(proxy.url, {
+                        method: 'GET',
+                        headers: {
+                            'Accept': 'text/plain, */*'
+                        }
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+                    
+                    const content = await response.text();
+                    
+                    if (logElement) {
+                        logElement.innerHTML += `<div class="log-item">✅ نجح: ${proxy.name}</div>`;
+                        logElement.scrollTop = logElement.scrollHeight;
+                    }
+                    
+                    return content;
+                } catch (error) {
+                    if (logElement) {
+                        logElement.innerHTML += `<div class="log-item error">❌ فشل: ${proxy.name} - ${error.message}</div>`;
+                        logElement.scrollTop = logElement.scrollHeight;
+                    }
+                    
+                    if (i === proxies.length - 1) {
+                        throw new Error('فشلت جميع محاولات التحميل');
+                    }
+                }
+            }
+        }
+
         async function importM3U() {
             const method = document.getElementById('importMethod').value;
             const overwrite = document.getElementById('importOverwrite').checked;
@@ -919,12 +976,24 @@
             if (method === 'url') {
                 const url = document.getElementById('importUrl').value.trim();
                 if (!url) { alert('الرجاء إدخال رابط القائمة'); return; }
+                
+                progress.style.display = 'block';
+                log.style.display = 'block';
+                log.innerHTML = '<div class="log-item">🚀 بدء تحميل القائمة...</div>';
+                success.style.display = 'none';
+
                 try {
-                    const proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url);
-                    const resp = await fetch(proxyUrl);
-                    content = await resp.text();
+                    content = await fetchWithProxies(url, log);
+                    
+                    if (!content || content.length < 100) {
+                        throw new Error('المحتوى فارغ أو صغير جداً');
+                    }
+                    
+                    log.innerHTML += `<div class="log-item"> حجم القائمة: ${(content.length / 1024).toFixed(2)} KB</div>`;
                 } catch (error) {
-                    alert('فشل في تحميل القائمة: ' + error.message + '\n\nجرب طريقة "لصق محتوى القائمة" بدلاً من ذلك.');
+                    log.innerHTML += `<div class="log-item error">❌ ${error.message}</div>`;
+                    log.innerHTML += `<div class="log-item warning"> نصيحة: جرب طريقة "لصق محتوى القائمة" بدلاً من الرابط</div>`;
+                    alert('فشل تحميل القائمة من جميع الخوادم.\n\nجرب:\n1. طريقة "لصق محتوى القائمة"\n2. أو انتظر دقيقة وأعد المحاولة');
                     return;
                 }
             } else {
@@ -938,11 +1007,11 @@
                 const batch = db.batch();
                 snap.forEach(doc => batch.delete(doc.ref));
                 await batch.commit();
+                log.innerHTML += `<div class="log-item">🗑️ تم حذف القنوات القديمة</div>`;
             }
 
             progress.style.display = 'block';
             log.style.display = 'block';
-            log.innerHTML = '';
             success.style.display = 'none';
 
             const lines = content.split('\n');
@@ -973,9 +1042,11 @@
             }
 
             if (channels.length === 0) {
-                log.innerHTML = '<div class="log-item error">❌ لم يتم العثور على قنوات في القائمة</div>';
+                log.innerHTML += '<div class="log-item error"> لم يتم العثور على قنوات في القائمة</div>';
                 return;
             }
+
+            log.innerHTML += `<div class="log-item">📺 تم العثور على ${channels.length} قناة</div>`;
 
             let added = 0, errors = 0;
             const total = channels.length;
@@ -996,14 +1067,16 @@
                 try {
                     await batch.commit();
                     added += batchChannels.length;
-                    log.innerHTML += `<div class="log-item">✅ تمت إضافة ${batchChannels.length} قناة</div>`;
+                    if (i % 50 === 0) {
+                        log.innerHTML += `<div class="log-item">✅ تمت إضافة ${added} من ${total} قناة</div>`;
+                        log.scrollTop = log.scrollHeight;
+                    }
                 } catch (error) {
                     errors += batchChannels.length;
                     log.innerHTML += `<div class="log-item error">❌ فشل في إضافة الدفعة</div>`;
                 }
                 
                 progressBar.style.width = (Math.min(i + batchSize, total) / total * 100) + '%';
-                log.scrollTop = log.scrollHeight;
                 await new Promise(r => setTimeout(r, 100));
             }
 
