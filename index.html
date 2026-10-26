@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IPTV Platform - منصة البث</title>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+            background: #141414;
+            color: white;
+            min-height: 100vh;
+        }
+        
+        .login-screen {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .login-box {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        .login-box h1 {
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+        }
+        
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: none;
+        }
+        
+        .main-app {
+            display: none;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            font-size: 24px;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .logout-btn {
+            padding: 8px 16px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        
+        .content {
+            padding: 30px 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .section-title {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #667eea;
+        }
+        
+        .channels-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+        
+        .channel-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+            cursor: pointer;
+        }
+        
+        .channel-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .channel-image {
+            width: 100%;
+            height: 180px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 64px;
+        }
+        
+        .channel-info {
+            padding: 20px;
+        }
+        
+        .channel-info h3 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+        
+        .channel-info p {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+        
+        .watch-btn {
+            width: 100%;
+            padding: 12px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 16px;
+        }
+        
+        .watch-btn:hover {
+            background: #218838;
+        }
+        
+        .player-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.95);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .player-modal.active {
+            display: flex;
+        }
+        
+        .player-container {
+            width: 90%;
+            max-width: 900px;
+            background: black;
+            border-radius: 15px;
+            overflow: hidden;
+        }
+        
+        .video-wrapper {
+            position: relative;
+            width: 100%;
+            padding-top: 56.25%;
+        }
+        
+        .video-wrapper video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .player-info {
+            padding: 20px;
+            background: #1a1a1a;
+        }
+        
+        .player-info h2 {
+            margin-bottom: 10px;
+        }
+        
+        .close-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 20px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-size: 18px;
+        }
+        
+        .no-channels {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+            grid-column: 1/-1;
+        }
+    </style>
+</head>
+<body>
+    <!-- شاشة تسجيل الدخول -->
+    <div class="login-screen" id="loginScreen">
+        <div class="login-box">
+            <h1>📺 IPTV Platform</h1>
+            <div class="error" id="loginError"></div>
+            <div class="form-group">
+                <label>البريد الإلكتروني</label>
+                <input type="email" id="loginEmail" placeholder="example@email.com">
+            </div>
+            <div class="form-group">
+                <label>كلمة المرور</label>
+                <input type="password" id="loginPassword" placeholder="••••••••">
+            </div>
+            <button class="btn" onclick="login()">تسجيل الدخول</button>
+            <button class="btn btn-secondary" onclick="showRegister()">إنشاء حساب جديد</button>
+        </div>
+    </div>
+
+    <!-- شاشة التسجيل -->
+    <div class="login-screen" id="registerScreen" style="display: none;">
+        <div class="login-box">
+            <h1>إنشاء حساب جديد</h1>
+            <div class="error" id="registerError"></div>
+            <div class="form-group">
+                <label>الاسم</label>
+                <input type="text" id="registerName" placeholder="محمد أحمد">
+            </div>
+            <div class="form-group">
+                <label>البريد الإلكتروني</label>
+                <input type="email" id="registerEmail" placeholder="example@email.com">
+            </div>
+            <div class="form-group">
+                <label>كلمة المرور</label>
+                <input type="password" id="registerPassword" placeholder="••••••••">
+            </div>
+            <button class="btn" onclick="register()">إنشاء الحساب</button>
+            <button class="btn btn-secondary" onclick="showLogin()">العودة</button>
+        </div>
+    </div>
+
+    <!-- التطبيق الرئيسي -->
+    <div class="main-app" id="mainApp">
+        <div class="header">
+            <h1>📺 IPTV Platform</h1>
+            <div class="user-info">
+                <span id="userEmail"></span>
+                <button class="logout-btn" onclick="logout()">خروج</button>
+            </div>
+        </div>
+
+        <div class="content">
+            <h2 class="section-title">📺 القنوات المباشرة</h2>
+            <div class="channels-grid" id="channelsGrid">
+                <div class="loading">جاري تحميل القنوات...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- مشغل الفيديو -->
+    <div class="player-modal" id="playerModal">
+        <button class="close-btn" onclick="closePlayer()">✕</button>
+        <div class="player-container">
+            <div class="video-wrapper">
+                <video id="videoPlayer" controls></video>
+            </div>
+            <div class="player-info">
+                <h2 id="playerTitle">عنوان القناة</h2>
+                <p id="playerCategory">التصنيف</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyB_q5oVLcsJatJhhjLhzPOfSSjodMac258",
+            authDomain: "iptv-platform-683da.firebaseapp.com",
+            projectId: "iptv-platform-683da",
+            storageBucket: "iptv-platform-683da.firebasestorage.app",
+            messagingSenderId: "776346779345",
+            appId: "1:776346779345:web:7b55ff2676c0aa1752cff0"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        let hls = null;
+
+        // مراقبة حالة تسجيل الدخول
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('registerScreen').style.display = 'none';
+                document.getElementById('mainApp').style.display = 'block';
+                document.getElementById('userEmail').textContent = user.email;
+                loadChannels();
+            } else {
+                document.getElementById('loginScreen').style.display = 'flex';
+                document.getElementById('mainApp').style.display = 'none';
+            }
+        });
+
+        // تسجيل الدخول
+        async function login() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const errorDiv = document.getElementById('loginError');
+
+            try {
+                await auth.signInWithEmailAndPassword(email, password);
+                errorDiv.style.display = 'none';
+            } catch (error) {
+                errorDiv.textContent = 'بيانات الدخول غير صحيحة';
+                errorDiv.style.display = 'block';
+            }
+        }
+
+        // إنشاء حساب جديد
+        async function register() {
+            const name = document.getElementById('registerName').value;
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+            const errorDiv = document.getElementById('registerError');
+
+            if (!name || !email || !password) {
+                errorDiv.textContent = 'الرجاء ملء جميع الحقول';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            try {
+                const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+                await db.collection('users').doc(userCredential.user.uid).set({
+                    name: name,
+                    email: email,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                errorDiv.style.display = 'none';
+            } catch (error) {
+                errorDiv.textContent = 'حدث خطأ: ' + error.message;
+                errorDiv.style.display = 'block';
+            }
+        }
+
+        // تسجيل الخروج
+        function logout() {
+            auth.signOut();
+        }
+
+        function showRegister() {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('registerScreen').style.display = 'flex';
+        }
+
+        function showLogin() {
+            document.getElementById('registerScreen').style.display = 'none';
+            document.getElementById('loginScreen').style.display = 'flex';
+        }
+
+        // تحميل القنوات من Firestore
+        async function loadChannels() {
+            const grid = document.getElementById('channelsGrid');
+            
+            try {
+                const snapshot = await db.collection('channels').get();
+                
+                if (snapshot.empty) {
+                    grid.innerHTML = '<div class="no-channels">لا توجد قنوات حالياً. أضف قنوات من Firestore.</div>';
+                    return;
+                }
+
+                grid.innerHTML = '';
+                snapshot.forEach(doc => {
+                    const channel = doc.data();
+                    const card = createChannelCard(channel);
+                    grid.appendChild(card);
+                });
+            } catch (error) {
+                grid.innerHTML = '<div class="no-channels">خطأ في تحميل القنوات: ' + error.message + '</div>';
+            }
+        }
+
+        function createChannelCard(channel) {
+            const card = document.createElement('div');
+            card.className = 'channel-card';
+            card.innerHTML = `
+                <div class="channel-image">📺</div>
+                <div class="channel-info">
+                    <h3>${channel.name || 'قناة بدون اسم'}</h3>
+                    <p>${channel.category || 'عام'}</p>
+                    <button class="watch-btn" onclick="playChannel('${channel.url}', '${channel.name}', '${channel.category}')">مشاهدة</button>
+                </div>
+            `;
+            return card;
+        }
+
+        // تشغيل القناة
+        function playChannel(url, name, category) {
+            const modal = document.getElementById('playerModal');
+            const video = document.getElementById('videoPlayer');
+            const title = document.getElementById('playerTitle');
+            const cat = document.getElementById('playerCategory');
+
+            title.textContent = name;
+            cat.textContent = category;
+            modal.classList.add('active');
+
+            // تدمير المشغل السابق إن وجد
+            if (hls) {
+                hls.destroy();
+            }
+
+            // تشغيل البث
+            if (Hls.isSupported()) {
+                hls = new Hls();
+                hls.loadSource(url);
+                hls.attachMedia(video);
+                hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                    video.play();
+                });
+            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                video.src = url;
+                video.addEventListener('loadedmetadata', function() {
+                    video.play();
+                });
+            }
+        }
+
+        function closePlayer() {
+            const modal = document.getElementById('playerModal');
+            const video = document.getElementById('videoPlayer');
+            
+            modal.classList.remove('active');
+            video.pause();
+            
+            if (hls) {
+                hls.destroy();
+                hls = null;
+            }
+        }
+    </script>
+</body>
+</html>
