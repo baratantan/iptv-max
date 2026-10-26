@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>IPTV MAX - منصة البث الاحترافية</title>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -220,19 +220,52 @@
         .log-item { padding: 3px 0; color: #46d369; }
         .log-item.error { color: #e50914; }
 
+        /* ===== Player محسّن ===== */
         .player-modal {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.98); z-index: 2000; justify-content: center; align-items: center;
+            background: #000; z-index: 2000; justify-content: center; align-items: center;
         }
         .player-modal.active { display: flex; }
-        .player-container { width: 90%; max-width: 1100px; background: #000; border-radius: 8px; overflow: hidden; position: relative; }
-        .video-wrapper { position: relative; width: 100%; padding-top: 56.25%; background: #000; }
-        .video-wrapper video { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
-        .player-info-bar { padding: 20px; background: #181818; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        .player-container {
+            width: 100%; height: 100%; background: #000; position: relative;
+            display: flex; flex-direction: column;
+        }
+        .video-wrapper {
+            position: relative; flex: 1; background: #000;
+            display: flex; align-items: center; justify-content: center;
+            overflow: hidden;
+        }
+        .video-wrapper video {
+            max-width: 100%; max-height: 100%;
+            width: auto; height: auto;
+            object-fit: contain;
+            background: #000;
+        }
+        .video-wrapper video.fit-cover {
+            width: 100%; height: 100%;
+            object-fit: cover;
+        }
+        .player-info-bar {
+            padding: 15px 20px; background: #181818;
+            display: flex; justify-content: space-between; align-items: center;
+            flex-wrap: wrap; gap: 10px; border-top: 1px solid #333;
+        }
+        .player-info-bar h2 { font-size: 18px; margin-bottom: 3px; }
+        .player-info-bar p { color: #aaa; font-size: 13px; }
+        .player-controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+        .ctrl-btn {
+            padding: 8px 14px; background: #333; color: white;
+            border: none; border-radius: 4px; cursor: pointer;
+            font-size: 13px; font-weight: 600;
+            display: flex; align-items: center; gap: 5px;
+        }
+        .ctrl-btn:hover { background: #e50914; }
+        .ctrl-btn.active { background: #54b9c5; color: black; }
         .close-player {
             position: absolute; top: 15px; right: 15px; background: rgba(0,0,0,0.8);
-            border: none; color: white; width: 40px; height: 40px;
-            border-radius: 50%; cursor: pointer; font-size: 20px; z-index: 10;
+            border: none; color: white; width: 44px; height: 44px;
+            border-radius: 50%; cursor: pointer; font-size: 22px; z-index: 10;
+            display: flex; align-items: center; justify-content: center;
         }
         .close-player:hover { background: #e50914; }
 
@@ -244,7 +277,6 @@
             cursor: pointer; font-weight: 700; font-size: 14px;
         }
         .load-more-btn:hover { background: #f40612; }
-        .load-more-btn:disabled { background: #555; cursor: not-allowed; }
 
         .status-indicator {
             display: inline-block; width: 8px; height: 8px;
@@ -268,6 +300,8 @@
             .form-row { grid-template-columns: 1fr; }
             .admin-body { padding: 15px; }
             .admin-header { padding: 20px; }
+            .player-info-bar { padding: 10px 15px; }
+            .player-info-bar h2 { font-size: 15px; }
         }
     </style>
 </head>
@@ -312,7 +346,7 @@
             </nav>
             <div class="user-section">
                 <input type="text" class="search-input" id="searchInput" placeholder="🔍 بحث..." oninput="searchContent(this.value)">
-                <button class="admin-btn" id="adminBtn" onclick="openAdmin()" style="display:none;">️ لوحة التحكم</button>
+                <button class="admin-btn" id="adminBtn" onclick="openAdmin()" style="display:none;">⚙️ لوحة التحكم</button>
                 <button class="logout-btn" onclick="logout()">خروج</button>
             </div>
         </header>
@@ -360,7 +394,7 @@
 
         <section class="content-section" id="kidsSection">
             <div class="section-header">
-                <h2 class="section-title">👶 الأطفال</h2>
+                <h2 class="section-title"> الأطفال</h2>
             </div>
             <div class="content-row" id="kidsRow"><div class="loading">جاري التحميل...</div></div>
         </section>
@@ -393,7 +427,7 @@
             </div>
             <div class="admin-body">
                 <div class="admin-tabs">
-                    <button class="admin-tab active" onclick="showAdminTab('stats')"> الإحصائيات</button>
+                    <button class="admin-tab active" onclick="showAdminTab('stats')">📊 الإحصائيات</button>
                     <button class="admin-tab" onclick="showAdminTab('add')">➕ إضافة قناة</button>
                     <button class="admin-tab" onclick="showAdminTab('import')">📥 استيراد M3U</button>
                     <button class="admin-tab" onclick="showAdminTab('manage')">📋 إدارة القنوات</button>
@@ -419,12 +453,12 @@
                                 <select id="addCategory">
                                     <option value="رياضة">⚽ رياضة</option>
                                     <option value="أخبار">📰 أخبار</option>
-                                    <option value="أطفال">👶 أطفال</option>
-                                    <option value="أفلام"> أفلام</option>
-                                    <option value="مسلسلات">📺 مسلسلات</option>
-                                    <option value="وثائقي"> وثائقي</option>
+                                    <option value="أطفال"> أطفال</option>
+                                    <option value="أفلام">🎬 أفلام</option>
+                                    <option value="مسلسلات"> مسلسلات</option>
+                                    <option value="وثائقي">🌍 وثائقي</option>
                                     <option value="موسيقى">🎵 موسيقى</option>
-                                    <option value="ترفيه"> ترفيه</option>
+                                    <option value="ترفيه">🎭 ترفيه</option>
                                     <option value="ديني">🕌 ديني</option>
                                     <option value="عام">📡 عام</option>
                                 </select>
@@ -449,7 +483,7 @@
 
                 <div class="admin-section" id="importSection">
                     <div class="admin-form">
-                        <h3>📥 استيراد قائمة M3U</h3>
+                        <h3> استيراد قائمة M3U</h3>
                         <div class="import-info">💡 <strong>كيف يعمل؟</strong> الصق رابط قائمة M3U أو محتوى القائمة مباشرة، وسيتم استيراد جميع القنوات تلقائياً!</div>
                         <div class="success-msg" id="importSuccess"></div>
                         <div class="form-group">
@@ -462,7 +496,7 @@
                         <div class="form-group" id="importUrlGroup"><label>رابط قائمة M3U</label><input type="text" id="importUrl" placeholder="https://example.com/playlist.m3u"></div>
                         <div class="form-group" id="importTextGroup" style="display:none;"><label>محتوى القائمة (M3U)</label><textarea id="importText" placeholder="#EXTM3U&#10;#EXTINF:-1,Channel Name&#10;http://..."></textarea></div>
                         <div class="form-group"><label><input type="checkbox" id="importOverwrite"> استبدال القنوات الحالية (احذف القديم أولاً)</label></div>
-                        <button class="btn-submit" onclick="importM3U()">🚀 بدء الاستيراد</button>
+                        <button class="btn-submit" onclick="importM3U()"> بدء الاستيراد</button>
                         <div class="import-progress" id="importProgress"><div class="import-progress-bar" id="importProgressBar"></div></div>
                         <div class="import-log" id="importLog"></div>
                     </div>
@@ -470,7 +504,7 @@
 
                 <div class="admin-section" id="manageSection">
                     <div class="admin-form">
-                        <h3> إدارة القنوات</h3>
+                        <h3>📋 إدارة القنوات</h3>
                         <div class="form-group"><input type="text" id="manageSearch" placeholder="🔍 ابحث عن قناة..." oninput="filterChannels(this.value)"></div>
                     </div>
                     <div class="channels-list" id="channelsList"><div class="loading">جاري التحميل...</div></div>
@@ -479,17 +513,23 @@
         </div>
     </div>
 
-    <!-- Player Modal -->
+    <!-- Player Modal محسّن -->
     <div class="player-modal" id="playerModal">
         <button class="close-player" onclick="closePlayer()">✕</button>
         <div class="player-container">
-            <div class="video-wrapper"><video id="videoPlayer" controls playsinline></video></div>
+            <div class="video-wrapper" id="videoWrapper">
+                <video id="videoPlayer" controls playsinline></video>
+            </div>
             <div class="player-info-bar">
                 <div>
                     <h2 id="playerTitle">عنوان</h2>
                     <p id="playerCategory">التصنيف</p>
                 </div>
-                <div id="playerStatus" style="color:#46d369;font-weight:700;"></div>
+                <div class="player-controls">
+                    <span id="playerStatus" style="color:#46d369;font-weight:700;font-size:13px;"></span>
+                    <button class="ctrl-btn" onclick="toggleFitMode()" id="fitBtn">🔲 احتواء</button>
+                    <button class="ctrl-btn" onclick="toggleFullscreen()">⛶ ملء الشاشة</button>
+                </div>
             </div>
         </div>
     </div>
@@ -509,14 +549,14 @@
         const db = firebase.firestore();
 
         const ADMIN_EMAIL = 'tantanporte@gmail.com';
-        const CHANNELS_PER_PAGE = 30; // تحميل 30 قناة في كل مرة (أسرع!)
+        const CHANNELS_PER_PAGE = 30;
 
         let hls = null;
         let allContent = [];
         let currentUser = null;
         let isAdmin = false;
         let channelsPage = 0;
-        let filteredChannels = [];
+        let fitMode = 'contain';
 
         const demoPosters = {
             'رياضة': 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=500',
@@ -596,11 +636,14 @@
             else header.classList.remove('scrolled');
         });
 
-        // تحميل القنوات مع ترتيب وتقسيم للسرعة
         async function loadAllContent() {
             try {
-                // ترتيب حسب الاسم (أبجدي)
-                const snapshot = await db.collection('channels').orderBy('name', 'asc').get();
+                let snapshot;
+                try {
+                    snapshot = await db.collection('channels').orderBy('name', 'asc').get();
+                } catch (e) {
+                    snapshot = await db.collection('channels').get();
+                }
                 allContent = [];
                 snapshot.forEach(doc => allContent.push({ id: doc.id, ...doc.data() }));
                 
@@ -609,22 +652,10 @@
                 loadMoreChannels();
             } catch (error) {
                 console.error('Error:', error);
-                // إذا فشل الترتيب، حمّل بدون ترتيب
-                try {
-                    const snapshot = await db.collection('channels').get();
-                    allContent = [];
-                    snapshot.forEach(doc => allContent.push({ id: doc.id, ...doc.data() }));
-                    channelsPage = 0;
-                    renderInitialRows();
-                    loadMoreChannels();
-                } catch (e2) {
-                    console.error('Fallback error:', e2);
-                }
             }
         }
 
         function renderInitialRows() {
-            // الأقسام الخاصة (تrending, sports, movies, kids) - تعرض فقط المحتوى المناسب
             renderRow('trendingRow', allContent.slice(0, 15));
             renderRow('sportsRow', allContent.filter(c => c.category && c.category.includes('رياض')));
             renderRow('moviesRow', allContent.filter(c => c.type === 'movie'));
@@ -642,7 +673,6 @@
             }
 
             const row = document.getElementById('channelsRow');
-            // إذا كانت أول دفعة، امسح "جاري التحميل"
             if (channelsPage === 0) row.innerHTML = '';
             
             pageChannels.forEach(item => {
@@ -651,7 +681,6 @@
 
             channelsPage++;
             
-            // إظهار/إخفاء زر "تحميل المزيد"
             const btn = document.getElementById('loadMoreChannels');
             if (end < allContent.length) {
                 btn.style.display = 'block';
@@ -694,11 +723,11 @@
         }
 
         function getIcon(category, type) {
-            if (type === 'movie') return '';
-            if (category && category.includes('رياض')) return '⚽';
+            if (type === 'movie') return '🎬';
+            if (category && category.includes('رياض')) return '';
             if (category && category.includes('طفل')) return '👶';
             if (category && category.includes('أخبار')) return '📰';
-            return '';
+            return '📺';
         }
 
         function renderRow(rowId, items) {
@@ -751,7 +780,7 @@
             }
         }
 
-        // مشغل محسّن مع معالجة CORS وأخطاء أفضل
+        // ===== مشغل محسّن =====
         function openPlayer(url, name, category) {
             const modal = document.getElementById('playerModal');
             const video = document.getElementById('videoPlayer');
@@ -760,20 +789,28 @@
             document.getElementById('playerTitle').textContent = name || 'بدون عنوان';
             document.getElementById('playerCategory').textContent = category || 'عام';
             status.textContent = '⏳ جاري التحميل...';
+            status.style.color = '#ffc107';
             modal.classList.add('active');
+            
+            // إعادة تعيين وضع الاحتواء
+            fitMode = 'contain';
+            video.classList.remove('fit-cover');
+            document.getElementById('fitBtn').textContent = ' احتواء';
+            document.getElementById('fitBtn').classList.remove('active');
             
             if (hls) { hls.destroy(); hls = null; }
             video.pause();
             video.removeAttribute('src');
             video.load();
 
-            // محاولة تشغيل الرابط مباشرة أولاً
             const tryPlay = (sourceUrl) => {
                 if (Hls.isSupported()) {
                     hls = new Hls({
                         enableWorker: true,
                         lowLatencyMode: true,
-                        backBufferLength: 90
+                        backBufferLength: 90,
+                        maxBufferLength: 30,
+                        maxMaxBufferLength: 60
                     });
                     
                     hls.loadSource(sourceUrl);
@@ -784,21 +821,19 @@
                         status.style.color = '#46d369';
                         video.play().catch(e => {
                             status.textContent = '⚠️ اضغط للتشغيل';
-                            console.log('Auto-play blocked:', e);
                         });
                     });
                     
                     hls.on(Hls.Events.ERROR, (event, data) => {
-                        console.log('HLS Error:', data);
                         if (data.fatal) {
                             switch(data.type) {
                                 case Hls.ErrorTypes.NETWORK_ERROR:
-                                    status.textContent = '❌ خطأ في الشبكة - محاولة إعادة...';
-                                    status.style.color = '#e50914';
+                                    status.textContent = '🔄 إعادة الاتصال...';
+                                    status.style.color = '#ffc107';
                                     hls.startLoad();
                                     break;
                                 case Hls.ErrorTypes.MEDIA_ERROR:
-                                    status.textContent = '⚠️ خطأ في الوسائط - إصلاح...';
+                                    status.textContent = '⚠️ إصلاح...';
                                     status.style.color = '#ffc107';
                                     hls.recoverMediaError();
                                     break;
@@ -806,7 +841,6 @@
                                     status.textContent = '❌ تعذر التشغيل';
                                     status.style.color = '#e50914';
                                     hls.destroy();
-                                    alert('⚠️ تعذر تشغيل هذا البث.\n\nالأسباب المحتملة:\n• الرابط غير صالح أو منتهي\n• المشكلة من مصدر البث نفسه\n• جرب قناة أخرى');
                                     break;
                             }
                         }
@@ -815,18 +849,16 @@
                     video.src = sourceUrl;
                     video.addEventListener('loadedmetadata', () => {
                         status.textContent = '▶ يعمل';
+                        status.style.color = '#46d369';
                         video.play();
                     });
                     video.addEventListener('error', () => {
                         status.textContent = ' تعذر التشغيل';
-                        alert('️ تعذر تشغيل هذا البث.');
+                        status.style.color = '#e50914';
                     });
-                } else {
-                    alert('متصفحك لا يدعم تشغيل هذا النوع من البث.');
                 }
             };
 
-            // محاولة مع proxy إذا فشل المباشر
             tryPlay(url);
         }
 
@@ -836,6 +868,41 @@
             modal.classList.remove('active');
             video.pause();
             if (hls) { hls.destroy(); hls = null; }
+            // الخروج من ملء الشاشة إن كان نشطاً
+            if (document.fullscreenElement) {
+                document.exitFullscreen().catch(e => {});
+            }
+        }
+
+        // تبديل بين الاحتواء والقص
+        function toggleFitMode() {
+            const video = document.getElementById('videoPlayer');
+            const btn = document.getElementById('fitBtn');
+            if (fitMode === 'contain') {
+                video.classList.add('fit-cover');
+                btn.textContent = '️ قص';
+                btn.classList.add('active');
+                fitMode = 'cover';
+            } else {
+                video.classList.remove('fit-cover');
+                btn.textContent = '🔲 احتواء';
+                btn.classList.remove('active');
+                fitMode = 'contain';
+            }
+        }
+
+        // ملء الشاشة الحقيقي
+        function toggleFullscreen() {
+            const container = document.querySelector('.player-container');
+            if (!document.fullscreenElement) {
+                if (container.requestFullscreen) container.requestFullscreen();
+                else if (container.webkitRequestFullscreen) container.webkitRequestFullscreen();
+                else if (container.msRequestFullscreen) container.msRequestFullscreen();
+                else if (container.mozRequestFullScreen) container.mozRequestFullScreen();
+            } else {
+                if (document.exitFullscreen) document.exitFullscreen();
+                else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+            }
         }
 
         function searchContent(query) {
@@ -937,7 +1004,6 @@
                 const url = document.getElementById('importUrl').value.trim();
                 if (!url) { alert('الرجاء إدخال رابط القائمة'); return; }
                 try {
-                    // استخدام proxy لتجاوز CORS
                     const proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url);
                     const resp = await fetch(proxyUrl);
                     content = await resp.text();
@@ -997,9 +1063,8 @@
 
             let added = 0, errors = 0;
             const total = channels.length;
-
-            // إضافة على دفعات لتجنب الإرهاق
             const batchSize = 10;
+
             for (let i = 0; i < channels.length; i += batchSize) {
                 const batch = db.batch();
                 const batchChannels = channels.slice(i, i + batchSize);
@@ -1023,8 +1088,6 @@
                 
                 progressBar.style.width = (Math.min(i + batchSize, total) / total * 100) + '%';
                 log.scrollTop = log.scrollHeight;
-                
-                // تأخير بسيط لتجنب rate limiting
                 await new Promise(r => setTimeout(r, 100));
             }
 
@@ -1061,7 +1124,12 @@
         async function loadChannelsList() {
             const list = document.getElementById('channelsList');
             try {
-                const snap = await db.collection('channels').orderBy('name', 'asc').get();
+                let snap;
+                try {
+                    snap = await db.collection('channels').orderBy('name', 'asc').get();
+                } catch (e) {
+                    snap = await db.collection('channels').get();
+                }
                 if (snap.empty) {
                     list.innerHTML = '<div class="no-content">لا توجد قنوات</div>';
                     return;
@@ -1085,30 +1153,7 @@
                     list.appendChild(item);
                 });
             } catch (error) {
-                // Fallback بدون ترتيب
-                try {
-                    const snap = await db.collection('channels').get();
-                    list.innerHTML = '';
-                    snap.forEach(doc => {
-                        const ch = doc.data();
-                        const item = document.createElement('div');
-                        item.className = 'channel-item';
-                        item.dataset.name = (ch.name || '').toLowerCase();
-                        item.innerHTML = `
-                            <div class="channel-info">
-                                <div class="channel-name">${ch.name || 'بدون اسم'}</div>
-                                <div class="channel-cat">${ch.category || 'عام'}</div>
-                            </div>
-                            <div class="channel-actions">
-                                <button class="btn-icon btn-edit" onclick="editChannel('${doc.id}')">✏️</button>
-                                <button class="btn-icon btn-delete" onclick="deleteChannel('${doc.id}')">🗑️</button>
-                            </div>
-                        `;
-                        list.appendChild(item);
-                    });
-                } catch (e2) {
-                    list.innerHTML = '<div class="no-content">خطأ في التحميل</div>';
-                }
+                list.innerHTML = '<div class="no-content">خطأ في التحميل</div>';
             }
         }
 
