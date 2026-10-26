@@ -4,14 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>IPTV MAX</title>
-    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    
+    <!-- ✅ سكريبتات Firebase - لا تحذفها أبداً -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    
     <style>
-        :root { --primary: #e50914; --bg: #141414; --surface: #1f1f1f; --surface-light: #2a2a2a; --text: #ffffff; --text-sec: #b3b3b3; --success: #46d369; }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; -webkit-tap-highlight-color: transparent; }
+        :root { --primary: #e50914; --bg: #141414; --surface: #1f1f1f; --text: #ffffff; --text-sec: #b3b3b3; --success: #46d369; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; }
         body { background: var(--bg); color: var(--text); padding-bottom: 70px; overflow-x: hidden; }
         
         .auth-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.9)), url('https://assets.nflxext.com/ffe/siteui/vlv3/9d3533b2-0e2b-40b2-95e0-ecd7979cc88b/a3873901-5b7c-46eb-b9fa-12f517af68e4/EG-ar-20240408-popsignuptwoweeks-perspective_alpha_website_large.jpg') center/cover; display: flex; align-items: center; justify-content: center; z-index: 2000; padding: 20px; }
@@ -19,20 +22,17 @@
         .auth-box h1 { color: var(--primary); font-size: 32px; margin-bottom: 20px; text-align: center; }
         .form-group { margin-bottom: 15px; }
         .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 14px; background: #333; border: none; border-radius: 4px; color: white; font-size: 16px; font-family: 'Cairo', sans-serif; }
-        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: 2px solid var(--primary); background: #454545; }
-        .form-group textarea { min-height: 100px; resize: vertical; }
+        .form-group input:focus { outline: 2px solid var(--primary); background: #454545; }
         .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .btn-primary { width: 100%; padding: 14px; background: var(--primary); color: white; border: none; border-radius: 4px; font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 10px; transition: all 0.3s; }
-        .btn-primary:hover { background: #f40612; transform: translateY(-2px); }
+        .btn-primary { width: 100%; padding: 14px; background: var(--primary); color: white; border: none; border-radius: 4px; font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 10px; }
+        .btn-primary:hover { background: #f40612; }
         .btn-secondary { width: 100%; padding: 14px; background: rgba(109,109,110,0.7); color: white; border: none; border-radius: 4px; font-size: 16px; cursor: pointer; margin-top: 10px; }
         .btn-success { background: var(--success); color: black; }
         .btn-info { background: #54b9c5; color: black; }
-        .btn-warning { background: #ff9800; color: black; }
         .error-msg { background: var(--primary); color: white; padding: 10px; border-radius: 4px; margin-bottom: 15px; display: none; font-size: 14px; text-align: center; }
 
         .top-header { position: fixed; top: 0; width: 100%; padding: 15px 20px; background: linear-gradient(180deg, rgba(0,0,0,0.9) 0%, transparent 100%); z-index: 100; display: flex; justify-content: space-between; align-items: center; }
         .logo { color: var(--primary); font-size: 24px; font-weight: 900; letter-spacing: 1px; }
-        .header-actions { display: flex; gap: 15px; align-items: center; }
         .avatar { width: 32px; height: 32px; background: var(--primary); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-weight: bold; cursor: pointer; }
 
         .view { display: none; padding-top: 60px; animation: fadeIn 0.3s ease; }
@@ -55,25 +55,8 @@
         .row { display: flex; gap: 10px; overflow-x: auto; padding: 0 20px 20px; scrollbar-width: none; }
         .row::-webkit-scrollbar { display: none; }
         
-        /* بطاقات محسّنة */
-        .card { 
-            min-width: 140px; 
-            height: 200px; 
-            background: var(--surface); 
-            border-radius: 8px; 
-            overflow: hidden; 
-            position: relative; 
-            cursor: pointer; 
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
-            flex-shrink: 0;
-            border: 1px solid transparent;
-        }
-        .card:hover { 
-            transform: scale(1.08) translateY(-5px); 
-            z-index: 10; 
-            border-color: var(--primary);
-            box-shadow: 0 10px 30px rgba(229, 9, 20, 0.3);
-        }
+        .card { min-width: 140px; height: 200px; background: var(--surface); border-radius: 8px; overflow: hidden; position: relative; cursor: pointer; transition: all 0.3s; flex-shrink: 0; border: 1px solid transparent; }
+        .card:hover { transform: scale(1.08) translateY(-5px); border-color: var(--primary); box-shadow: 0 10px 30px rgba(229, 9, 20, 0.3); }
         .card img { width: 100%; height: 75%; object-fit: cover; }
         .card-placeholder { width: 100%; height: 75%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; font-size: 40px; }
         .card-info { padding: 8px; }
@@ -96,7 +79,7 @@
         .setting-value { color: var(--text-sec); font-size: 14px; }
 
         .bottom-nav { position: fixed; bottom: 0; width: 100%; background: #121212; border-top: 1px solid #333; display: flex; justify-content: space-around; padding: 10px 0; z-index: 100; }
-        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--text-sec); text-decoration: none; font-size: 11px; cursor: pointer; padding: 5px 15px; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--text-sec); font-size: 11px; cursor: pointer; padding: 5px 15px; }
         .nav-item.active { color: white; }
         .nav-item svg { width: 24px; height: 24px; fill: currentColor; }
 
@@ -135,7 +118,7 @@
         .log-item.info { color: #54b9c5; }
 
         .xtream-tabs { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
-        .xtream-tab { flex: 1; min-width: 100px; padding: 10px; background: #333; color: white; border: 2px solid transparent; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; text-align: center; transition: all 0.3s; }
+        .xtream-tab { flex: 1; min-width: 100px; padding: 10px; background: #333; color: white; border: 2px solid transparent; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; text-align: center; }
         .xtream-tab.active { background: var(--primary); border-color: var(--primary); }
         .xtream-section { display: none; }
         .xtream-section.active { display: block; }
@@ -145,31 +128,17 @@
         .status-err { background: #f44336; color: white; }
         .status-wait { background: #ff9800; color: black; }
 
-        /* قائمة القنوات المحسّنة */
-        .channels-list-view { padding: 20px; }
-        .channels-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 15px; }
-        .channel-grid-card { 
-            background: var(--surface); 
-            border-radius: 8px; 
-            overflow: hidden; 
-            cursor: pointer; 
-            transition: all 0.3s;
-            border: 1px solid transparent;
-        }
-        .channel-grid-card:hover { 
-            transform: translateY(-5px); 
-            border-color: var(--primary);
-            box-shadow: 0 10px 30px rgba(229, 9, 20, 0.3);
-        }
-        .channel-grid-card img { width: 100%; height: 120px; object-fit: cover; }
-        .channel-grid-card .card-placeholder { width: 100%; height: 120px; }
-        .channel-grid-info { padding: 12px; }
-        .channel-grid-name { font-size: 14px; font-weight: 700; margin-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .channel-grid-cat { font-size: 11px; color: var(--text-sec); display: flex; align-items: center; gap: 5px; }
-
         .search-box { padding: 15px 20px; }
         .search-input { width: 100%; padding: 12px 15px; background: var(--surface); border: 1px solid #333; border-radius: 25px; color: white; font-size: 14px; }
         .search-input:focus { outline: none; border-color: var(--primary); }
+
+        .channels-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 15px; padding: 0 20px 20px; }
+        .channel-grid-card { background: var(--surface); border-radius: 8px; overflow: hidden; cursor: pointer; transition: all 0.3s; border: 1px solid transparent; }
+        .channel-grid-card:hover { transform: translateY(-5px); border-color: var(--primary); box-shadow: 0 10px 30px rgba(229, 9, 20, 0.3); }
+        .channel-grid-card img { width: 100%; height: 120px; object-fit: cover; }
+        .channel-grid-info { padding: 12px; }
+        .channel-grid-name { font-size: 14px; font-weight: 700; margin-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .channel-grid-cat { font-size: 11px; color: var(--text-sec); display: flex; align-items: center; gap: 5px; }
 
         @media (min-width: 768px) {
             .card { min-width: 180px; height: 260px; }
@@ -232,7 +201,7 @@
                 <div class="row" id="liveRow"></div>
             </div>
             <div class="section">
-                <div class="section-title">⚽ رياضة <span class="count" id="sportsCount">0</span></div>
+                <div class="section-title"> رياضة <span class="count" id="sportsCount">0</span></div>
                 <div class="row" id="sportsRow"></div>
             </div>
             <div class="section">
@@ -249,27 +218,27 @@
             </div>
         </div>
 
-        <!-- CHANNELS LIST VIEW (مُحسّن) -->
+        <!-- CHANNELS LIST VIEW -->
         <div class="view" id="view-channels">
             <div class="page-header">جميع القنوات</div>
             <div class="search-box">
-                <input type="text" class="search-input" id="channelSearch" placeholder="🔍 ابحث عن قناة..." oninput="filterChannels(this.value)">
+                <input type="text" class="search-input" id="channelSearch" placeholder=" ابحث عن قناة..." oninput="filterChannels(this.value)">
             </div>
-            <div class="channels-list-view">
-                <div class="channels-grid" id="channelsGrid"></div>
-            </div>
+            <div class="channels-grid" id="channelsGrid"></div>
         </div>
 
         <!-- LIBRARY VIEW -->
         <div class="view" id="view-library">
             <div class="page-header">المكتبة</div>
             <div class="tabs">
-                <div class="tab active">محفوظ</div>
-                <div class="tab">سحابي</div>
+                <div class="tab active" onclick="switchLibTab('saved', this)">محفوظ</div>
+                <div class="tab" onclick="switchLibTab('favorites', this)">❤️ المفضلة</div>
             </div>
-            <div class="empty-state">
-                <h3>مكتبتك فارغة</h3>
-                <p style="margin-top:10px; font-size:14px;">القنوات والأفلام التي تحفظها ستظهر هنا.</p>
+            <div id="libContent">
+                <div class="empty-state">
+                    <h3>مكتبتك فارغة</h3>
+                    <p style="margin-top:10px; font-size:14px;">القنوات والأفلام التي تحفظها ستظهر هنا.</p>
+                </div>
             </div>
         </div>
 
@@ -296,14 +265,14 @@
                 
                 <div class="admin-card">
                     <h3>⚠️ إدارة قاعدة البيانات</h3>
-                    <p>احذف جميع القنوات الحالية قبل استيراد قائمة جديدة لتجنب التكرار وتجميد الموقع.</p>
+                    <p>احذف جميع القنوات الحالية قبل استيراد قائمة جديدة.</p>
                     <button class="btn-danger" onclick="deleteAllChannels()">🗑️ حذف جميع القنوات الحالية</button>
                 </div>
 
                 <!-- Xtream Codes -->
                 <div class="admin-card">
-                    <h3>🔐 Xtream Codes API</h3>
-                    <p>استيراد القنوات من سيرفر Xtream Codes (يستخدمه معظم مزودي IPTV).</p>
+                    <h3> Xtream Codes API</h3>
+                    <p>استيراد القنوات من سيرفر Xtream Codes.</p>
                     
                     <div class="form-row">
                         <div class="form-group">
@@ -326,15 +295,13 @@
                         </div>
                     </div>
                     
-                    <div style="display:flex; gap:10px; margin-top:10px;">
-                        <button class="btn-primary btn-info" onclick="testXtream()" style="flex:1;">🔗 اختبار الاتصال</button>
-                    </div>
+                    <button class="btn-primary btn-info" onclick="testXtream()" style="margin-top:10px;"> اختبار الاتصال</button>
                     <div id="xtreamStatus" style="margin-top:10px;"></div>
 
                     <div class="xtream-tabs" style="margin-top:20px;">
-                        <div class="xtream-tab active" onclick="switchXtreamTab('live', this)"> قنوات مباشرة</div>
+                        <div class="xtream-tab active" onclick="switchXtreamTab('live', this)">📺 قنوات مباشرة</div>
                         <div class="xtream-tab" onclick="switchXtreamTab('vod', this)">🎬 أفلام VOD</div>
-                        <div class="xtream-tab" onclick="switchXtreamTab('series', this)">📺 مسلسلات</div>
+                        <div class="xtream-tab" onclick="switchXtreamTab('series', this)"> مسلسلات</div>
                     </div>
 
                     <div class="xtream-section active" id="xtreamLive">
@@ -353,7 +320,7 @@
 
                 <!-- M3U Import -->
                 <div class="admin-card">
-                    <h3> استيراد M3U</h3>
+                    <h3>📄 استيراد M3U</h3>
                     <div class="form-group">
                         <select id="importMethod" onchange="toggleImportUI()" style="width:100%; padding:12px; background:#333; color:white; border:none; border-radius:4px;">
                             <option value="url">رابط القائمة (URL)</option>
@@ -364,7 +331,7 @@
                         <input type="text" id="importUrl" placeholder="https://example.com/playlist.m3u">
                     </div>
                     <div class="form-group" id="importTextGroup" style="display:none;">
-                        <textarea id="importText" placeholder="#EXTM3U..."></textarea>
+                        <textarea id="importText" placeholder="#EXTM3U..." style="width:100%; padding:12px; background:#333; color:white; border:none; border-radius:4px; min-height:100px;"></textarea>
                     </div>
                     <button class="btn-primary" id="startImportBtn" onclick="startImport()">🚀 بدء الاستيراد</button>
                     <button class="btn-danger" id="stopImportBtn" onclick="stopImport()" style="display:none; margin-top:10px;">⏹ إيقاف</button>
@@ -379,10 +346,10 @@
                     <div class="form-group"><input type="text" id="addUrl" placeholder="رابط البث (M3U8)"></div>
                     <div class="form-group">
                         <select id="addCategory" style="width:100%; padding:12px; background:#333; color:white; border:none; border-radius:4px;">
-                            <option value="رياضة"> رياضة</option>
+                            <option value="رياضة">⚽ رياضة</option>
                             <option value="أخبار">📰 أخبار</option>
                             <option value="أفلام">🎬 أفلام</option>
-                            <option value="مسلسلات">📺 مسلسلات</option>
+                            <option value="مسلسلات"> مسلسلات</option>
                             <option value="أطفال">👶 أطفال</option>
                             <option value="موسيقى">🎵 موسيقى</option>
                             <option value="ديني">🕌 ديني</option>
@@ -434,7 +401,7 @@
             </div>
             <div class="modal-actions">
                 <button class="btn-hero play" id="modalPlayBtn">▶ تشغيل</button>
-                <button class="btn-hero info">+ قائمتي</button>
+                <button class="btn-hero info" id="modalFavBtn" onclick="toggleFavorite()">❤️ المفضلة</button>
             </div>
             <p class="modal-desc" id="modalDesc">شاهد هذه القناة بجودة عالية.</p>
         </div>
@@ -459,6 +426,7 @@
     </div>
 
     <script>
+        // ===== Firebase Config =====
         const firebaseConfig = {
             apiKey: "AIzaSyB_q5oVLcsJatJhhjLhzPOfSSjodMac258",
             authDomain: "iptv-platform-683da.firebaseapp.com",
@@ -467,26 +435,29 @@
             messagingSenderId: "776346779345",
             appId: "1:776346779345:web:7b55ff2676c0aa1752cff0"
         };
+        
+        // ✅ تهيئة Firebase
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
         const ADMIN_EMAIL = 'tantanporte@gmail.com';
+
+        // ===== Cloudflare Proxy (الخيار الأول) =====
+        const MY_PROXY = 'https://iptv-proxy.tantanporte.workers.dev/?url=';
+        const CORS_PROXIES = [
+            url => MY_PROXY + encodeURIComponent(url),
+            url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+            url => `https://corsproxy.io/?${encodeURIComponent(url)}`
+        ];
 
         let allChannels = [];
         let currentUser = null;
         let isAdmin = false;
         let hls = null;
         let stopImportFlag = false;
+        let currentChannel = null;
 
-        // CORS Proxies الموثوقة
-        const CORS_PROXIES = [
-            url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
-            url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
-            url => `https://thingproxy.freeboard.io/fetch/${url}`,
-            url => `https://cors-anywhere.herokuapp.com/${url}`
-        ];
-
-        // Auth
+        // ===== Auth =====
         auth.onAuthStateChanged(user => {
             if (user) {
                 currentUser = user;
@@ -521,7 +492,8 @@
                 await db.collection('users').doc(cred.user.uid).set({
                     name: document.getElementById('regName').value,
                     email: cred.user.email,
-                    role: isAdmin ? 'admin' : 'user'
+                    role: 'user',
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
             } catch (e) { showError(e.message); }
         }
@@ -534,7 +506,7 @@
 
         function logout() { auth.signOut(); }
 
-        // Navigation
+        // ===== Navigation =====
         function switchView(viewName, navEl) {
             document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
             document.getElementById('view-' + viewName).classList.add('active');
@@ -542,9 +514,16 @@
             if(navEl) navEl.classList.add('active');
             window.scrollTo(0,0);
             if(viewName === 'channels') renderChannelsGrid();
+            if(viewName === 'library') renderLibrary();
         }
 
-        // Data Loading
+        function switchLibTab(tab, el) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            el.classList.add('active');
+            renderLibrary(tab);
+        }
+
+        // ===== Data Loading =====
         async function loadChannels() {
             try {
                 const snap = await db.collection('channels').orderBy('name').get();
@@ -623,12 +602,55 @@
                 (c.name && c.name.toLowerCase().includes(q)) || 
                 (c.category && c.category.toLowerCase().includes(q))
             );
-            const grid = document.getElementById('channelsGrid');
-            grid.innerHTML = filtered.map(c => createGridCard(c)).join('');
+            document.getElementById('channelsGrid').innerHTML = filtered.map(c => createGridCard(c)).join('');
         }
 
-        // Details & Player
-        let currentChannel = null;
+        // ===== Favorites (localStorage) =====
+        function getFavorites() {
+            return JSON.parse(localStorage.getItem('favorites') || '[]');
+        }
+        function saveFavorites(favs) {
+            localStorage.setItem('favorites', JSON.stringify(favs));
+        }
+        function isFavorite(channelId) {
+            return getFavorites().includes(channelId);
+        }
+        function toggleFavorite() {
+            if(!currentChannel) return;
+            let favs = getFavorites();
+            const idx = favs.indexOf(currentChannel.id);
+            if(idx > -1) {
+                favs.splice(idx, 1);
+                alert('تمت الإزالة من المفضلة');
+            } else {
+                favs.push(currentChannel.id);
+                alert('تمت الإضافة للمفضلة ❤️');
+            }
+            saveFavorites(favs);
+            updateFavButton();
+        }
+        function updateFavButton() {
+            const btn = document.getElementById('modalFavBtn');
+            if(!btn || !currentChannel) return;
+            btn.textContent = isFavorite(currentChannel.id) ? ' إزالة من المفضلة' : '❤️ المفضلة';
+        }
+
+        function renderLibrary(tab = 'saved') {
+            const content = document.getElementById('libContent');
+            if(tab === 'favorites') {
+                const favs = getFavorites();
+                const favChannels = allChannels.filter(c => favs.includes(c.id));
+                if(favChannels.length === 0) {
+                    content.innerHTML = '<div class="empty-state"><h3>المفضلة فارغة</h3><p>اضغط على ❤️ في صفحة التفاصيل لحفظ القنوات</p></div>';
+                } else {
+                    content.innerHTML = '<div class="channels-grid">' + favChannels.map(c => createGridCard(c)).join('') + '</div>';
+                }
+            } else {
+                content.innerHTML = '<div class="empty-state"><h3>المكتبة فارغة</h3><p>القنوات والأفلام التي تحفظها ستظهر هنا.</p></div>';
+            }
+        }
+
+        // ===== Details & Player =====
         function openDetails(id) {
             currentChannel = allChannels.find(c => c.id === id);
             if(!currentChannel) return;
@@ -637,6 +659,7 @@
             document.getElementById('modalType').textContent = currentChannel.type === 'live' ? 'مباشر' : currentChannel.type === 'movie' ? 'فيلم' : 'مسلسل';
             document.getElementById('modalHero').style.backgroundImage = `linear-gradient(to top, #141414 0%, transparent 60%), url('${currentChannel.logo || "https://image.tmdb.org/t/p/original/8b8R8l88Qje9dn9OE8PY05Nez7S.jpg"}')`;
             document.getElementById('modalPlayBtn').onclick = () => { closeDetails(); playChannel(currentChannel); };
+            updateFavButton();
             document.getElementById('detailsModal').classList.add('active');
         }
         function closeDetails() { document.getElementById('detailsModal').classList.remove('active'); }
@@ -668,6 +691,17 @@
                 video.src = channel.url;
                 video.play().catch(()=>{});
             }
+
+            // حفظ في سجل المشاهدة
+            saveToWatchHistory(channel);
+        }
+
+        function saveToWatchHistory(channel) {
+            let history = JSON.parse(localStorage.getItem('watchHistory') || '[]');
+            history = history.filter(id => id !== channel.id);
+            history.unshift(channel.id);
+            if(history.length > 10) history = history.slice(0, 10);
+            localStorage.setItem('watchHistory', JSON.stringify(history));
         }
 
         function closePlayer() {
@@ -688,22 +722,30 @@
             else document.exitFullscreen().catch(()=>{});
         }
 
-        // Admin Functions
+        // ===== Admin Functions =====
         async function deleteAllChannels() {
-            if(!confirm('هل أنت متأكد تماماً من حذف جميع القنوات؟ لا يمكن التراجع.')) return;
+            if(!confirm('⚠️ هل أنت متأكد من حذف جميع القنوات؟')) return;
             const btn = event.target;
             btn.textContent = 'جاري الحذف...';
             btn.disabled = true;
             try {
                 const snap = await db.collection('channels').get();
-                const batch = db.batch();
-                snap.forEach(doc => batch.delete(doc.ref));
-                await batch.commit();
+                const total = snap.size;
+                const docs = snap.docs;
+                let deleted = 0;
+                const batchSize = 50;
+                for(let i = 0; i < docs.length; i += batchSize) {
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    const batch = db.batch();
+                    docs.slice(i, i + batchSize).forEach(doc => batch.delete(doc.ref));
+                    await batch.commit();
+                    deleted += Math.min(batchSize, docs.length - i);
+                }
                 allChannels = [];
                 renderHome();
-                alert('تم حذف جميع القنوات بنجاح.');
+                alert(`✅ تم حذف ${deleted} قناة`);
             } catch(e) { alert('خطأ: ' + e.message); }
-            btn.textContent = '🗑️ حذف جميع القنوات الحالية';
+            btn.textContent = '️ حذف جميع القنوات الحالية';
             btn.disabled = false;
         }
 
@@ -714,7 +756,22 @@
             log.scrollTop = log.scrollHeight;
         }
 
-        // ===== XTREAM CODES API مع CORS Proxy =====
+        // ===== CORS Fetch =====
+        async function fetchWithCORS(url) {
+            for(const proxyFn of CORS_PROXIES) {
+                try {
+                    const proxyUrl = proxyFn(url);
+                    const res = await fetch(proxyUrl, { headers: { 'Accept': 'application/json, text/plain, */*' } });
+                    if(res.ok) {
+                        const text = await res.text();
+                        try { return JSON.parse(text); } catch(e) { return text; }
+                    }
+                } catch(e) { continue; }
+            }
+            throw new Error('فشل الاتصال عبر جميع الـ proxies');
+        }
+
+        // ===== Xtream Codes =====
         function switchXtreamTab(tab, el) {
             document.querySelectorAll('.xtream-tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.xtream-section').forEach(s => s.classList.remove('active'));
@@ -727,12 +784,8 @@
             const port = document.getElementById('xtreamPort').value.trim() || '80';
             const user = document.getElementById('xtreamUser').value.trim();
             const pass = document.getElementById('xtreamPass').value.trim();
-            
             if(!server || !user || !pass) return null;
-            
-            server = server.replace(/\/+$/, '');
-            server = server.replace(/:\d+$/, '');
-            
+            server = server.replace(/\/+$/, '').replace(/:\d+$/, '');
             return {
                 base: `${server}:${port}`,
                 user, pass,
@@ -740,183 +793,96 @@
             };
         }
 
-        async function fetchWithCORS(url) {
-            // تجربة عدة proxies
-            for(const proxyFn of CORS_PROXIES) {
-                try {
-                    const proxyUrl = proxyFn(url);
-                    const res = await fetch(proxyUrl, {
-                        headers: { 'Accept': 'application/json, text/plain, */*' }
-                    });
-                    if(res.ok) {
-                        const text = await res.text();
-                        try { return JSON.parse(text); } 
-                        catch(e) { return text; }
-                    }
-                } catch(e) { continue; }
-            }
-            throw new Error('فشل الاتصال عبر جميع الـ proxies');
-        }
-
         async function testXtream() {
             const config = getXtreamBase();
             const statusEl = document.getElementById('xtreamStatus');
-            
-            if(!config) {
-                statusEl.innerHTML = '<span class="status-badge status-err">❌ أكمل جميع الحقول</span>';
-                return;
-            }
-            
-            statusEl.innerHTML = '<span class="status-badge status-wait">⏳ جاري الاختبار...</span>';
-            
+            if(!config) { statusEl.innerHTML = '<span class="status-badge status-err">❌ أكمل الحقول</span>'; return; }
+            statusEl.innerHTML = '<span class="status-badge status-wait"> جاري...</span>';
             try {
                 const data = await fetchWithCORS(config.api + '&action=get_account_info');
-                
                 if(data && data.user_info) {
                     const info = data.user_info;
-                    const status = info.status === 'Active' ? 'نشط' : 'غير نشط';
                     const expDate = info.exp_date ? new Date(info.exp_date * 1000).toLocaleDateString('ar') : 'غير محدد';
-                    const maxConn = info.max_connections || 'غير محدود';
-                    
                     statusEl.innerHTML = `
                         <div style="background:#1a1a1a; padding:15px; border-radius:8px; margin-top:10px;">
-                            <div style="margin-bottom:8px;"><span class="status-badge status-ok">✅ متصل بنجاح</span></div>
-                            <div style="font-size:13px; color:#aaa; line-height:1.8;">
-                                <div>👤 المستخدم: <strong style="color:white;">${info.username}</strong></div>
-                                <div>📊 الحالة: <strong style="color:#46d369;">${status}</strong></div>
-                                <div> الانتهاء: <strong style="color:white;">${expDate}</strong></div>
-                                <div> الاتصالات: <strong style="color:white;">${maxConn}</strong></div>
+                            <span class="status-badge status-ok">✅ متصل</span>
+                            <div style="font-size:13px; color:#aaa; line-height:1.8; margin-top:10px;">
+                                <div>👤 ${info.username}</div>
+                                <div> ${info.status === 'Active' ? 'نشط' : 'غير نشط'}</div>
+                                <div>📅 ${expDate}</div>
                             </div>
-                        </div>
-                    `;
+                        </div>`;
                 } else {
-                    statusEl.innerHTML = '<span class="status-badge status-err">❌ فشل الاتصال - تحقق من البيانات</span>';
+                    statusEl.innerHTML = '<span class="status-badge status-err"> فشل الاتصال</span>';
                 }
-            } catch(e) {
-                statusEl.innerHTML = '<span class="status-badge status-err">❌ خطأ: ' + e.message + '</span>';
-            }
+            } catch(e) { statusEl.innerHTML = '<span class="status-badge status-err">❌ ' + e.message + '</span>'; }
         }
 
         async function importXtream(type) {
             const config = getXtreamBase();
-            if(!config) { alert('أكمل بيانات Xtream Codes أولاً'); return; }
-            
+            if(!config) { alert('أكمل البيانات'); return; }
             stopImportFlag = false;
             const progress = document.getElementById('xtreamProgress');
             const progressFill = document.getElementById('xtreamProgressFill');
             const log = document.getElementById('xtreamLog');
             progress.style.display = 'block';
             log.innerHTML = '';
-            
-            addLog('🚀 بدء استيراد ' + (type === 'live' ? 'القنوات المباشرة' : type === 'vod' ? 'الأفلام' : 'المسلسلات') + '...', 'info', 'xtreamLog');
-            
+            addLog('🚀 بدء الاستيراد...', 'info', 'xtreamLog');
             try {
                 const catAction = type === 'live' ? 'get_live_categories' : type === 'vod' ? 'get_vod_categories' : 'get_series_categories';
                 const streamsAction = type === 'live' ? 'get_live_streams' : type === 'vod' ? 'get_vod_streams' : 'get_series';
-                
                 addLog('📂 جلب التصنيفات...', 'info', 'xtreamLog');
-                
-                let categories = [];
-                try {
-                    categories = await fetchWithCORS(config.api + '&action=' + catAction);
-                } catch(e) {
-                    addLog('❌ فشل جلب التصنيفات: ' + e.message, 'error', 'xtreamLog');
-                    return;
-                }
-                
-                if(!categories || !Array.isArray(categories)) {
-                    addLog('❌ فشل جلب التصنيفات', 'error', 'xtreamLog');
-                    return;
-                }
-                
-                addLog(`✅ تم جلب ${categories.length} تصنيف`, 'success', 'xtreamLog');
-                
+                let categories = await fetchWithCORS(config.api + '&action=' + catAction);
+                if(!Array.isArray(categories)) { addLog('❌ فشل', 'error', 'xtreamLog'); return; }
+                addLog(`✅ ${categories.length} تصنيف`, 'success', 'xtreamLog');
                 addLog('📺 جلب المحتوى...', 'info', 'xtreamLog');
-                let streams = [];
-                try {
-                    streams = await fetchWithCORS(config.api + '&action=' + streamsAction);
-                } catch(e) {
-                    addLog('❌ فشل جلب المحتوى: ' + e.message, 'error', 'xtreamLog');
-                    return;
-                }
-                
-                if(!streams || !Array.isArray(streams)) {
-                    addLog('❌ فشل جلب المحتوى', 'error', 'xtreamLog');
-                    return;
-                }
-                
-                addLog(`✅ تم جلب ${streams.length} عنصر`, 'success', 'xtreamLog');
-                
+                let streams = await fetchWithCORS(config.api + '&action=' + streamsAction);
+                if(!Array.isArray(streams)) { addLog('❌ فشل', 'error', 'xtreamLog'); return; }
+                addLog(`✅ ${streams.length} عنصر`, 'success', 'xtreamLog');
                 const catMap = {};
                 categories.forEach(c => { catMap[c.category_id] = c.category_name; });
-                
                 const channelsToAdd = streams.map(s => {
                     let streamUrl = '';
-                    if(type === 'live') {
-                        streamUrl = `${config.base}/live/${config.user}/${config.pass}/${s.stream_id}.m3u8`;
-                    } else if(type === 'vod') {
-                        const ext = s.container_extension || 'mp4';
-                        streamUrl = `${config.base}/movie/${config.user}/${config.pass}/${s.stream_id}.${ext}`;
-                    } else {
-                        streamUrl = `${config.base}/series/${config.user}/${config.pass}/${s.series_id}.json`;
-                    }
-                    
+                    if(type === 'live') streamUrl = `${config.base}/live/${config.user}/${config.pass}/${s.stream_id}.m3u8`;
+                    else if(type === 'vod') streamUrl = `${config.base}/movie/${config.user}/${config.pass}/${s.stream_id}.${s.container_extension || 'mp4'}`;
+                    else streamUrl = `${config.base}/series/${config.user}/${config.pass}/${s.series_id}.json`;
                     return {
                         name: s.name || 'بدون اسم',
                         url: streamUrl,
                         logo: s.stream_icon || s.cover || '',
                         category: catMap[s.category_id] || mapCategory(s.name, type),
-                        type: type === 'live' ? 'live' : type === 'vod' ? 'movie' : 'series',
-                        xtreamId: s.stream_id || s.series_id
+                        type: type === 'live' ? 'live' : type === 'vod' ? 'movie' : 'series'
                     };
                 });
-                
-                addLog(`📦 بدء إضافة ${channelsToAdd.length} عنصر...`, 'warn', 'xtreamLog');
-                
+                addLog(`📦 إضافة ${channelsToAdd.length} عنصر...`, 'warn', 'xtreamLog');
                 let added = 0;
                 const batchSize = 10;
-                
                 for(let i=0; i<channelsToAdd.length; i+=batchSize) {
-                    if(stopImportFlag) { addLog('⏹ تم الإيقاف', 'warn', 'xtreamLog'); break; }
+                    if(stopImportFlag) break;
                     await new Promise(r => setTimeout(r, 50));
-                    
                     const batch = db.batch();
-                    const chunk = channelsToAdd.slice(i, i+batchSize);
-                    chunk.forEach(ch => {
-                        const ref = db.collection('channels').doc();
-                        batch.set(ref, { ...ch, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+                    channelsToAdd.slice(i, i+batchSize).forEach(ch => {
+                        batch.set(db.collection('channels').doc(), { ...ch, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
                     });
-                    
-                    try {
-                        await batch.commit();
-                        added += chunk.length;
-                        progressFill.style.width = ((i+batchSize)/channelsToAdd.length * 100) + '%';
-                        if(i % 50 === 0) addLog(`📊 تقدم: ${added} / ${channelsToAdd.length}`, 'info', 'xtreamLog');
-                    } catch(e) { addLog(' خطأ في الدفعة', 'error', 'xtreamLog'); }
+                    try { await batch.commit(); added += batchSize; } catch(e) {}
+                    progressFill.style.width = ((i+batchSize)/channelsToAdd.length * 100) + '%';
                 }
-                
-                addLog(`✅ اكتمل! تمت إضافة ${added} عنصر.`, 'success', 'xtreamLog');
+                addLog(`✅ تمت إضافة ${added}`, 'success', 'xtreamLog');
                 await loadChannels();
-                
-            } catch(e) {
-                addLog('❌ خطأ: ' + e.message, 'error', 'xtreamLog');
-            }
+            } catch(e) { addLog('❌ ' + e.message, 'error', 'xtreamLog'); }
         }
 
         function mapCategory(name, type) {
             const n = (name || '').toLowerCase();
-            if(n.includes('sport') || n.includes('bein') || n.includes('ssc') || n.includes('football')) return 'رياضة';
-            if(n.includes('news') || n.includes('jazera') || n.includes('arabia') || n.includes('cnn')) return 'أخبار';
-            if(n.includes('kids') || n.includes('toon') || n.includes('cartoon') || n.includes('disney')) return 'أطفال';
-            if(n.includes('movie') || n.includes('cinema') || n.includes('film') || type === 'vod') return 'أفلام';
-            if(n.includes('series') || type === 'series') return 'مسلسلات';
-            if(n.includes('music') || n.includes('mtv')) return 'موسيقى';
-            if(n.includes('doc') || n.includes('nature')) return 'وثائقي';
-            if(n.includes('religious') || n.includes('islam') || n.includes('quran')) return 'ديني';
+            if(n.includes('sport') || n.includes('bein')) return 'رياضة';
+            if(n.includes('news')) return 'أخبار';
+            if(n.includes('kids')) return 'أطفال';
+            if(n.includes('movie') || type === 'vod') return 'أفلام';
+            if(type === 'series') return 'مسلسلات';
             return 'عام';
         }
 
-        // M3U Import
+        // ===== M3U Import =====
         function toggleImportUI() {
             const method = document.getElementById('importMethod').value;
             document.getElementById('importUrlGroup').style.display = method === 'url' ? 'block' : 'none';
@@ -927,7 +893,6 @@
             stopImportFlag = false;
             const method = document.getElementById('importMethod').value;
             let content = '';
-            
             document.getElementById('startImportBtn').style.display = 'none';
             document.getElementById('stopImportBtn').style.display = 'block';
             document.getElementById('importProgress').style.display = 'block';
@@ -936,15 +901,12 @@
             if(method === 'url') {
                 const url = document.getElementById('importUrl').value.trim();
                 if(!url) { alert('أدخل الرابط'); resetImportUI(); return; }
-                addLog('🔄 جاري جلب القائمة...', 'warn');
+                addLog('🔄 جاري الجلب...', 'warn');
                 try {
                     content = await fetchWithCORS(url);
                     if(typeof content !== 'string') throw new Error('استجابة غير صالحة');
-                    addLog('✅ تم جلب القائمة بنجاح', 'success');
-                } catch(e) {
-                    addLog('❌ فشل الجلب. جرب "لصق النص"', 'error');
-                    resetImportUI(); return;
-                }
+                    addLog('✅ تم الجلب', 'success');
+                } catch(e) { addLog('❌ فشل', 'error'); resetImportUI(); return; }
             } else {
                 content = document.getElementById('importText').value.trim();
                 if(!content) { alert('الصق المحتوى'); resetImportUI(); return; }
@@ -955,7 +917,7 @@
             let currentName = '', currentLogo = '', currentCat = 'عام';
 
             for(let i=0; i<lines.length; i++) {
-                if(stopImportFlag) { addLog('⏹ تم الإيقاف', 'warn'); break; }
+                if(stopImportFlag) break;
                 const line = lines[i].trim();
                 if(line.startsWith('#EXTINF:')) {
                     const nameMatch = line.match(/,(.+)$/);
@@ -963,47 +925,33 @@
                     const groupMatch = line.match(/group-title="([^"]*)"/);
                     currentName = nameMatch ? nameMatch[1].trim() : 'قناة';
                     currentLogo = logoMatch ? logoMatch[1] : '';
-                    const group = groupMatch ? groupMatch[1].toLowerCase() : '';
-                    currentCat = mapCategory(group, 'live');
+                    currentCat = mapCategory(groupMatch ? groupMatch[1] : '', 'live');
                 } else if(line && !line.startsWith('#') && currentName && line.startsWith('http')) {
                     channelsToAdd.push({ name: currentName, url: line, logo: currentLogo, category: currentCat, type: 'live' });
                     currentName = '';
                 }
             }
 
-            if(channelsToAdd.length === 0) {
-                addLog(' لم يتم العثور على قنوات', 'error');
-                resetImportUI(); return;
-            }
-
-            addLog(`📦 بدء إضافة ${channelsToAdd.length} قناة...`, 'warn');
+            if(channelsToAdd.length === 0) { addLog('❌ لا قنوات', 'error'); resetImportUI(); return; }
+            addLog(`📦 ${channelsToAdd.length} قناة...`, 'warn');
             let added = 0;
             const batchSize = 10;
-            
             for(let i=0; i<channelsToAdd.length; i+=batchSize) {
                 if(stopImportFlag) break;
                 await new Promise(r => setTimeout(r, 50));
                 const batch = db.batch();
-                const chunk = channelsToAdd.slice(i, i+batchSize);
-                chunk.forEach(ch => {
-                    const ref = db.collection('channels').doc();
-                    batch.set(ref, { ...ch, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+                channelsToAdd.slice(i, i+batchSize).forEach(ch => {
+                    batch.set(db.collection('channels').doc(), { ...ch, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
                 });
-                try {
-                    await batch.commit();
-                    added += chunk.length;
-                    document.getElementById('importProgressFill').style.width = ((i+batchSize)/channelsToAdd.length * 100) + '%';
-                    if(i % 50 === 0) addLog(`📊 تمت إضافة ${added} قناة...`);
-                } catch(e) { addLog('❌ خطأ في الدفعة', 'error'); }
+                try { await batch.commit(); added += batchSize; } catch(e) {}
+                document.getElementById('importProgressFill').style.width = ((i+batchSize)/channelsToAdd.length * 100) + '%';
             }
-
-            addLog(`✅ اكتمل! تمت إضافة ${added} قناة.`, 'success');
+            addLog(`✅ ${added} قناة`, 'success');
             await loadChannels();
             resetImportUI();
         }
 
-        function stopImport() { stopImportFlag = true; addLog('⏹ جاري الإيقاف...', 'warn'); }
-
+        function stopImport() { stopImportFlag = true; addLog('⏹ إيقاف...', 'warn'); }
         function resetImportUI() {
             document.getElementById('startImportBtn').style.display = 'block';
             document.getElementById('stopImportBtn').style.display = 'none';
@@ -1019,7 +967,7 @@
             if(!name || !url) { alert('أكمل البيانات'); return; }
             try {
                 await db.collection('channels').add({ name, url, category: cat, logo, type: 'live', createdAt: firebase.firestore.FieldValue.serverTimestamp() });
-                alert('تمت الإضافة');
+                alert('✅ تمت الإضافة');
                 document.getElementById('addName').value = '';
                 document.getElementById('addUrl').value = '';
                 document.getElementById('addLogo').value = '';
