@@ -1,82 +1,93 @@
-async function fetchWithProxies(url, logElement, timeoutMs = 5000) {
-    if (!url) {
-        throw new Error('الرابط (URL) مطلوب');
+/**
+ * يجلب محتوى رابط عبر عدة بروكسيات CORS بالتتابع، مع مهلة زمنية لكل محاولة.
+ * @param {string} url - الرابط المراد جلبه.
+ * @param {HTMLElement} [logElement] - عنصر لعرض سجل المحاولات (اختياري).
+ * @param {object} [opts]
+ * @param {number} [opts.timeout=15000] - المهلة لكل بروكسي بالمللي ثانية.
+ * @param {number} [opts.minLength=1] - أقل طول مقبول للمحتوى (بالأحرف).
+ * @returns {Promise<{content: string, proxy: string}>}
+ */
+async function fetchWithProxies(url, logElement, opts = {}) {
+    const { timeout = 15000, minLength = 1 } = opts;
+
+    // التحقق من صحة الرابط
+    try {
+        new URL(url);
+    } catch {
+        throw new Error(`رابط غير صالح: ${url}`);
     }
 
-    const encodedUrl = encodeURIComponent(url);
-    
-    // تم ترتيب الوكلاء من الأكثر موثوقية إلى الأقل
     const proxies = [
-        { 
-            name: 'AllOrigins', 
-            url: `https://api.allorigins.win/raw?url=${encodedUrl}` 
+        {
+            name: 'AllOrigins',
+            url: `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`
         },
-        { 
-            name: 'CORS Proxy', 
-            url: `https://corsproxy.io/?${encodedUrl}` 
+        {
+            name: 'CORS Proxy',
+            url: `https://corsproxy.io/?url=${encodeURIComponent(url)}`  // الصيغة الصحيحة
         },
-        { 
-            name: 'ThingProxy', 
-            url: `https://thingproxy.freeboard.io/fetch/${encodedUrl}` 
-        },
-        { 
-            name: 'CORS.sh', 
-            url: `https://proxy.cors.sh/${encodedUrl}`,
+        {
+            name: 'CORS.sh',
+            url: `https://proxy.cors.sh/${url}`,
             headers: { 'x-requested-with': 'XMLHttpRequest' }
+        },
+        {
+            name: 'ThingProxy',
+            url: `https://thingproxy.freeboard.io/fetch/${url}`
         }
     ];
+
+    // كتابة سطر في السجل بأمان (بدون innerHTML)
+    const log = (msg, type = '') => {
+        if (!logElement) return;
+        const div = document.createElement('div');
+        div.className = `log-item${type ? ' ' + type : ''}`;
+        div.textContent = msg;
+        logElement.appendChild(div);
+        logElement.scrollTop = logElement.scrollHeight;
+    };
+
+    const errors = [];
 
     for (let i = 0; i < proxies.length; i++) {
         const proxy = proxies[i];
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+        const timer = setTimeout(() => controller.abort(), timeout);
 
         try {
-            if (logElement) {
-                logElement.insertAdjacentHTML('beforeend', `<div class="log-item warning">🔄 محاولة ${i + 1}: ${proxy.name}...</div>`);
-                logElement.scrollTop = logElement.scrollHeight;
-            }
-            
-            const options = { 
+            log(`🔄 محاولة ${i + 1}: ${proxy.name}...`, 'warning');
+
+            const response = await fetch(proxy.url, {
                 method: 'GET',
-                signal: controller.signal // ربط إشارة الإلغاء بطلب fetch
-            };
-            
-            if (proxy.headers) {
-                options.headers = proxy.headers;
-            }
-            
-            const response = await fetch(proxy.url, options);
-            clearTimeout(timeoutId); // إلغاء المؤقت لأن الطلب نجح
-            
+                headers: proxy.headers || undefined,
+                signal: controller.signal
+            });
+
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}`);
             }
-            
+
             const content = await response.text();
-            
-            // التحقق من أن المحتوى ليس فارغاً أو صفحة خطأ صغيرة من الوكيل
-            if (!content || content.trim().length < 20) {
-                throw new Error('المحتوى المسترجع فارغ أو غير صالح');
+
+            // رفض المحتوى الفارغ أو القصير جدًا
+            if (!content || content.trim().length < minLength) {
+                throw new Error('محتوى فارغ أو غير صالح');
             }
-            
-            if (logElement) {
-                logElement.insertAdjacentHTML('beforeend', `<div class="log-item success">✅ نجح: ${proxy.name} (${(content.length/1024).toFixed(1)} KB)</div>`);
-                logElement.scrollTop = logElement.scrollHeight;
-            }
-            
-            return content;
-            
+
+            log(`✅ نجح: ${proxy.name} (${(content.length / 1024).toFixed(1)} KB)`);
+            return { content, proxy: proxy.name };
+
         } catch (error) {
-            clearTimeout(timeoutId); // تنظيف المؤقت في حالة الخطأ
-            const errorMsg = error.name === 'AbortError' ? 'انتهت مهلة الانتظار (Timeout)' : error.message;
-            
-            if (logElement) {
-                logElement.insertAdjacentHTML('beforeend', `<div class="log-item error">❌ فشل: ${proxy.name} - ${errorMsg}</div>`);
-                logElement.scrollTop = logElement.scrollHeight;
-            }
+            const reason = error.name === 'AbortError'
+                ? `انتهت المهلة (${timeout / 1000}s)`
+                : error.message;
+            log(`❌ فشل: ${proxy.name} - ${reason}`, 'error');
+            errors.push(`${proxy.name}: ${reason}`);
+
+        } finally {
+            clearTimeout(timer);  // مهم: تنظيف المؤقت دائمًا
         }
     }
-    
-    throw new Error('فشلت جميع محاولات التحميل عبر الوكلاء (Proxies)');
+
+    throw new Error(`فشلت جميع محاولات التحميل:\n${errors.join('\n')}`);
 }
