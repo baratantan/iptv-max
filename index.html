@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>منصة IPTV الاحترافية | للبث المباشر</title>
+    <!-- تضمين خطوط ومكتبات أيقونات حديثة لقالب احترافي -->
+    <link rel="stylesheet" href="https://cloudflare.com">
+    <script src="https://jsdelivr.net"></script>
+    <style>
+        :root {
+            --bg-main: #0a0a0c;
+            --bg-side: #13131a;
+            --bg-card: #1c1c24;
+            --accent: #ff9f43;
+            --text-main: #ffffff;
+            --text-sub: #8a8a98;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+        /* القائمة الجانبية للقنوات */
+        .sidebar {
+            width: 320px;
+            background-color: var(--bg-side);
+            border-left: 1px solid #252530;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            z-index: 10;
+        }
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid #252530;
+            text-align: center;
+        }
+        .sidebar-header h2 {
+            margin: 0;
+            font-size: 20px;
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .search-box {
+            padding: 15px;
+            position: relative;
+        }
+        .search-box input {
+            width: 100%;
+            padding: 10px 35px 10px 10px;
+            background-color: var(--bg-card);
+            border: 1px solid #252530;
+            border-radius: 6px;
+            color: var(--text-main);
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+        .search-box i {
+            position: absolute;
+            right: 25px;
+            top: 27px;
+            color: var(--text-sub);
+        }
+        .channel-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+        }
+        .channel-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 12px;
+            background-color: var(--bg-card);
+            margin-bottom: 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+        }
+        .channel-item:hover, .channel-item.active {
+            border-color: var(--accent);
+            background-color: #252533;
+        }
+        .channel-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #2c2c38, #1c1c24);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--accent);
+            font-size: 18px;
+        }
+        .channel-info {
+            flex: 1;
+        }
+        .channel-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+        .channel-status {
+            font-size: 11px;
+            color: var(--text-sub);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .channel-status::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            background-color: #2ecc71;
+            border-radius: 50%;
+        }
+        /* منطقة مشغل الفيديو الرئيسية */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--bg-main);
+            position: relative;
+        }
+        .video-wrapper {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #000;
+            position: relative;
+        }
+        video {
+            width: 100%;
+            height: 100%;
+            max-height: 100vh;
+            object-fit: contain;
+        }
+        .video-overlay-info {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: rgba(10, 10, 12, 0.8);
+            padding: 10px 20px;
+            border-radius: 20px;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255,159,67,0.2);
+            font-size: 14px;
+            display: none;
+            align-items: center;
+            gap: 10px;
+        }
+        .status-loading {
+            position: absolute;
+            color: var(--text-sub);
+            font-size: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255,159,67,0.1);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(300deg); } }
+
+        /* تجاوب التصميم مع الهواتف المحمولة */
+        @media (max-width: 768px) {
+            body { flex-direction: column-reverse; }
+            .sidebar { width: 100%; height: 45vh; }
+            .main-content { height: 55vh; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- القائمة الجانبية -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2><i class="fa-solid fa-tv"></i> منصة IPTV الخاصة بي</h2>
+        </div>
+        <div class="search-box">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="searchChannel" placeholder="ابحث عن قناة...">
+        </div>
+        <div class="channel-list" id="channelList">
+            <!-- سيتم تعبئتها ديناميكياً من السيرفر -->
+        </div>
+    </div>
+
+    <!-- شاشة العرض والمشغل -->
+    <div class="main-content">
+        <div class="video-overlay-info" id="currentChannelInfo">
+            <i class="fa-solid fa-satellite-dish" style="color: var(--accent);"></i>
+            <span id="currentChannelName">جاري التشغيل...</span>
+        </div>
+        <div class="video-wrapper">
+            <div class="status-loading" id="mainStatus">
+                <div class="spinner"></div>
+                <span id="statusText">جاري الاتصال بقاعدة البيانات السحابية...</span>
+            </div>
+            <video id="videoPlayer" controls autoplay playsinline></video>
+        </div>
+    </div>
+
+    <!-- ربط السيرفر السحابي وتفعيل لوحة العرض -->
+    <script type="module">
+        import { initializeApp } from "https://gstatic.com";
+        import { getFirestore, collection, getDocs } from "https://gstatic.com";
+
+        // إعدادات السيرفر السحابي الخاص بمشروعك بدقة من لقطة شاشتك
+        const firebaseConfig = {
+            apiKey: "AIzaSyB_q5oVLcsJatJhhjLhzPOFSSjodMac258",
+            authDomain: "://firebaseapp.com",
+            projectId: "iptv-platform-683da",
+            storageBucket: "://appspot.com",
+            messagingSenderId: "776346779345",
+            appId: "1:776346779345:web:7b55ff2676c0aa1752cff0",
+            measurementId: "G-WWV0QY1J7Q"
+        };
+
+        // تهيئة النظام لقراءة البيانات
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const video = document.getElementById('videoPlayer');
+        const channelListContainer = document.getElementById('channelList');
+        const mainStatus = document.getElementById('mainStatus');
+        const statusText = document.getElementById('statusText');
+        const overlayInfo = document.getElementById('currentChannelInfo');
+        const currentChannelName = document.getElementById('currentChannelName');
+        const searchInput = document.getElementById('searchChannel');
+
+        let allChannels = [];
+
+        // تشغيل قنوات البث المباشر
+        function playStream(url, name) {
+            mainStatus.style.display = 'flex';
+            statusText.innerText = "جاري تحميل البث المباشر...";
+            
+            overlayInfo.style.display = 'flex';
+            currentChannelName.innerText = name;
+
+            if (Hls.isSupported()) {
+                const hls = new Hls();
+                hls.loadSource(url);
+                hls.attachMedia(video);
+                hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                    mainStatus.style.display = 'none';
+                    video.play();
+                });
+                hls.on(Hls.Events.ERROR, function() {
+                    statusText.innerText = "فشل تحميل القنوات، قد يحتاج اشتراكك للتفكيك.";
+                });
+            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                video.src = url;
+                video.addEventListener('loadedmetadata', function() {
+                    mainStatus.style.display = 'none';
+                    video.play();
+                });
+            }
+        }
+
+        // جلب البيانات وبناء القائمة الذكية للمنصة
+        async function fetchLiveChannels() {
+            try {
+                const querySnapshot = await getDocs(collection(db, "channels"));
+                mainStatus.style.display = 'none';
+                
+                if (querySnapshot.empty) {
+                    channelListContainer.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-sub);">لا توجد اشتراكات مضافة في السيرفر.</div>';
+                    return;
+                }
+
+                querySnapshot.forEach((doc) => {
