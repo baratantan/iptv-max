@@ -21,7 +21,7 @@
         /* ===== Login Screen ===== */
         .auth-screen {
             min-height: 100vh;
-            background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.9)),
+            background: linear-gradient(rgba(0,0,0,0.75), rgba(20,20,20,0.95)),
                         url('https://assets.nflxext.com/ffe/siteui/vlv3/9d3533b2-0e2b-40b2-95e0-ecd7979cc88b/a3873901-5b7c-46eb-b9fa-12f517af68e4/EG-ar-20240408-popsignuptwoweeks-perspective_alpha_website_large.jpg');
             background-size: cover;
             background-position: center;
@@ -38,24 +38,25 @@
             width: 100%;
             max-width: 450px;
             backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
         }
 
         .auth-box h1 {
             color: #e50914;
-            font-size: 32px;
-            margin-bottom: 30px;
+            font-size: 36px;
+            margin-bottom: 10px;
             font-weight: 900;
+            letter-spacing: 2px;
         }
 
         .auth-box h2 {
-            font-size: 28px;
+            font-size: 24px;
             margin-bottom: 25px;
-            font-weight: 700;
+            font-weight: 500;
+            color: #ddd;
         }
 
-        .form-group {
-            margin-bottom: 18px;
-        }
+        .form-group { margin-bottom: 18px; }
 
         .form-group input {
             width: 100%;
@@ -100,6 +101,8 @@
             margin-top: 10px;
         }
 
+        .btn-secondary:hover { background: rgba(109,109,110,0.4); }
+
         .error-msg {
             background: #e50914;
             color: white;
@@ -107,6 +110,7 @@
             border-radius: 4px;
             margin-bottom: 15px;
             display: none;
+            font-size: 14px;
         }
 
         /* ===== Header ===== */
@@ -130,6 +134,7 @@
             font-size: 32px;
             font-weight: 900;
             cursor: pointer;
+            letter-spacing: 2px;
         }
 
         .nav {
@@ -154,9 +159,7 @@
             gap: 15px;
         }
 
-        .search-box {
-            position: relative;
-        }
+        .search-box { position: relative; }
 
         .search-input {
             padding: 8px 15px;
@@ -188,7 +191,7 @@
         .hero {
             position: relative;
             height: 85vh;
-            background: linear-gradient(to right, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.4) 50%, transparent 100%),
+            background: linear-gradient(to right, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.6) 50%, transparent 100%),
                         linear-gradient(to top, #141414 0%, transparent 30%),
                         url('https://image.tmdb.org/t/p/original/8b8R8l88Qje9dn9OE8PY05Nez7S.jpg');
             background-size: cover;
@@ -204,13 +207,21 @@
         }
 
         .hero-badge {
-            display: inline-block;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
             background: #e50914;
-            padding: 5px 15px;
+            padding: 6px 16px;
             border-radius: 4px;
-            font-size: 12px;
+            font-size: 13px;
             font-weight: 700;
             margin-bottom: 20px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
         }
 
         .hero-title {
@@ -235,7 +246,7 @@
         }
 
         .btn-play, .btn-info {
-            padding: 12px 30px;
+            padding: 14px 32px;
             border: none;
             border-radius: 4px;
             font-size: 16px;
@@ -252,7 +263,7 @@
             color: black;
         }
 
-        .btn-play:hover { background: #e50914; color: white; }
+        .btn-play:hover { background: #e50914; color: white; transform: scale(1.05); }
 
         .btn-info {
             background: rgba(109,109,110,0.7);
@@ -267,11 +278,26 @@
             margin-bottom: 40px;
         }
 
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
         .section-title {
             font-size: 24px;
             font-weight: 700;
-            margin-bottom: 15px;
         }
+
+        .see-all {
+            color: #54b9c5;
+            font-size: 14px;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+
+        .see-all:hover { color: #e50914; }
 
         .content-row {
             display: flex;
@@ -291,16 +317,17 @@
             background: #2a2a2a;
             border-radius: 4px;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             position: relative;
             overflow: hidden;
             flex-shrink: 0;
         }
 
         .content-card:hover {
-            transform: scale(1.15);
+            transform: scale(1.3);
             z-index: 10;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.9);
+            border-radius: 6px;
         }
 
         .content-card img {
@@ -312,11 +339,11 @@
         .card-placeholder {
             width: 100%;
             height: 100%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 48px;
+            color: white;
         }
 
         .card-overlay {
@@ -333,14 +360,20 @@
         .content-card:hover .card-overlay { opacity: 1; }
 
         .card-title {
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 700;
             margin-bottom: 5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .card-meta {
             font-size: 11px;
             color: #aaa;
+            display: flex;
+            align-items: center;
+            gap: 5px;
         }
 
         .card-badge {
@@ -348,9 +381,157 @@
             background: #e50914;
             padding: 2px 6px;
             border-radius: 2px;
-            font-size: 10px;
-            margin-left: 5px;
+            font-size: 9px;
+            font-weight: 700;
         }
+
+        .card-badge.live { background: #e50914; }
+        .card-badge.hd { background: #54b9c5; color: black; }
+        .card-badge.new { background: #46d369; color: black; }
+
+        /* ===== Details Modal ===== */
+        .details-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 1000;
+            overflow-y: auto;
+            padding: 40px 20px;
+        }
+
+        .details-modal.active { display: block; }
+
+        .details-container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: #181818;
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .details-hero {
+            position: relative;
+            height: 450px;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .details-hero::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 200px;
+            background: linear-gradient(to top, #181818 0%, transparent 100%);
+        }
+
+        .details-content {
+            padding: 0 40px 40px;
+            position: relative;
+            z-index: 2;
+            margin-top: -100px;
+        }
+
+        .details-title {
+            font-size: 42px;
+            font-weight: 900;
+            margin-bottom: 20px;
+        }
+
+        .details-meta {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .meta-item {
+            color: #46d369;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .meta-item.age {
+            border: 1px solid #aaa;
+            padding: 2px 8px;
+            color: white;
+            font-size: 12px;
+        }
+
+        .details-actions {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .btn-action {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+
+        .btn-action.primary {
+            background: white;
+            color: black;
+        }
+
+        .btn-action.primary:hover { background: #e50914; color: white; }
+
+        .btn-action.secondary {
+            background: rgba(109,109,110,0.7);
+            color: white;
+        }
+
+        .btn-action.secondary:hover { background: rgba(109,109,110,0.4); }
+
+        .details-desc {
+            font-size: 16px;
+            line-height: 1.6;
+            color: #ddd;
+            margin-bottom: 20px;
+        }
+
+        .details-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            font-size: 14px;
+        }
+
+        .info-label { color: #777; }
+        .info-value { color: white; }
+
+        .close-details {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #181818;
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 20px;
+            z-index: 10;
+        }
+
+        .close-details:hover { background: #e50914; }
 
         /* ===== Video Player Modal ===== */
         .player-modal {
@@ -360,8 +541,8 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.95);
-            z-index: 1000;
+            background: rgba(0,0,0,0.98);
+            z-index: 2000;
             justify-content: center;
             align-items: center;
         }
@@ -392,13 +573,16 @@
             height: 100%;
         }
 
-        .player-info {
+        .player-info-bar {
             padding: 20px;
             background: #181818;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
-        .player-info h2 { margin-bottom: 8px; font-size: 22px; }
-        .player-info p { color: #aaa; font-size: 14px; }
+        .player-info-bar h2 { font-size: 20px; }
+        .player-info-bar p { color: #aaa; font-size: 14px; }
 
         .close-player {
             position: absolute;
@@ -428,7 +612,7 @@
             text-align: center;
             padding: 60px 20px;
             color: #666;
-            grid-column: 1/-1;
+            min-width: 100%;
         }
 
         /* ===== Responsive ===== */
@@ -441,6 +625,9 @@
             .content-section { padding: 0 20px; }
             .content-card { min-width: 160px; height: 90px; }
             .search-input { width: 120px; }
+            .details-title { font-size: 28px; }
+            .details-content { padding: 0 20px 20px; }
+            .details-hero { height: 300px; }
         }
     </style>
 </head>
@@ -490,12 +677,13 @@
             <nav class="nav">
                 <a onclick="scrollToSection('hero')" class="active">الرئيسية</a>
                 <a onclick="scrollToSection('channelsSection')">القنوات</a>
-                <a onclick="scrollToSection('moviesSection')">الأفلام</a>
                 <a onclick="scrollToSection('sportsSection')">الرياضة</a>
+                <a onclick="scrollToSection('moviesSection')">الأفلام</a>
+                <a onclick="scrollToSection('kidsSection')">الأطفال</a>
             </nav>
             <div class="user-section">
                 <div class="search-box">
-                    <input type="text" class="search-input" id="searchInput" placeholder="🔍 بحث..." oninput="searchContent(this.value)">
+                    <input type="text" class="search-input" id="searchInput" placeholder=" بحث..." oninput="searchContent(this.value)">
                 </div>
                 <button class="logout-btn" onclick="logout()">خروج</button>
             </div>
@@ -512,42 +700,84 @@
                 </p>
                 <div class="hero-buttons">
                     <button class="btn-play" onclick="playFeatured()">▶ تشغيل</button>
-                    <button class="btn-info">ℹ معلومات</button>
+                    <button class="btn-info" onclick="showFeaturedDetails()">ℹ معلومات</button>
                 </div>
             </div>
         </section>
 
-        <!-- Channels Row -->
+        <!-- Trending -->
+        <section class="content-section" id="trendingSection">
+            <div class="section-header">
+                <h2 class="section-title">🔥 الأكثر رواجاً</h2>
+                <span class="see-all">عرض الكل ←</span>
+            </div>
+            <div class="content-row" id="trendingRow">
+                <div class="loading">جاري التحميل...</div>
+            </div>
+        </section>
+
+        <!-- Channels -->
         <section class="content-section" id="channelsSection">
-            <h2 class="section-title">📺 القنوات المباشرة</h2>
+            <div class="section-header">
+                <h2 class="section-title">📺 القنوات المباشرة</h2>
+                <span class="see-all">عرض الكل ←</span>
+            </div>
             <div class="content-row" id="channelsRow">
                 <div class="loading">جاري التحميل...</div>
             </div>
         </section>
 
-        <!-- Sports Row -->
+        <!-- Sports -->
         <section class="content-section" id="sportsSection">
-            <h2 class="section-title">⚽ الرياضة</h2>
+            <div class="section-header">
+                <h2 class="section-title">⚽ الرياضة</h2>
+                <span class="see-all">عرض الكل ←</span>
+            </div>
             <div class="content-row" id="sportsRow">
                 <div class="loading">جاري التحميل...</div>
             </div>
         </section>
 
-        <!-- Movies Row -->
+        <!-- Movies -->
         <section class="content-section" id="moviesSection">
-            <h2 class="section-title">🎬 الأفلام</h2>
+            <div class="section-header">
+                <h2 class="section-title">🎬 الأفلام</h2>
+                <span class="see-all">عرض الكل ←</span>
+            </div>
             <div class="content-row" id="moviesRow">
                 <div class="loading">جاري التحميل...</div>
             </div>
         </section>
 
-        <!-- Kids Row -->
-        <section class="content-section">
-            <h2 class="section-title">👶 الأطفال</h2>
+        <!-- Kids -->
+        <section class="content-section" id="kidsSection">
+            <div class="section-header">
+                <h2 class="section-title">👶 الأطفال</h2>
+                <span class="see-all">عرض الكل ←</span>
+            </div>
             <div class="content-row" id="kidsRow">
                 <div class="loading">جاري التحميل...</div>
             </div>
         </section>
+    </div>
+
+    <!-- Details Modal -->
+    <div class="details-modal" id="detailsModal">
+        <div class="details-container">
+            <button class="close-details" onclick="closeDetails()">✕</button>
+            <div class="details-hero" id="detailsHero"></div>
+            <div class="details-content">
+                <h1 class="details-title" id="detailsTitle">عنوان</h1>
+                <div class="details-meta" id="detailsMeta"></div>
+                <div class="details-actions">
+                    <button class="btn-action primary" id="playBtn">▶ تشغيل</button>
+                    <button class="btn-action secondary">+ قائمتي</button>
+                    <button class="btn-action secondary"> إعجاب</button>
+                </div>
+                <p class="details-desc" id="detailsDesc">الوصف</p>
+                <div class="details-info" id="detailsInfo"></div>
+            </div>
+        </div>
     </div>
 
     <!-- Player Modal -->
@@ -557,9 +787,11 @@
             <div class="video-wrapper">
                 <video id="videoPlayer" controls></video>
             </div>
-            <div class="player-info">
-                <h2 id="playerTitle">عنوان</h2>
-                <p id="playerCategory">التصنيف</p>
+            <div class="player-info-bar">
+                <div>
+                    <h2 id="playerTitle">عنوان</h2>
+                    <p id="playerCategory">التصنيف</p>
+                </div>
             </div>
         </div>
     </div>
@@ -579,6 +811,19 @@
         const auth = firebase.auth();
         const db = firebase.firestore();
         let hls = null;
+        let allContent = [];
+
+        // Posters for demo content
+        const demoPosters = {
+            'رياضة': 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=500',
+            'أخبار': 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=500',
+            'أطفال': 'https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=500',
+            'أفلام': 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=500',
+            'مسلسلات': 'https://images.unsplash.com/photo-1522869635100-9f4c5e86aa37?w=500',
+            'وثائقي': 'https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=500',
+            'موسيقى': 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500',
+            'ترفيه': 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=500'
+        };
 
         // Auth State
         auth.onAuthStateChanged(user => {
@@ -593,7 +838,6 @@
             }
         });
 
-        // Login
         async function login() {
             const email = document.getElementById('loginEmail').value;
             const password = document.getElementById('loginPassword').value;
@@ -606,7 +850,6 @@
             }
         }
 
-        // Register
         async function register() {
             const name = document.getElementById('registerName').value;
             const email = document.getElementById('registerEmail').value;
@@ -639,27 +882,46 @@
             document.getElementById('loginScreen').style.display = 'flex';
         }
 
-        // Header scroll effect
         window.addEventListener('scroll', () => {
             const header = document.getElementById('header');
             if (window.scrollY > 50) header.classList.add('scrolled');
             else header.classList.remove('scrolled');
         });
 
-        // Load content from Firestore
+        // Load all content
         async function loadAllContent() {
             try {
                 const snapshot = await db.collection('channels').get();
-                const channels = [];
-                snapshot.forEach(doc => channels.push({ id: doc.id, ...doc.data() }));
+                allContent = [];
+                snapshot.forEach(doc => allContent.push({ id: doc.id, ...doc.data() }));
 
-                renderRow('channelsRow', channels.filter(c => c.type !== 'movie'));
-                renderRow('sportsRow', channels.filter(c => c.category && c.category.includes('رياض')));
-                renderRow('moviesRow', channels.filter(c => c.type === 'movie'));
-                renderRow('kidsRow', channels.filter(c => c.category && c.category.includes('طفل')));
+                renderRow('trendingRow', allContent.slice(0, 10));
+                renderRow('channelsRow', allContent.filter(c => c.type !== 'movie'));
+                renderRow('sportsRow', allContent.filter(c => c.category && c.category.includes('رياض')));
+                renderRow('moviesRow', allContent.filter(c => c.type === 'movie'));
+                renderRow('kidsRow', allContent.filter(c => c.category && c.category.includes('طفل')));
             } catch (error) {
-                console.error('Error loading content:', error);
+                console.error('Error:', error);
             }
+        }
+
+        function getPoster(item) {
+            if (item.logo && item.logo.startsWith('http')) return item.logo;
+            if (item.poster && item.poster.startsWith('http')) return item.poster;
+            // Try to match category
+            for (const [key, url] of Object.entries(demoPosters)) {
+                if (item.category && item.category.includes(key)) return url;
+            }
+            return demoPosters['ترفيه'];
+        }
+
+        function getIcon(category, type) {
+            if (type === 'movie') return '';
+            if (category && category.includes('رياض')) return '⚽';
+            if (category && category.includes('طفل')) return '👶';
+            if (category && category.includes('أخبار')) return '📰';
+            if (category && category.includes('موسيقى')) return '';
+            return '📺';
         }
 
         function renderRow(rowId, items) {
@@ -668,50 +930,91 @@
                 row.innerHTML = '<div class="no-content">لا يوجد محتوى في هذا القسم حالياً</div>';
                 return;
             }
-            row.innerHTML = items.map(item => `
-                <div class="content-card" onclick="playContent('${item.id}')">
-                    ${item.logo && item.logo.startsWith('http') 
-                        ? `<img src="${item.logo}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">` 
-                        : ''}
-                    <div class="card-placeholder" style="${item.logo && item.logo.startsWith('http') ? 'display:none' : ''}">
-                        ${getIcon(item.category, item.type)}
-                    </div>
-                    <div class="card-overlay">
-                        <div class="card-title">${item.name || 'بدون اسم'}</div>
-                        <div class="card-meta">
-                            ${item.category || 'عام'}
-                            ${item.type === 'live' ? '<span class="card-badge">مباشر</span>' : ''}
+            row.innerHTML = items.map(item => {
+                const poster = getPoster(item);
+                const isLive = item.type === 'live';
+                const isNew = item.isNew;
+                return `
+                    <div class="content-card" onclick="showDetails('${item.id}')">
+                        <img src="${poster}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" style="display:block">
+                        <div class="card-placeholder" style="display:none;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%)">
+                            ${getIcon(item.category, item.type)}
+                        </div>
+                        <div class="card-overlay">
+                            <div class="card-title">${item.name || 'بدون اسم'}</div>
+                            <div class="card-meta">
+                                ${item.category || 'عام'}
+                                ${isLive ? '<span class="card-badge live">مباشر</span>' : ''}
+                                ${isNew ? '<span class="card-badge new">جديد</span>' : ''}
+                                <span class="card-badge hd">HD</span>
+                            </div>
                         </div>
                     </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
         }
 
-        function getIcon(category, type) {
-            if (type === 'movie') return '🎬';
-            if (category && category.includes('رياض')) return '⚽';
-            if (category && category.includes('طفل')) return '👶';
-            if (category && category.includes('أخبار')) return '';
-            return '📺';
+        // Show Details
+        function showDetails(id) {
+            const item = allContent.find(c => c.id === id);
+            if (!item) return;
+
+            const modal = document.getElementById('detailsModal');
+            const hero = document.getElementById('detailsHero');
+            const title = document.getElementById('detailsTitle');
+            const meta = document.getElementById('detailsMeta');
+            const desc = document.getElementById('detailsDesc');
+            const info = document.getElementById('detailsInfo');
+            const playBtn = document.getElementById('playBtn');
+
+            hero.style.backgroundImage = `linear-gradient(to top, #181818 0%, transparent 50%), url(${getPoster(item)})`;
+            title.textContent = item.name || 'بدون عنوان';
+            
+            meta.innerHTML = `
+                <span class="meta-item">2024</span>
+                <span class="meta-item age">+13</span>
+                <span class="meta-item">HD</span>
+                ${item.type === 'live' ? '<span class="meta-item" style="color:#e50914">● مباشر</span>' : ''}
+            `;
+
+            desc.textContent = item.description || `شاهد ${item.name || 'هذا المحتوى'} الآن بجودة عالية على منصة IPTV MAX. محتوى متنوع يناسب جميع الأذواق.`;
+
+            info.innerHTML = `
+                <div><span class="info-label">التصنيف: </span><span class="info-value">${item.category || 'عام'}</span></div>
+                <div><span class="info-label">النوع: </span><span class="info-value">${item.type === 'live' ? 'بث مباشر' : item.type === 'movie' ? 'فيلم' : 'مسلسل'}</span></div>
+                <div><span class="info-label">الجودة: </span><span class="info-value">HD / 4K</span></div>
+                <div><span class="info-label">اللغة: </span><span class="info-value">عربي / إنجليزي</span></div>
+            `;
+
+            playBtn.onclick = () => {
+                closeDetails();
+                openPlayer(item.url, item.name, item.category);
+            };
+
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
         }
 
-        // Play content
+        function closeDetails() {
+            document.getElementById('detailsModal').classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        function showFeaturedDetails() {
+            if (allContent.length > 0) showDetails(allContent[0].id);
+        }
+
+        // Player
         function playContent(id) {
-            db.collection('channels').doc(id).get().then(doc => {
-                if (doc.exists) {
-                    const item = doc.data();
-                    openPlayer(item.url, item.name, item.category);
-                }
-            });
+            const item = allContent.find(c => c.id === id);
+            if (item) openPlayer(item.url, item.name, item.category);
         }
 
         function playFeatured() {
-            db.collection('channels').limit(1).get().then(snapshot => {
-                if (!snapshot.empty) {
-                    const item = snapshot.docs[0].data();
-                    openPlayer(item.url, item.name, item.category);
-                }
-            });
+            if (allContent.length > 0) {
+                const item = allContent[0];
+                openPlayer(item.url, item.name, item.category);
+            }
         }
 
         function openPlayer(url, name, category) {
@@ -754,22 +1057,28 @@
                 return;
             }
             const q = query.toLowerCase();
-            db.collection('channels').get().then(snapshot => {
-                const results = [];
-                snapshot.forEach(doc => {
-                    const item = doc.data();
-                    if ((item.name && item.name.toLowerCase().includes(q)) ||
-                        (item.category && item.category.toLowerCase().includes(q))) {
-                        results.push({ id: doc.id, ...item });
-                    }
-                });
-                renderRow('channelsRow', results);
-            });
+            const results = allContent.filter(item => 
+                (item.name && item.name.toLowerCase().includes(q)) ||
+                (item.category && item.category.toLowerCase().includes(q))
+            );
+            renderRow('channelsRow', results);
+            renderRow('trendingRow', results);
+            renderRow('moviesRow', results);
+            renderRow('sportsRow', results);
+            renderRow('kidsRow', results);
         }
 
         function scrollToSection(id) {
             document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
         }
+
+        // Close modals on Escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closePlayer();
+                closeDetails();
+            }
+        });
     </script>
 </body>
 </html>
