@@ -10,7 +10,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
     <style>
-        :root { --primary: #e50914; --bg: #141414; --surface: #1f1f1f; --text: #ffffff; --text-sec: #b3b3b3; --success: #46d369; }
+        :root { --primary: #e50914; --bg: #141414; --surface: #1f1f1f; --surface-light: #2a2a2a; --text: #ffffff; --text-sec: #b3b3b3; --success: #46d369; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; -webkit-tap-highlight-color: transparent; }
         body { background: var(--bg); color: var(--text); padding-bottom: 70px; overflow-x: hidden; }
         
@@ -22,14 +22,13 @@
         .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: 2px solid var(--primary); background: #454545; }
         .form-group textarea { min-height: 100px; resize: vertical; }
         .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .btn-primary { width: 100%; padding: 14px; background: var(--primary); color: white; border: none; border-radius: 4px; font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 10px; }
-        .btn-primary:hover { background: #f40612; }
+        .btn-primary { width: 100%; padding: 14px; background: var(--primary); color: white; border: none; border-radius: 4px; font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 10px; transition: all 0.3s; }
+        .btn-primary:hover { background: #f40612; transform: translateY(-2px); }
         .btn-secondary { width: 100%; padding: 14px; background: rgba(109,109,110,0.7); color: white; border: none; border-radius: 4px; font-size: 16px; cursor: pointer; margin-top: 10px; }
         .btn-success { background: var(--success); color: black; }
         .btn-info { background: #54b9c5; color: black; }
         .btn-warning { background: #ff9800; color: black; }
         .error-msg { background: var(--primary); color: white; padding: 10px; border-radius: 4px; margin-bottom: 15px; display: none; font-size: 14px; text-align: center; }
-        .success-msg { background: var(--success); color: black; padding: 10px; border-radius: 4px; margin-bottom: 15px; display: none; font-size: 14px; text-align: center; font-weight: 700; }
 
         .top-header { position: fixed; top: 0; width: 100%; padding: 15px 20px; background: linear-gradient(180deg, rgba(0,0,0,0.9) 0%, transparent 100%); z-index: 100; display: flex; justify-content: space-between; align-items: center; }
         .logo { color: var(--primary); font-size: 24px; font-weight: 900; letter-spacing: 1px; }
@@ -51,17 +50,37 @@
         .btn-hero.info { background: rgba(109,109,110,0.7); color: white; }
 
         .section { padding: 20px 0; }
-        .section-title { font-size: 18px; font-weight: 700; margin-bottom: 15px; padding: 0 20px; }
+        .section-title { font-size: 18px; font-weight: 700; margin-bottom: 15px; padding: 0 20px; display: flex; align-items: center; gap: 8px; }
+        .section-title .count { background: var(--primary); color: white; padding: 2px 10px; border-radius: 12px; font-size: 12px; }
         .row { display: flex; gap: 10px; overflow-x: auto; padding: 0 20px 20px; scrollbar-width: none; }
         .row::-webkit-scrollbar { display: none; }
         
-        .card { min-width: 130px; height: 195px; background: var(--surface); border-radius: 6px; overflow: hidden; position: relative; cursor: pointer; transition: transform 0.3s; flex-shrink: 0; }
-        .card:hover { transform: scale(1.05); z-index: 10; }
-        .card img { width: 100%; height: 100%; object-fit: cover; }
-        .card-placeholder { width: 100%; height: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; font-size: 40px; }
-        .card-overlay { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(to top, rgba(0,0,0,0.9), transparent); padding: 40px 10px 10px; opacity: 0; transition: opacity 0.3s; }
-        .card:hover .card-overlay { opacity: 1; }
-        .card-title { font-size: 13px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        /* بطاقات محسّنة */
+        .card { 
+            min-width: 140px; 
+            height: 200px; 
+            background: var(--surface); 
+            border-radius: 8px; 
+            overflow: hidden; 
+            position: relative; 
+            cursor: pointer; 
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+            flex-shrink: 0;
+            border: 1px solid transparent;
+        }
+        .card:hover { 
+            transform: scale(1.08) translateY(-5px); 
+            z-index: 10; 
+            border-color: var(--primary);
+            box-shadow: 0 10px 30px rgba(229, 9, 20, 0.3);
+        }
+        .card img { width: 100%; height: 75%; object-fit: cover; }
+        .card-placeholder { width: 100%; height: 75%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; font-size: 40px; }
+        .card-info { padding: 8px; }
+        .card-title { font-size: 12px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 4px; }
+        .card-category { font-size: 10px; color: var(--text-sec); display: flex; align-items: center; gap: 4px; }
+        .card-category .dot { width: 6px; height: 6px; background: var(--success); border-radius: 50%; }
+        .card-overlay { position: absolute; top: 8px; right: 8px; background: var(--primary); padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: 700; }
 
         .page-header { padding: 20px; font-size: 24px; font-weight: 700; }
         .tabs { display: flex; gap: 20px; padding: 0 20px 15px; border-bottom: 1px solid #333; overflow-x: auto; }
@@ -116,7 +135,7 @@
         .log-item.info { color: #54b9c5; }
 
         .xtream-tabs { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
-        .xtream-tab { flex: 1; min-width: 100px; padding: 10px; background: #333; color: white; border: 2px solid transparent; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; text-align: center; }
+        .xtream-tab { flex: 1; min-width: 100px; padding: 10px; background: #333; color: white; border: 2px solid transparent; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; text-align: center; transition: all 0.3s; }
         .xtream-tab.active { background: var(--primary); border-color: var(--primary); }
         .xtream-section { display: none; }
         .xtream-section.active { display: block; }
@@ -126,10 +145,37 @@
         .status-err { background: #f44336; color: white; }
         .status-wait { background: #ff9800; color: black; }
 
+        /* قائمة القنوات المحسّنة */
+        .channels-list-view { padding: 20px; }
+        .channels-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 15px; }
+        .channel-grid-card { 
+            background: var(--surface); 
+            border-radius: 8px; 
+            overflow: hidden; 
+            cursor: pointer; 
+            transition: all 0.3s;
+            border: 1px solid transparent;
+        }
+        .channel-grid-card:hover { 
+            transform: translateY(-5px); 
+            border-color: var(--primary);
+            box-shadow: 0 10px 30px rgba(229, 9, 20, 0.3);
+        }
+        .channel-grid-card img { width: 100%; height: 120px; object-fit: cover; }
+        .channel-grid-card .card-placeholder { width: 100%; height: 120px; }
+        .channel-grid-info { padding: 12px; }
+        .channel-grid-name { font-size: 14px; font-weight: 700; margin-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .channel-grid-cat { font-size: 11px; color: var(--text-sec); display: flex; align-items: center; gap: 5px; }
+
+        .search-box { padding: 15px 20px; }
+        .search-input { width: 100%; padding: 12px 15px; background: var(--surface); border: 1px solid #333; border-radius: 25px; color: white; font-size: 14px; }
+        .search-input:focus { outline: none; border-color: var(--primary); }
+
         @media (min-width: 768px) {
-            .card { min-width: 180px; height: 270px; }
+            .card { min-width: 180px; height: 260px; }
             .hero { height: 75vh; }
             .hero-title { font-size: 48px; }
+            .channels-grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
         }
     </style>
 </head>
@@ -182,28 +228,35 @@
                 </div>
             </div>
             <div class="section">
-                <div class="section-title">متابعة المشاهدة</div>
-                <div class="row" id="continueRow"><div style="padding:20px; color:#666;">لا يوجد محتوى حالياً</div></div>
-            </div>
-            <div class="section">
-                <div class="section-title">📺 قنوات مباشرة</div>
+                <div class="section-title">📺 قنوات مباشرة <span class="count" id="liveCount">0</span></div>
                 <div class="row" id="liveRow"></div>
             </div>
             <div class="section">
-                <div class="section-title">⚽ رياضة</div>
+                <div class="section-title">⚽ رياضة <span class="count" id="sportsCount">0</span></div>
                 <div class="row" id="sportsRow"></div>
             </div>
             <div class="section">
-                <div class="section-title"> أخبار</div>
+                <div class="section-title">📰 أخبار <span class="count" id="newsCount">0</span></div>
                 <div class="row" id="newsRow"></div>
             </div>
             <div class="section">
-                <div class="section-title">🎬 أفلام</div>
+                <div class="section-title">🎬 أفلام <span class="count" id="moviesCount">0</span></div>
                 <div class="row" id="moviesRow"></div>
             </div>
             <div class="section">
-                <div class="section-title">👶 أطفال</div>
+                <div class="section-title">👶 أطفال <span class="count" id="kidsCount">0</span></div>
                 <div class="row" id="kidsRow"></div>
+            </div>
+        </div>
+
+        <!-- CHANNELS LIST VIEW (مُحسّن) -->
+        <div class="view" id="view-channels">
+            <div class="page-header">جميع القنوات</div>
+            <div class="search-box">
+                <input type="text" class="search-input" id="channelSearch" placeholder="🔍 ابحث عن قناة..." oninput="filterChannels(this.value)">
+            </div>
+            <div class="channels-list-view">
+                <div class="channels-grid" id="channelsGrid"></div>
             </div>
         </div>
 
@@ -241,7 +294,6 @@
             <div class="page-header">لوحة تحكم المدير</div>
             <div class="admin-section">
                 
-                <!-- Delete All -->
                 <div class="admin-card">
                     <h3>⚠️ إدارة قاعدة البيانات</h3>
                     <p>احذف جميع القنوات الحالية قبل استيراد قائمة جديدة لتجنب التكرار وتجميد الموقع.</p>
@@ -280,9 +332,9 @@
                     <div id="xtreamStatus" style="margin-top:10px;"></div>
 
                     <div class="xtream-tabs" style="margin-top:20px;">
-                        <div class="xtream-tab active" onclick="switchXtreamTab('live', this)">📺 قنوات مباشرة</div>
+                        <div class="xtream-tab active" onclick="switchXtreamTab('live', this)"> قنوات مباشرة</div>
                         <div class="xtream-tab" onclick="switchXtreamTab('vod', this)">🎬 أفلام VOD</div>
-                        <div class="xtream-tab" onclick="switchXtreamTab('series', this)"> مسلسلات</div>
+                        <div class="xtream-tab" onclick="switchXtreamTab('series', this)">📺 مسلسلات</div>
                     </div>
 
                     <div class="xtream-section active" id="xtreamLive">
@@ -292,35 +344,16 @@
                         <button class="btn-primary btn-success" onclick="importXtream('vod')">📥 استيراد الأفلام</button>
                     </div>
                     <div class="xtream-section" id="xtreamSeries">
-                        <button class="btn-primary btn-success" onclick="importXtream('series')">📥 استيراد المسلسلات</button>
+                        <button class="btn-primary btn-success" onclick="importXtream('series')"> استيراد المسلسلات</button>
                     </div>
 
                     <div class="progress-bar" id="xtreamProgress"><div class="progress-fill" id="xtreamProgressFill"></div></div>
                     <div class="log-box" id="xtreamLog"></div>
                 </div>
 
-                <!-- MAC Address -->
-                <div class="admin-card">
-                    <h3>📡 MAC Address (MAG Devices)</h3>
-                    <p>استيراد القنوات عبر MAC Address للأجهزة مثل MAG Box.</p>
-                    
-                    <div class="form-group">
-                        <label style="color:#aaa; font-size:13px;">Server URL</label>
-                        <input type="text" id="macServer" placeholder="http://example.com:8080/c/">
-                    </div>
-                    <div class="form-group">
-                        <label style="color:#aaa; font-size:13px;">MAC Address</label>
-                        <input type="text" id="macAddress" placeholder="00:1A:79:XX:XX:XX">
-                    </div>
-                    
-                    <button class="btn-primary btn-warning" onclick="importMAC()">📥 استيراد عبر MAC</button>
-                    <div class="progress-bar" id="macProgress"><div class="progress-fill" id="macProgressFill"></div></div>
-                    <div class="log-box" id="macLog"></div>
-                </div>
-
                 <!-- M3U Import -->
                 <div class="admin-card">
-                    <h3>📄 استيراد M3U</h3>
+                    <h3> استيراد M3U</h3>
                     <div class="form-group">
                         <select id="importMethod" onchange="toggleImportUI()" style="width:100%; padding:12px; background:#333; color:white; border:none; border-radius:4px;">
                             <option value="url">رابط القائمة (URL)</option>
@@ -368,6 +401,10 @@
             <div class="nav-item active" onclick="switchView('home', this)">
                 <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
                 <span>الرئيسية</span>
+            </div>
+            <div class="nav-item" onclick="switchView('channels', this)">
+                <svg viewBox="0 0 24 24"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9H9V9h10v2zm-4 4H9v-2h6v2zm4-8H9V5h10v2z"/></svg>
+                <span>القنوات</span>
             </div>
             <div class="nav-item" onclick="switchView('library', this)">
                 <svg viewBox="0 0 24 24"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9H9V9h10v2zm-4 4H9v-2h6v2zm4-8H9V5h10v2z"/></svg>
@@ -441,6 +478,14 @@
         let hls = null;
         let stopImportFlag = false;
 
+        // CORS Proxies الموثوقة
+        const CORS_PROXIES = [
+            url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+            url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
+            url => `https://thingproxy.freeboard.io/fetch/${url}`,
+            url => `https://cors-anywhere.herokuapp.com/${url}`
+        ];
+
         // Auth
         auth.onAuthStateChanged(user => {
             if (user) {
@@ -496,6 +541,7 @@
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             if(navEl) navEl.classList.add('active');
             window.scrollTo(0,0);
+            if(viewName === 'channels') renderChannelsGrid();
         }
 
         // Data Loading
@@ -515,6 +561,12 @@
             const movies = allChannels.filter(c => c.type === 'movie' || c.category === 'أفلام').slice(0, 15);
             const kids = allChannels.filter(c => c.category === 'أطفال').slice(0, 15);
             
+            document.getElementById('liveCount').textContent = live.length;
+            document.getElementById('sportsCount').textContent = sports.length;
+            document.getElementById('newsCount').textContent = news.length;
+            document.getElementById('moviesCount').textContent = movies.length;
+            document.getElementById('kidsCount').textContent = kids.length;
+            
             document.getElementById('liveRow').innerHTML = live.map(c => createCard(c)).join('') || '<div style="padding:20px; color:#666;">لا يوجد محتوى</div>';
             document.getElementById('sportsRow').innerHTML = sports.map(c => createCard(c)).join('') || '<div style="padding:20px; color:#666;">لا يوجد محتوى</div>';
             document.getElementById('newsRow').innerHTML = news.map(c => createCard(c)).join('') || '<div style="padding:20px; color:#666;">لا يوجد محتوى</div>';
@@ -527,17 +579,52 @@
             }
         }
 
+        function renderChannelsGrid() {
+            const grid = document.getElementById('channelsGrid');
+            if(allChannels.length === 0) {
+                grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1;"><h3>لا توجد قنوات</h3><p>استورد قنوات من لوحة التحكم</p></div>';
+                return;
+            }
+            grid.innerHTML = allChannels.map(c => createGridCard(c)).join('');
+        }
+
         function createCard(channel) {
             const img = channel.logo && channel.logo.startsWith('http') ? channel.logo : '';
             return `
                 <div class="card" onclick="openDetails('${channel.id}')">
                     ${img ? `<img src="${img}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">` : ''}
-                    <div class="card-placeholder" style="${img ? 'display:none' : ''}">📺</div>
-                    <div class="card-overlay">
+                    <div class="card-placeholder" style="${img ? 'display:none' : ''}"></div>
+                    <div class="card-info">
                         <div class="card-title">${channel.name}</div>
+                        <div class="card-category"><span class="dot"></span>${channel.category || 'عام'}</div>
+                    </div>
+                    ${channel.type === 'live' ? '<div class="card-overlay">مباشر</div>' : ''}
+                </div>
+            `;
+        }
+
+        function createGridCard(channel) {
+            const img = channel.logo && channel.logo.startsWith('http') ? channel.logo : '';
+            return `
+                <div class="channel-grid-card" onclick="openDetails('${channel.id}')">
+                    ${img ? `<img src="${img}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">` : ''}
+                    <div class="card-placeholder" style="${img ? 'display:none' : ''}">📺</div>
+                    <div class="channel-grid-info">
+                        <div class="channel-grid-name">${channel.name}</div>
+                        <div class="channel-grid-cat"><span class="dot"></span>${channel.category || 'عام'}</div>
                     </div>
                 </div>
             `;
+        }
+
+        function filterChannels(query) {
+            const q = query.toLowerCase();
+            const filtered = allChannels.filter(c => 
+                (c.name && c.name.toLowerCase().includes(q)) || 
+                (c.category && c.category.toLowerCase().includes(q))
+            );
+            const grid = document.getElementById('channelsGrid');
+            grid.innerHTML = filtered.map(c => createGridCard(c)).join('');
         }
 
         // Details & Player
@@ -627,7 +714,7 @@
             log.scrollTop = log.scrollHeight;
         }
 
-        // ===== XTREAM CODES API =====
+        // ===== XTREAM CODES API مع CORS Proxy =====
         function switchXtreamTab(tab, el) {
             document.querySelectorAll('.xtream-tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.xtream-section').forEach(s => s.classList.remove('active'));
@@ -643,9 +730,7 @@
             
             if(!server || !user || !pass) return null;
             
-            // Remove trailing slash
             server = server.replace(/\/+$/, '');
-            // Remove port if included in URL
             server = server.replace(/:\d+$/, '');
             
             return {
@@ -653,6 +738,24 @@
                 user, pass,
                 api: `${server}:${port}/player_api.php?username=${user}&password=${pass}`
             };
+        }
+
+        async function fetchWithCORS(url) {
+            // تجربة عدة proxies
+            for(const proxyFn of CORS_PROXIES) {
+                try {
+                    const proxyUrl = proxyFn(url);
+                    const res = await fetch(proxyUrl, {
+                        headers: { 'Accept': 'application/json, text/plain, */*' }
+                    });
+                    if(res.ok) {
+                        const text = await res.text();
+                        try { return JSON.parse(text); } 
+                        catch(e) { return text; }
+                    }
+                } catch(e) { continue; }
+            }
+            throw new Error('فشل الاتصال عبر جميع الـ proxies');
         }
 
         async function testXtream() {
@@ -664,26 +767,10 @@
                 return;
             }
             
-            statusEl.innerHTML = '<span class="status-badge status-wait"> جاري الاختبار...</span>';
+            statusEl.innerHTML = '<span class="status-badge status-wait">⏳ جاري الاختبار...</span>';
             
             try {
-                // Try direct connection first
-                const proxies = [
-                    config.api + '&action=get_account_info',
-                    `https://api.allorigins.win/raw?url=${encodeURIComponent(config.api + '&action=get_account_info')}`,
-                    `https://corsproxy.io/?${encodeURIComponent(config.api + '&action=get_account_info')}`
-                ];
-                
-                let data = null;
-                for(const url of proxies) {
-                    try {
-                        const res = await fetch(url);
-                        if(res.ok) {
-                            const text = await res.text();
-                            try { data = JSON.parse(text); break; } catch(e) {}
-                        }
-                    } catch(e) {}
-                }
+                const data = await fetchWithCORS(config.api + '&action=get_account_info');
                 
                 if(data && data.user_info) {
                     const info = data.user_info;
@@ -697,9 +784,8 @@
                             <div style="font-size:13px; color:#aaa; line-height:1.8;">
                                 <div>👤 المستخدم: <strong style="color:white;">${info.username}</strong></div>
                                 <div>📊 الحالة: <strong style="color:#46d369;">${status}</strong></div>
-                                <div>📅 الانتهاء: <strong style="color:white;">${expDate}</strong></div>
-                                <div>🔗 الاتصالات: <strong style="color:white;">${maxConn}</strong></div>
-                                <div>📺 القنوات: <strong style="color:white;">${data.server_info?.live_connections || 0} متصل</strong></div>
+                                <div> الانتهاء: <strong style="color:white;">${expDate}</strong></div>
+                                <div> الاتصالات: <strong style="color:white;">${maxConn}</strong></div>
                             </div>
                         </div>
                     `;
@@ -722,30 +808,20 @@
             progress.style.display = 'block';
             log.innerHTML = '';
             
-            addLog(' بدء استيراد ' + (type === 'live' ? 'القنوات المباشرة' : type === 'vod' ? 'الأفلام' : 'المسلسلات') + '...', 'info', 'xtreamLog');
+            addLog('🚀 بدء استيراد ' + (type === 'live' ? 'القنوات المباشرة' : type === 'vod' ? 'الأفلام' : 'المسلسلات') + '...', 'info', 'xtreamLog');
             
             try {
-                // Get categories first
                 const catAction = type === 'live' ? 'get_live_categories' : type === 'vod' ? 'get_vod_categories' : 'get_series_categories';
                 const streamsAction = type === 'live' ? 'get_live_streams' : type === 'vod' ? 'get_vod_streams' : 'get_series';
                 
                 addLog('📂 جلب التصنيفات...', 'info', 'xtreamLog');
                 
-                const proxies = [
-                    config.api + '&action=' + catAction,
-                    `https://api.allorigins.win/raw?url=${encodeURIComponent(config.api + '&action=' + catAction)}`,
-                    `https://corsproxy.io/?${encodeURIComponent(config.api + '&action=' + catAction)}`
-                ];
-                
                 let categories = [];
-                for(const url of proxies) {
-                    try {
-                        const res = await fetch(url);
-                        if(res.ok) {
-                            const text = await res.text();
-                            try { categories = JSON.parse(text); break; } catch(e) {}
-                        }
-                    } catch(e) {}
+                try {
+                    categories = await fetchWithCORS(config.api + '&action=' + catAction);
+                } catch(e) {
+                    addLog('❌ فشل جلب التصنيفات: ' + e.message, 'error', 'xtreamLog');
+                    return;
                 }
                 
                 if(!categories || !Array.isArray(categories)) {
@@ -755,23 +831,13 @@
                 
                 addLog(`✅ تم جلب ${categories.length} تصنيف`, 'success', 'xtreamLog');
                 
-                // Get streams
                 addLog('📺 جلب المحتوى...', 'info', 'xtreamLog');
                 let streams = [];
-                const streamProxies = [
-                    config.api + '&action=' + streamsAction,
-                    `https://api.allorigins.win/raw?url=${encodeURIComponent(config.api + '&action=' + streamsAction)}`,
-                    `https://corsproxy.io/?${encodeURIComponent(config.api + '&action=' + streamsAction)}`
-                ];
-                
-                for(const url of streamProxies) {
-                    try {
-                        const res = await fetch(url);
-                        if(res.ok) {
-                            const text = await res.text();
-                            try { streams = JSON.parse(text); break; } catch(e) {}
-                        }
-                    } catch(e) {}
+                try {
+                    streams = await fetchWithCORS(config.api + '&action=' + streamsAction);
+                } catch(e) {
+                    addLog('❌ فشل جلب المحتوى: ' + e.message, 'error', 'xtreamLog');
+                    return;
                 }
                 
                 if(!streams || !Array.isArray(streams)) {
@@ -781,11 +847,9 @@
                 
                 addLog(`✅ تم جلب ${streams.length} عنصر`, 'success', 'xtreamLog');
                 
-                // Map categories
                 const catMap = {};
                 categories.forEach(c => { catMap[c.category_id] = c.category_name; });
                 
-                // Prepare channels
                 const channelsToAdd = streams.map(s => {
                     let streamUrl = '';
                     if(type === 'live') {
@@ -807,7 +871,7 @@
                     };
                 });
                 
-                addLog(`📦 بدء إضافة ${channelsToAdd.length} عنصر إلى قاعدة البيانات...`, 'warn', 'xtreamLog');
+                addLog(`📦 بدء إضافة ${channelsToAdd.length} عنصر...`, 'warn', 'xtreamLog');
                 
                 let added = 0;
                 const batchSize = 10;
@@ -828,7 +892,7 @@
                         added += chunk.length;
                         progressFill.style.width = ((i+batchSize)/channelsToAdd.length * 100) + '%';
                         if(i % 50 === 0) addLog(`📊 تقدم: ${added} / ${channelsToAdd.length}`, 'info', 'xtreamLog');
-                    } catch(e) { addLog('❌ خطأ في الدفعة', 'error', 'xtreamLog'); }
+                    } catch(e) { addLog(' خطأ في الدفعة', 'error', 'xtreamLog'); }
                 }
                 
                 addLog(`✅ اكتمل! تمت إضافة ${added} عنصر.`, 'success', 'xtreamLog');
@@ -836,111 +900,6 @@
                 
             } catch(e) {
                 addLog('❌ خطأ: ' + e.message, 'error', 'xtreamLog');
-            }
-        }
-
-        // ===== MAC ADDRESS IMPORT =====
-        async function importMAC() {
-            const server = document.getElementById('macServer').value.trim();
-            const mac = document.getElementById('macAddress').value.trim();
-            
-            if(!server || !mac) { alert('أكمل البيانات'); return; }
-            
-            stopImportFlag = false;
-            const progress = document.getElementById('macProgress');
-            const progressFill = document.getElementById('macProgressFill');
-            const log = document.getElementById('macLog');
-            progress.style.display = 'block';
-            log.innerHTML = '';
-            
-            addLog('🚀 بدء الاستيراد عبر MAC...', 'info', 'macLog');
-            addLog('⚠️ ملاحظة: MAC API قد لا يعمل من المتصفح مباشرة بسبب قيود CORS', 'warn', 'macLog');
-            
-            try {
-                const baseUrl = server.replace(/\/+$/, '');
-                const headers = {
-                    'X-User-Agent': `Model:mac;MAC:${mac};`
-                };
-                
-                // Try to get channels
-                const url = `${baseUrl}?type=stb&action=get_all_channels&JsHttpRequest=1-xml`;
-                
-                const proxies = [
-                    { url, headers },
-                    { url: `https://corsproxy.io/?${encodeURIComponent(url)}`, headers: { 'x-requested-with': 'XMLHttpRequest', ...headers } }
-                ];
-                
-                let data = null;
-                for(const p of proxies) {
-                    try {
-                        const res = await fetch(p.url, { headers: p.headers });
-                        if(res.ok) {
-                            const text = await res.text();
-                            try { data = JSON.parse(text); break; } catch(e) {
-                                // Try XML parsing
-                                try {
-                                    const parser = new DOMParser();
-                                    const xml = parser.parseFromString(text, 'text/xml');
-                                    // Extract from XML
-                                    data = { js: { data: [] } };
-                                    const items = xml.querySelectorAll('item');
-                                    items.forEach(item => {
-                                        data.js.data.push({
-                                            name: item.querySelector('name')?.textContent || '',
-                                            url: item.querySelector('cmd')?.textContent || '',
-                                            logo: item.querySelector('logo')?.textContent || ''
-                                        });
-                                    });
-                                    break;
-                                } catch(e2) {}
-                            }
-                        }
-                    } catch(e) {}
-                }
-                
-                if(!data || !data.js || !data.js.data) {
-                    addLog('❌ فشل الاتصال بالسيرفر. تأكد من أن السيرفر يدعم MAC API.', 'error', 'macLog');
-                    addLog('💡 نصيحة: استخدم Xtream Codes بدلاً من MAC إذا أمكن', 'warn', 'macLog');
-                    return;
-                }
-                
-                const channels = data.js.data;
-                addLog(`✅ تم جلب ${channels.length} قناة`, 'success', 'macLog');
-                
-                let added = 0;
-                const batchSize = 10;
-                
-                for(let i=0; i<channels.length; i+=batchSize) {
-                    if(stopImportFlag) break;
-                    await new Promise(r => setTimeout(r, 50));
-                    
-                    const batch = db.batch();
-                    const chunk = channels.slice(i, i+batchSize);
-                    chunk.forEach(ch => {
-                        const ref = db.collection('channels').doc();
-                        batch.set(ref, {
-                            name: ch.name || 'بدون اسم',
-                            url: ch.url || '',
-                            logo: ch.logo || '',
-                            category: mapCategory(ch.name, 'live'),
-                            type: 'live',
-                            macSource: true,
-                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                        });
-                    });
-                    
-                    try {
-                        await batch.commit();
-                        added += chunk.length;
-                        progressFill.style.width = ((i+batchSize)/channels.length * 100) + '%';
-                    } catch(e) {}
-                }
-                
-                addLog(`✅ اكتمل! تمت إضافة ${added} قناة.`, 'success', 'macLog');
-                await loadChannels();
-                
-            } catch(e) {
-                addLog('❌ خطأ: ' + e.message, 'error', 'macLog');
             }
         }
 
@@ -977,23 +936,13 @@
             if(method === 'url') {
                 const url = document.getElementById('importUrl').value.trim();
                 if(!url) { alert('أدخل الرابط'); resetImportUI(); return; }
-                addLog('جاري جلب القائمة...', 'warn');
+                addLog('🔄 جاري جلب القائمة...', 'warn');
                 try {
-                    const proxies = [
-                        `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
-                        `https://corsproxy.io/?${encodeURIComponent(url)}`
-                    ];
-                    let success = false;
-                    for(const proxy of proxies) {
-                        try {
-                            const res = await fetch(proxy);
-                            if(res.ok) { content = await res.text(); success = true; break; }
-                        } catch(e) {}
-                    }
-                    if(!success) throw new Error('فشل جلب الرابط');
-                    addLog('تم جلب القائمة بنجاح', 'success');
+                    content = await fetchWithCORS(url);
+                    if(typeof content !== 'string') throw new Error('استجابة غير صالحة');
+                    addLog('✅ تم جلب القائمة بنجاح', 'success');
                 } catch(e) {
-                    addLog('فشل الجلب. جرب "لصق النص"', 'error');
+                    addLog('❌ فشل الجلب. جرب "لصق النص"', 'error');
                     resetImportUI(); return;
                 }
             } else {
@@ -1006,7 +955,7 @@
             let currentName = '', currentLogo = '', currentCat = 'عام';
 
             for(let i=0; i<lines.length; i++) {
-                if(stopImportFlag) { addLog('تم الإيقاف', 'warn'); break; }
+                if(stopImportFlag) { addLog('⏹ تم الإيقاف', 'warn'); break; }
                 const line = lines[i].trim();
                 if(line.startsWith('#EXTINF:')) {
                     const nameMatch = line.match(/,(.+)$/);
@@ -1023,11 +972,11 @@
             }
 
             if(channelsToAdd.length === 0) {
-                addLog('لم يتم العثور على قنوات', 'error');
+                addLog(' لم يتم العثور على قنوات', 'error');
                 resetImportUI(); return;
             }
 
-            addLog(`بدء إضافة ${channelsToAdd.length} قناة...`, 'warn');
+            addLog(`📦 بدء إضافة ${channelsToAdd.length} قناة...`, 'warn');
             let added = 0;
             const batchSize = 10;
             
@@ -1044,8 +993,8 @@
                     await batch.commit();
                     added += chunk.length;
                     document.getElementById('importProgressFill').style.width = ((i+batchSize)/channelsToAdd.length * 100) + '%';
-                    if(i % 50 === 0) addLog(`تمت إضافة ${added} قناة...`);
-                } catch(e) { addLog('خطأ في الدفعة', 'error'); }
+                    if(i % 50 === 0) addLog(`📊 تمت إضافة ${added} قناة...`);
+                } catch(e) { addLog('❌ خطأ في الدفعة', 'error'); }
             }
 
             addLog(`✅ اكتمل! تمت إضافة ${added} قناة.`, 'success');
@@ -1053,7 +1002,7 @@
             resetImportUI();
         }
 
-        function stopImport() { stopImportFlag = true; addLog('جاري الإيقاف...', 'warn'); }
+        function stopImport() { stopImportFlag = true; addLog('⏹ جاري الإيقاف...', 'warn'); }
 
         function resetImportUI() {
             document.getElementById('startImportBtn').style.display = 'block';
