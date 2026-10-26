@@ -48,179 +48,122 @@
         .success-msg { background: #46d369; color: black; padding: 12px; border-radius: 4px; margin-bottom: 15px; display: none; font-size: 14px; font-weight: 700; }
 
         .header {
-            position: fixed; top: 0; width: 100%; padding: 20px 50px;
-            background: linear-gradient(180deg, rgba(0,0,0,0.9) 0%, transparent 100%);
+            position: fixed; top: 0; width: 100%; padding: 15px 20px;
+            background: linear-gradient(180deg, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.8) 100%);
             display: flex; justify-content: space-between; align-items: center;
             z-index: 100; transition: background 0.3s; flex-wrap: wrap; gap: 10px;
         }
         .header.scrolled { background: #141414; }
-        .logo { color: #e50914; font-size: 32px; font-weight: 900; cursor: pointer; letter-spacing: 2px; }
-        .nav { display: flex; gap: 25px; align-items: center; flex-wrap: wrap; }
-        .nav a { color: white; text-decoration: none; font-size: 14px; cursor: pointer; }
-        .nav a:hover, .nav a.active { color: #e50914; }
+        .logo { color: #e50914; font-size: 28px; font-weight: 900; cursor: pointer; letter-spacing: 2px; }
         .user-section { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
         .search-input {
             padding: 8px 15px; background: rgba(0,0,0,0.7);
-            border: 1px solid #555; border-radius: 4px; color: white; width: 180px;
+            border: 1px solid #555; border-radius: 4px; color: white; width: 150px;
         }
-        .search-input:focus { outline: none; border-color: #e50914; width: 220px; }
+        .search-input:focus { outline: none; border-color: #e50914; width: 180px; }
         .logout-btn, .admin-btn {
-            padding: 8px 16px; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600;
+            padding: 8px 16px; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 14px;
         }
         .logout-btn { background: #e50914; }
         .admin-btn { background: #54b9c5; color: black; }
 
-        .hero {
-            position: relative; height: 85vh;
-            background: linear-gradient(to right, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.6) 50%, transparent 100%),
-                        linear-gradient(to top, #141414 0%, transparent 30%),
-                        url('https://image.tmdb.org/t/p/original/8b8R8l88Qje9dn9OE8PY05Nez7S.jpg');
-            background-size: cover; background-position: center;
-            display: flex; align-items: center; padding: 0 50px;
+        /* ===== Category Tabs ===== */
+        .category-tabs-container {
+            position: sticky; top: 70px; z-index: 50;
+            background: #141414; padding: 15px 20px;
+            border-bottom: 1px solid #222;
         }
-        .hero-content { max-width: 600px; z-index: 2; }
-        .hero-badge {
-            display: inline-flex; align-items: center; gap: 8px;
-            background: #e50914; padding: 6px 16px; border-radius: 4px;
-            font-size: 13px; font-weight: 700; margin-bottom: 20px;
+        .category-tabs {
+            display: flex; gap: 10px; overflow-x: auto; padding-bottom: 5px;
+            scrollbar-width: thin;
         }
-        .hero-title { font-size: 56px; font-weight: 900; margin-bottom: 20px; line-height: 1.1; }
-        .hero-desc { font-size: 18px; line-height: 1.6; margin-bottom: 30px; color: #ddd; }
-        .hero-buttons { display: flex; gap: 15px; flex-wrap: wrap; }
-        .btn-play, .btn-info {
-            padding: 14px 32px; border: none; border-radius: 4px;
-            font-size: 16px; font-weight: 700; cursor: pointer;
-            display: flex; align-items: center; gap: 10px;
-        }
-        .btn-play { background: white; color: black; }
-        .btn-play:hover { background: #e50914; color: white; }
-        .btn-info { background: rgba(109,109,110,0.7); color: white; }
-
-        .content-section { padding: 0 50px; margin-bottom: 40px; }
-        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .section-title { font-size: 24px; font-weight: 700; }
-        .see-all { color: #54b9c5; font-size: 14px; cursor: pointer; }
-        .content-row {
-            display: flex; gap: 8px; overflow-x: auto; padding-bottom: 20px;
-            scroll-behavior: smooth;
-        }
-        .content-row::-webkit-scrollbar { height: 6px; }
-        .content-row::-webkit-scrollbar-thumb { background: #e50914; border-radius: 3px; }
-        .content-card {
-            min-width: 240px; height: 135px; background: #2a2a2a;
-            border-radius: 4px; cursor: pointer; transition: all 0.4s;
-            position: relative; overflow: hidden; flex-shrink: 0;
-        }
-        .content-card:hover { transform: scale(1.15); z-index: 10; box-shadow: 0 15px 40px rgba(0,0,0,0.9); }
-        .content-card img { width: 100%; height: 100%; object-fit: cover; }
-        .card-placeholder {
-            width: 100%; height: 100%; display: flex;
-            align-items: center; justify-content: center; font-size: 48px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-        .card-overlay {
-            position: absolute; bottom: 0; left: 0; right: 0;
-            background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, transparent 100%);
-            padding: 40px 10px 10px; opacity: 0; transition: opacity 0.3s;
-        }
-        .content-card:hover .card-overlay { opacity: 1; }
-        .card-title { font-size: 13px; font-weight: 700; margin-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .card-meta { font-size: 11px; color: #aaa; display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
-        .card-badge { display: inline-block; padding: 2px 6px; border-radius: 2px; font-size: 9px; font-weight: 700; }
-        .card-badge.live { background: #e50914; }
-        .card-badge.hd { background: #54b9c5; color: black; }
-
-        .details-modal {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9); z-index: 1000; overflow-y: auto; padding: 40px 20px;
-        }
-        .details-modal.active { display: block; }
-        .details-container { max-width: 900px; margin: 0 auto; background: #181818; border-radius: 8px; overflow: hidden; position: relative; }
-        .details-hero { position: relative; height: 450px; background-size: cover; background-position: center; }
-        .details-hero::after {
-            content: ''; position: absolute; bottom: 0; left: 0; right: 0;
-            height: 200px; background: linear-gradient(to top, #181818 0%, transparent 100%);
-        }
-        .details-content { padding: 0 40px 40px; position: relative; z-index: 2; margin-top: -100px; }
-        .details-title { font-size: 42px; font-weight: 900; margin-bottom: 20px; }
-        .details-meta { display: flex; gap: 15px; margin-bottom: 20px; align-items: center; flex-wrap: wrap; }
-        .meta-item { color: #46d369; font-weight: 700; font-size: 14px; }
-        .meta-item.age { border: 1px solid #aaa; padding: 2px 8px; color: white; font-size: 12px; }
-        .details-actions { display: flex; gap: 12px; margin-bottom: 25px; flex-wrap: wrap; }
-        .btn-action {
-            padding: 12px 24px; border: none; border-radius: 4px;
-            font-size: 15px; font-weight: 700; cursor: pointer;
+        .category-tabs::-webkit-scrollbar { height: 4px; }
+        .category-tabs::-webkit-scrollbar-thumb { background: #e50914; border-radius: 2px; }
+        .category-tab {
+            padding: 10px 20px; background: #2a2a2a; color: white;
+            border: 2px solid transparent; border-radius: 25px;
+            cursor: pointer; font-weight: 600; font-size: 14px;
+            white-space: nowrap; transition: all 0.3s;
             display: flex; align-items: center; gap: 8px;
         }
-        .btn-action.primary { background: white; color: black; }
-        .btn-action.primary:hover { background: #e50914; color: white; }
-        .btn-action.secondary { background: rgba(109,109,110,0.7); color: white; }
-        .details-desc { font-size: 16px; line-height: 1.6; color: #ddd; margin-bottom: 20px; }
-        .details-info { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; font-size: 14px; }
-        .info-label { color: #777; }
-        .info-value { color: white; }
-        .close-details {
-            position: absolute; top: 20px; right: 20px; background: #181818;
-            border: none; color: white; width: 40px; height: 40px;
-            border-radius: 50%; cursor: pointer; font-size: 20px; z-index: 10;
+        .category-tab:hover { background: #3a3a3a; }
+        .category-tab.active {
+            background: #e50914; border-color: #e50914;
+            box-shadow: 0 4px 15px rgba(229, 9, 20, 0.4);
         }
-        .close-details:hover { background: #e50914; }
-
-        .admin-modal {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.95); z-index: 1500; overflow-y: auto; padding: 20px;
+        .category-count {
+            background: rgba(255,255,255,0.2); padding: 2px 8px;
+            border-radius: 10px; font-size: 11px;
         }
-        .admin-modal.active { display: block; }
-        .admin-container { max-width: 1100px; margin: 0 auto; background: #181818; border-radius: 8px; overflow: hidden; }
-        .admin-header {
-            background: linear-gradient(135deg, #54b9c5 0%, #3a8a95 100%);
-            padding: 25px 30px; display: flex; justify-content: space-between; align-items: center;
+        .category-tab.active .category-count { background: rgba(255,255,255,0.3); }
+
+        /* ===== Content Grid ===== */
+        .content-section { padding: 20px; }
+        .section-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 20px; padding: 0 5px;
         }
-        .admin-header h2 { font-size: 24px; font-weight: 900; color: black; }
-        .close-admin {
-            background: rgba(0,0,0,0.3); border: none; color: black;
-            width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 20px;
+        .section-title { font-size: 24px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+        .section-count { color: #888; font-size: 14px; font-weight: 400; }
+        
+        .channels-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 15px;
         }
-        .admin-body { padding: 30px; }
-        .admin-tabs { display: flex; gap: 10px; margin-bottom: 25px; border-bottom: 2px solid #333; padding-bottom: 15px; flex-wrap: wrap; }
-        .admin-tab { padding: 10px 20px; background: #333; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; }
-        .admin-tab.active { background: #e50914; }
-        .admin-section { display: none; }
-        .admin-section.active { display: block; }
 
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
-        .stat-card { background: linear-gradient(135deg, #e50914 0%, #b0060f 100%); padding: 25px; border-radius: 8px; text-align: center; }
-        .stat-card.blue { background: linear-gradient(135deg, #54b9c5 0%, #3a8a95 100%); }
-        .stat-card.green { background: linear-gradient(135deg, #46d369 0%, #2ea84e 100%); }
-        .stat-card.purple { background: linear-gradient(135deg, #9b59b6 0%, #7d3c98 100%); }
-        .stat-number { font-size: 42px; font-weight: 900; margin-bottom: 5px; }
-        .stat-label { font-size: 14px; opacity: 0.9; }
+        .channel-card {
+            background: #1a1a1a; border-radius: 8px; overflow: hidden;
+            cursor: pointer; transition: all 0.3s;
+            border: 1px solid #2a2a2a;
+        }
+        .channel-card:hover {
+            transform: translateY(-5px);
+            border-color: #e50914;
+            box-shadow: 0 10px 30px rgba(229, 9, 20, 0.3);
+        }
+        .channel-image {
+            width: 100%; height: 120px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 48px; position: relative; overflow: hidden;
+        }
+        .channel-image img {
+            width: 100%; height: 100%; object-fit: cover;
+        }
+        .channel-badge {
+            position: absolute; top: 8px; right: 8px;
+            background: #e50914; padding: 3px 8px;
+            border-radius: 4px; font-size: 10px; font-weight: 700;
+        }
+        .channel-info { padding: 12px; }
+        .channel-name {
+            font-size: 14px; font-weight: 700; margin-bottom: 5px;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .channel-category {
+            font-size: 11px; color: #888;
+            display: flex; align-items: center; gap: 5px;
+        }
+        .live-dot {
+            width: 6px; height: 6px; background: #e50914;
+            border-radius: 50%; animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
 
-        .admin-form { background: #252525; padding: 25px; border-radius: 8px; margin-bottom: 25px; }
-        .admin-form h3 { margin-bottom: 20px; color: #54b9c5; font-size: 20px; }
-        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .btn-submit { padding: 14px 30px; background: #46d369; color: black; border: none; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 16px; margin-top: 10px; }
-        .btn-submit:hover { background: #5ae07a; }
+        .load-more-btn {
+            display: block; margin: 30px auto; padding: 14px 40px;
+            background: #e50914; color: white; border: none; border-radius: 25px;
+            cursor: pointer; font-weight: 700; font-size: 15px;
+            transition: all 0.3s;
+        }
+        .load-more-btn:hover { background: #f40612; transform: scale(1.05); }
+        .load-more-btn:disabled { background: #555; cursor: not-allowed; transform: none; }
 
-        .channels-list { background: #252525; border-radius: 8px; overflow: hidden; max-height: 500px; overflow-y: auto; }
-        .channel-item { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; border-bottom: 1px solid #333; }
-        .channel-item:last-child { border-bottom: none; }
-        .channel-info { flex: 1; }
-        .channel-name { font-weight: 700; margin-bottom: 5px; }
-        .channel-cat { font-size: 12px; color: #aaa; }
-        .channel-actions { display: flex; gap: 8px; }
-        .btn-icon { padding: 8px 12px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; }
-        .btn-edit { background: #54b9c5; color: black; }
-        .btn-delete { background: #e50914; color: white; }
+        .loading { text-align: center; padding: 40px; color: #888; grid-column: 1/-1; }
+        .no-content { text-align: center; padding: 60px 20px; color: #666; grid-column: 1/-1; }
 
-        .import-info { background: rgba(84,185,197,0.1); border-right: 4px solid #54b9c5; padding: 15px; border-radius: 4px; margin-bottom: 20px; font-size: 14px; }
-        .import-progress { background: #333; height: 8px; border-radius: 4px; overflow: hidden; margin-top: 15px; display: none; }
-        .import-progress-bar { height: 100%; background: linear-gradient(90deg, #46d369 0%, #54b9c5 100%); width: 0%; transition: width 0.3s; }
-        .import-log { background: #0a0a0a; padding: 15px; border-radius: 4px; margin-top: 15px; max-height: 200px; overflow-y: auto; font-family: monospace; font-size: 12px; display: none; }
-        .log-item { padding: 3px 0; color: #46d369; }
-        .log-item.error { color: #e50914; }
-
-        /* ===== Player محسّن ===== */
+        /* ===== Player ===== */
         .player-modal {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #000; z-index: 2000; justify-content: center; align-items: center;
@@ -269,34 +212,73 @@
         }
         .close-player:hover { background: #e50914; }
 
-        .loading { text-align: center; padding: 40px; color: #888; }
-        .no-content { text-align: center; padding: 60px 20px; color: #666; min-width: 100%; }
-        .load-more-btn {
-            display: block; margin: 20px auto; padding: 12px 30px;
-            background: #e50914; color: white; border: none; border-radius: 4px;
-            cursor: pointer; font-weight: 700; font-size: 14px;
+        /* ===== Admin ===== */
+        .admin-modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95); z-index: 1500; overflow-y: auto; padding: 20px;
         }
-        .load-more-btn:hover { background: #f40612; }
+        .admin-modal.active { display: block; }
+        .admin-container { max-width: 1100px; margin: 0 auto; background: #181818; border-radius: 8px; overflow: hidden; }
+        .admin-header {
+            background: linear-gradient(135deg, #54b9c5 0%, #3a8a95 100%);
+            padding: 25px 30px; display: flex; justify-content: space-between; align-items: center;
+        }
+        .admin-header h2 { font-size: 24px; font-weight: 900; color: black; }
+        .close-admin {
+            background: rgba(0,0,0,0.3); border: none; color: black;
+            width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 20px;
+        }
+        .admin-body { padding: 30px; }
+        .admin-tabs { display: flex; gap: 10px; margin-bottom: 25px; border-bottom: 2px solid #333; padding-bottom: 15px; flex-wrap: wrap; }
+        .admin-tab { padding: 10px 20px; background: #333; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; }
+        .admin-tab.active { background: #e50914; }
+        .admin-section { display: none; }
+        .admin-section.active { display: block; }
 
-        .status-indicator {
-            display: inline-block; width: 8px; height: 8px;
-            border-radius: 50%; margin-left: 5px;
-        }
-        .status-indicator.live { background: #e50914; animation: pulse 1.5s infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .stat-card { background: linear-gradient(135deg, #e50914 0%, #b0060f 100%); padding: 25px; border-radius: 8px; text-align: center; }
+        .stat-card.blue { background: linear-gradient(135deg, #54b9c5 0%, #3a8a95 100%); }
+        .stat-card.green { background: linear-gradient(135deg, #46d369 0%, #2ea84e 100%); }
+        .stat-card.purple { background: linear-gradient(135deg, #9b59b6 0%, #7d3c98 100%); }
+        .stat-number { font-size: 42px; font-weight: 900; margin-bottom: 5px; }
+        .stat-label { font-size: 14px; opacity: 0.9; }
+
+        .admin-form { background: #252525; padding: 25px; border-radius: 8px; margin-bottom: 25px; }
+        .admin-form h3 { margin-bottom: 20px; color: #54b9c5; font-size: 20px; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .btn-submit { padding: 14px 30px; background: #46d369; color: black; border: none; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 16px; margin-top: 10px; }
+        .btn-submit:hover { background: #5ae07a; }
+
+        .channels-list { background: #252525; border-radius: 8px; overflow: hidden; max-height: 500px; overflow-y: auto; }
+        .channel-item { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; border-bottom: 1px solid #333; }
+        .channel-item:last-child { border-bottom: none; }
+        .channel-info-admin { flex: 1; }
+        .channel-name-admin { font-weight: 700; margin-bottom: 5px; }
+        .channel-cat-admin { font-size: 12px; color: #aaa; }
+        .channel-actions { display: flex; gap: 8px; }
+        .btn-icon { padding: 8px 12px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; }
+        .btn-edit { background: #54b9c5; color: black; }
+        .btn-delete { background: #e50914; color: white; }
+
+        .import-info { background: rgba(84,185,197,0.1); border-right: 4px solid #54b9c5; padding: 15px; border-radius: 4px; margin-bottom: 20px; font-size: 14px; }
+        .import-progress { background: #333; height: 8px; border-radius: 4px; overflow: hidden; margin-top: 15px; display: none; }
+        .import-progress-bar { height: 100%; background: linear-gradient(90deg, #46d369 0%, #54b9c5 100%); width: 0%; transition: width 0.3s; }
+        .import-log { background: #0a0a0a; padding: 15px; border-radius: 4px; margin-top: 15px; max-height: 200px; overflow-y: auto; font-family: monospace; font-size: 12px; display: none; }
+        .log-item { padding: 3px 0; color: #46d369; }
+        .log-item.error { color: #e50914; }
 
         @media (max-width: 768px) {
-            .header { padding: 15px 20px; }
-            .nav { display: none; }
-            .hero { padding: 0 20px; height: 70vh; }
-            .hero-title { font-size: 32px; }
-            .hero-desc { font-size: 14px; }
-            .content-section { padding: 0 20px; }
-            .content-card { min-width: 160px; height: 90px; }
-            .search-input { width: 120px; }
-            .details-title { font-size: 28px; }
-            .details-content { padding: 0 20px 20px; }
-            .details-hero { height: 300px; }
+            .header { padding: 12px 15px; }
+            .logo { font-size: 22px; }
+            .search-input { width: 100px; font-size: 13px; }
+            .admin-btn, .logout-btn { font-size: 12px; padding: 6px 12px; }
+            .category-tabs-container { top: 60px; padding: 10px 15px; }
+            .category-tab { padding: 8px 15px; font-size: 13px; }
+            .content-section { padding: 15px; }
+            .channels-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+            .channel-image { height: 90px; font-size: 36px; }
+            .channel-name { font-size: 12px; }
+            .section-title { font-size: 20px; }
             .form-row { grid-template-columns: 1fr; }
             .admin-body { padding: 15px; }
             .admin-header { padding: 20px; }
@@ -337,13 +319,6 @@
     <div id="mainApp" style="display: none;">
         <header class="header" id="header">
             <div class="logo">IPTV MAX</div>
-            <nav class="nav">
-                <a onclick="scrollToSection('hero')" class="active">الرئيسية</a>
-                <a onclick="scrollToSection('channelsSection')">القنوات</a>
-                <a onclick="scrollToSection('sportsSection')">الرياضة</a>
-                <a onclick="scrollToSection('moviesSection')">الأفلام</a>
-                <a onclick="scrollToSection('kidsSection')">الأطفال</a>
-            </nav>
             <div class="user-section">
                 <input type="text" class="search-input" id="searchInput" placeholder="🔍 بحث..." oninput="searchContent(this.value)">
                 <button class="admin-btn" id="adminBtn" onclick="openAdmin()" style="display:none;">⚙️ لوحة التحكم</button>
@@ -351,69 +326,43 @@
             </div>
         </header>
 
-        <section class="hero" id="hero">
-            <div class="hero-content">
-                <span class="hero-badge">🔥 مباشر الآن</span>
-                <h1 class="hero-title">منصة البث الاحترافية</h1>
-                <p class="hero-desc">استمتع بآلاف القنوات والأفلام والمسلسلات بجودة عالية.</p>
-                <div class="hero-buttons">
-                    <button class="btn-play" onclick="playFeatured()">▶ تشغيل</button>
-                    <button class="btn-info" onclick="showFeaturedDetails()">ℹ معلومات</button>
-                </div>
+        <!-- Category Tabs -->
+        <div class="category-tabs-container">
+            <div class="category-tabs" id="categoryTabs">
+                <!-- سيتم ملؤها ديناميكياً -->
             </div>
-        </section>
+        </div>
 
-        <section class="content-section" id="trendingSection">
+        <!-- Content Section -->
+        <section class="content-section">
             <div class="section-header">
-                <h2 class="section-title">🔥 الأكثر رواجاً</h2>
+                <h2 class="section-title" id="currentSectionTitle"> جميع القنوات</h2>
+                <span class="section-count" id="currentSectionCount"></span>
             </div>
-            <div class="content-row" id="trendingRow"><div class="loading">جاري التحميل...</div></div>
-        </section>
-
-        <section class="content-section" id="channelsSection">
-            <div class="section-header">
-                <h2 class="section-title">📺 القنوات المباشرة</h2>
+            <div class="channels-grid" id="channelsGrid">
+                <div class="loading">جاري تحميل القنوات...</div>
             </div>
-            <div class="content-row" id="channelsRow"><div class="loading">جاري التحميل...</div></div>
-            <button class="load-more-btn" id="loadMoreChannels" style="display:none;" onclick="loadMoreChannels()">تحميل المزيد</button>
-        </section>
-
-        <section class="content-section" id="sportsSection">
-            <div class="section-header">
-                <h2 class="section-title">⚽ الرياضة</h2>
-            </div>
-            <div class="content-row" id="sportsRow"><div class="loading">جاري التحميل...</div></div>
-        </section>
-
-        <section class="content-section" id="moviesSection">
-            <div class="section-header">
-                <h2 class="section-title">🎬 الأفلام</h2>
-            </div>
-            <div class="content-row" id="moviesRow"><div class="loading">جاري التحميل...</div></div>
-        </section>
-
-        <section class="content-section" id="kidsSection">
-            <div class="section-header">
-                <h2 class="section-title"> الأطفال</h2>
-            </div>
-            <div class="content-row" id="kidsRow"><div class="loading">جاري التحميل...</div></div>
+            <button class="load-more-btn" id="loadMoreBtn" style="display:none;" onclick="loadMore()">تحميل المزيد</button>
         </section>
     </div>
 
-    <!-- Details Modal -->
-    <div class="details-modal" id="detailsModal">
-        <div class="details-container">
-            <button class="close-details" onclick="closeDetails()">✕</button>
-            <div class="details-hero" id="detailsHero"></div>
-            <div class="details-content">
-                <h1 class="details-title" id="detailsTitle">عنوان</h1>
-                <div class="details-meta" id="detailsMeta"></div>
-                <div class="details-actions">
-                    <button class="btn-action primary" id="playBtn">▶ تشغيل</button>
-                    <button class="btn-action secondary">+ قائمتي</button>
+    <!-- Player Modal -->
+    <div class="player-modal" id="playerModal">
+        <button class="close-player" onclick="closePlayer()">✕</button>
+        <div class="player-container">
+            <div class="video-wrapper" id="videoWrapper">
+                <video id="videoPlayer" controls playsinline></video>
+            </div>
+            <div class="player-info-bar">
+                <div>
+                    <h2 id="playerTitle">عنوان</h2>
+                    <p id="playerCategory">التصنيف</p>
                 </div>
-                <p class="details-desc" id="detailsDesc"></p>
-                <div class="details-info" id="detailsInfo"></div>
+                <div class="player-controls">
+                    <span id="playerStatus" style="color:#46d369;font-weight:700;font-size:13px;"></span>
+                    <button class="ctrl-btn" onclick="toggleFitMode()" id="fitBtn">🔲 احتواء</button>
+                    <button class="ctrl-btn" onclick="toggleFullscreen()">⛶ ملء الشاشة</button>
+                </div>
             </div>
         </div>
     </div>
@@ -430,7 +379,7 @@
                     <button class="admin-tab active" onclick="showAdminTab('stats')">📊 الإحصائيات</button>
                     <button class="admin-tab" onclick="showAdminTab('add')">➕ إضافة قناة</button>
                     <button class="admin-tab" onclick="showAdminTab('import')">📥 استيراد M3U</button>
-                    <button class="admin-tab" onclick="showAdminTab('manage')">📋 إدارة القنوات</button>
+                    <button class="admin-tab" onclick="showAdminTab('manage')"> إدارة القنوات</button>
                 </div>
 
                 <div class="admin-section active" id="statsSection">
@@ -453,14 +402,14 @@
                                 <select id="addCategory">
                                     <option value="رياضة">⚽ رياضة</option>
                                     <option value="أخبار">📰 أخبار</option>
-                                    <option value="أطفال"> أطفال</option>
+                                    <option value="أطفال">👶 أطفال</option>
                                     <option value="أفلام">🎬 أفلام</option>
-                                    <option value="مسلسلات"> مسلسلات</option>
+                                    <option value="مسلسلات">📺 مسلسلات</option>
                                     <option value="وثائقي">🌍 وثائقي</option>
-                                    <option value="موسيقى">🎵 موسيقى</option>
+                                    <option value="موسيقى"> موسيقى</option>
                                     <option value="ترفيه">🎭 ترفيه</option>
                                     <option value="ديني">🕌 ديني</option>
-                                    <option value="عام">📡 عام</option>
+                                    <option value="عام"> عام</option>
                                 </select>
                             </div>
                         </div>
@@ -483,7 +432,7 @@
 
                 <div class="admin-section" id="importSection">
                     <div class="admin-form">
-                        <h3> استيراد قائمة M3U</h3>
+                        <h3>📥 استيراد قائمة M3U</h3>
                         <div class="import-info">💡 <strong>كيف يعمل؟</strong> الصق رابط قائمة M3U أو محتوى القائمة مباشرة، وسيتم استيراد جميع القنوات تلقائياً!</div>
                         <div class="success-msg" id="importSuccess"></div>
                         <div class="form-group">
@@ -496,7 +445,7 @@
                         <div class="form-group" id="importUrlGroup"><label>رابط قائمة M3U</label><input type="text" id="importUrl" placeholder="https://example.com/playlist.m3u"></div>
                         <div class="form-group" id="importTextGroup" style="display:none;"><label>محتوى القائمة (M3U)</label><textarea id="importText" placeholder="#EXTM3U&#10;#EXTINF:-1,Channel Name&#10;http://..."></textarea></div>
                         <div class="form-group"><label><input type="checkbox" id="importOverwrite"> استبدال القنوات الحالية (احذف القديم أولاً)</label></div>
-                        <button class="btn-submit" onclick="importM3U()"> بدء الاستيراد</button>
+                        <button class="btn-submit" onclick="importM3U()">🚀 بدء الاستيراد</button>
                         <div class="import-progress" id="importProgress"><div class="import-progress-bar" id="importProgressBar"></div></div>
                         <div class="import-log" id="importLog"></div>
                     </div>
@@ -508,27 +457,6 @@
                         <div class="form-group"><input type="text" id="manageSearch" placeholder="🔍 ابحث عن قناة..." oninput="filterChannels(this.value)"></div>
                     </div>
                     <div class="channels-list" id="channelsList"><div class="loading">جاري التحميل...</div></div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Player Modal محسّن -->
-    <div class="player-modal" id="playerModal">
-        <button class="close-player" onclick="closePlayer()">✕</button>
-        <div class="player-container">
-            <div class="video-wrapper" id="videoWrapper">
-                <video id="videoPlayer" controls playsinline></video>
-            </div>
-            <div class="player-info-bar">
-                <div>
-                    <h2 id="playerTitle">عنوان</h2>
-                    <p id="playerCategory">التصنيف</p>
-                </div>
-                <div class="player-controls">
-                    <span id="playerStatus" style="color:#46d369;font-weight:700;font-size:13px;"></span>
-                    <button class="ctrl-btn" onclick="toggleFitMode()" id="fitBtn">🔲 احتواء</button>
-                    <button class="ctrl-btn" onclick="toggleFullscreen()">⛶ ملء الشاشة</button>
                 </div>
             </div>
         </div>
@@ -549,27 +477,31 @@
         const db = firebase.firestore();
 
         const ADMIN_EMAIL = 'tantanporte@gmail.com';
-        const CHANNELS_PER_PAGE = 30;
+        const CHANNELS_PER_PAGE = 50;
+
+        // تعريف الفئات
+        const categories = [
+            { id: 'all', name: 'الكل', icon: '📺' },
+            { id: 'أخبار', name: 'أخبار', icon: '📰' },
+            { id: 'رياضة', name: 'رياضة', icon: '⚽' },
+            { id: 'أطفال', name: 'أطفال', icon: '👶' },
+            { id: 'أفلام', name: 'أفلام', icon: '🎬' },
+            { id: 'مسلسلات', name: 'مسلسلات', icon: '📺' },
+            { id: 'ترفيه', name: 'ترفيه', icon: '🎭' },
+            { id: 'موسيقى', name: 'موسيقى', icon: '🎵' },
+            { id: 'وثائقي', name: 'وثائقي', icon: '🌍' },
+            { id: 'ديني', name: 'ديني', icon: '🕌' },
+            { id: 'عام', name: 'عام', icon: '📡' }
+        ];
 
         let hls = null;
         let allContent = [];
         let currentUser = null;
         let isAdmin = false;
-        let channelsPage = 0;
+        let currentCategory = 'all';
+        let filteredContent = [];
+        let currentPage = 0;
         let fitMode = 'contain';
-
-        const demoPosters = {
-            'رياضة': 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=500',
-            'أخبار': 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=500',
-            'أطفال': 'https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=500',
-            'أفلام': 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=500',
-            'مسلسلات': 'https://images.unsplash.com/photo-1522869635100-9f4c5e86aa37?w=500',
-            'وثائقي': 'https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=500',
-            'موسيقى': 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500',
-            'ترفيه': 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=500',
-            'ديني': 'https://images.unsplash.com/photo-1542816417-0983c9c9ad53?w=500',
-            'عام': 'https://images.unsplash.com/photo-1593784991095-a205069470b6?w=500'
-        };
 
         auth.onAuthStateChanged(user => {
             if (user) {
@@ -636,6 +568,7 @@
             else header.classList.remove('scrolled');
         });
 
+        // تحميل جميع القنوات
         async function loadAllContent() {
             try {
                 let snapshot;
@@ -647,66 +580,114 @@
                 allContent = [];
                 snapshot.forEach(doc => allContent.push({ id: doc.id, ...doc.data() }));
                 
-                channelsPage = 0;
-                renderInitialRows();
-                loadMoreChannels();
+                renderCategoryTabs();
+                selectCategory('all');
             } catch (error) {
                 console.error('Error:', error);
+                document.getElementById('channelsGrid').innerHTML = '<div class="no-content">خطأ في تحميل القنوات</div>';
             }
         }
 
-        function renderInitialRows() {
-            renderRow('trendingRow', allContent.slice(0, 15));
-            renderRow('sportsRow', allContent.filter(c => c.category && c.category.includes('رياض')));
-            renderRow('moviesRow', allContent.filter(c => c.type === 'movie'));
-            renderRow('kidsRow', allContent.filter(c => c.category && c.category.includes('طفل')));
+        // عرض أزرار الفئات
+        function renderCategoryTabs() {
+            const tabsContainer = document.getElementById('categoryTabs');
+            tabsContainer.innerHTML = '';
+            
+            categories.forEach(cat => {
+                const count = cat.id === 'all' ? allContent.length : 
+                    allContent.filter(c => c.category && c.category.includes(cat.id)).length;
+                
+                const tab = document.createElement('button');
+                tab.className = 'category-tab';
+                tab.dataset.category = cat.id;
+                tab.onclick = () => selectCategory(cat.id);
+                tab.innerHTML = `${cat.icon} ${cat.name} <span class="category-count">${count}</span>`;
+                tabsContainer.appendChild(tab);
+            });
         }
 
-        function loadMoreChannels() {
-            const start = channelsPage * CHANNELS_PER_PAGE;
+        // اختيار فئة
+        function selectCategory(categoryId) {
+            currentCategory = categoryId;
+            currentPage = 0;
+            
+            // تحديث الأزرار النشطة
+            document.querySelectorAll('.category-tab').forEach(tab => {
+                tab.classList.toggle('active', tab.dataset.category === categoryId);
+            });
+            
+            // تحديث العنوان
+            const cat = categories.find(c => c.id === categoryId);
+            document.getElementById('currentSectionTitle').textContent = `${cat.icon} ${cat.name}`;
+            
+            // فلترة المحتوى
+            if (categoryId === 'all') {
+                filteredContent = allContent;
+            } else {
+                filteredContent = allContent.filter(c => c.category && c.category.includes(categoryId));
+            }
+            
+            document.getElementById('currentSectionCount').textContent = `${filteredContent.length} قناة`;
+            
+            // عرض القنوات
+            const grid = document.getElementById('channelsGrid');
+            grid.innerHTML = '';
+            
+            if (filteredContent.length === 0) {
+                grid.innerHTML = '<div class="no-content">لا توجد قنوات في هذا القسم حالياً</div>';
+                document.getElementById('loadMoreBtn').style.display = 'none';
+            } else {
+                loadMore();
+            }
+        }
+
+        // تحميل المزيد من القنوات
+        function loadMore() {
+            const start = currentPage * CHANNELS_PER_PAGE;
             const end = start + CHANNELS_PER_PAGE;
-            const pageChannels = allContent.slice(start, end);
+            const pageChannels = filteredContent.slice(start, end);
             
             if (pageChannels.length === 0) {
-                document.getElementById('loadMoreChannels').style.display = 'none';
+                document.getElementById('loadMoreBtn').style.display = 'none';
                 return;
             }
 
-            const row = document.getElementById('channelsRow');
-            if (channelsPage === 0) row.innerHTML = '';
-            
+            const grid = document.getElementById('channelsGrid');
             pageChannels.forEach(item => {
-                row.appendChild(createCard(item));
+                grid.appendChild(createChannelCard(item));
             });
 
-            channelsPage++;
+            currentPage++;
             
-            const btn = document.getElementById('loadMoreChannels');
-            if (end < allContent.length) {
+            const btn = document.getElementById('loadMoreBtn');
+            if (end < filteredContent.length) {
                 btn.style.display = 'block';
-                btn.textContent = `تحميل المزيد (${allContent.length - end} متبقي)`;
+                btn.textContent = `تحميل المزيد (${filteredContent.length - end} متبقي)`;
             } else {
                 btn.style.display = 'none';
             }
         }
 
-        function createCard(item) {
+        // إنشاء بطاقة قناة
+        function createChannelCard(item) {
             const card = document.createElement('div');
-            card.className = 'content-card';
-            card.onclick = () => showDetails(item.id);
+            card.className = 'channel-card';
+            card.onclick = () => openPlayer(item.url, item.name, item.category);
             
             const poster = getPoster(item);
             const isLive = item.type === 'live';
             
             card.innerHTML = `
-                <img src="${poster}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" style="display:block">
-                <div class="card-placeholder" style="display:none">${getIcon(item.category, item.type)}</div>
-                <div class="card-overlay">
-                    <div class="card-title">${item.name || 'بدون اسم'}</div>
-                    <div class="card-meta">
+                <div class="channel-image">
+                    ${item.logo && item.logo.startsWith('http') 
+                        ? `<img src="${poster}" onerror="this.parentElement.innerHTML='📺'">` 
+                        : '📺'}
+                    ${isLive ? '<span class="channel-badge"><span class="live-dot"></span>مباشر</span>' : ''}
+                </div>
+                <div class="channel-info">
+                    <div class="channel-name">${item.name || 'بدون اسم'}</div>
+                    <div class="channel-category">
                         ${item.category || 'عام'}
-                        ${isLive ? '<span class="card-badge live"><span class="status-indicator live"></span>مباشر</span>' : ''}
-                        <span class="card-badge hd">HD</span>
                     </div>
                 </div>
             `;
@@ -715,72 +696,10 @@
 
         function getPoster(item) {
             if (item.logo && item.logo.startsWith('http')) return item.logo;
-            if (item.poster && item.poster.startsWith('http')) return item.poster;
-            for (const [key, url] of Object.entries(demoPosters)) {
-                if (item.category && item.category.includes(key)) return url;
-            }
-            return demoPosters['عام'];
+            return '';
         }
 
-        function getIcon(category, type) {
-            if (type === 'movie') return '🎬';
-            if (category && category.includes('رياض')) return '';
-            if (category && category.includes('طفل')) return '👶';
-            if (category && category.includes('أخبار')) return '📰';
-            return '📺';
-        }
-
-        function renderRow(rowId, items) {
-            const row = document.getElementById(rowId);
-            if (!items || items.length === 0) {
-                row.innerHTML = '<div class="no-content">لا يوجد محتوى في هذا القسم حالياً</div>';
-                return;
-            }
-            row.innerHTML = '';
-            items.forEach(item => row.appendChild(createCard(item)));
-        }
-
-        function showDetails(id) {
-            const item = allContent.find(c => c.id === id);
-            if (!item) return;
-            const modal = document.getElementById('detailsModal');
-            document.getElementById('detailsHero').style.backgroundImage = `linear-gradient(to top, #181818 0%, transparent 50%), url(${getPoster(item)})`;
-            document.getElementById('detailsTitle').textContent = item.name || 'بدون عنوان';
-            document.getElementById('detailsMeta').innerHTML = `
-                <span class="meta-item">2024</span>
-                <span class="meta-item age">+13</span>
-                <span class="meta-item">HD</span>
-                ${item.type === 'live' ? '<span class="meta-item" style="color:#e50914">● مباشر</span>' : ''}
-            `;
-            document.getElementById('detailsDesc').textContent = item.description || `شاهد ${item.name || 'هذا المحتوى'} بجودة عالية على IPTV MAX.`;
-            document.getElementById('detailsInfo').innerHTML = `
-                <div><span class="info-label">التصنيف: </span><span class="info-value">${item.category || 'عام'}</span></div>
-                <div><span class="info-label">النوع: </span><span class="info-value">${item.type === 'live' ? 'بث مباشر' : item.type === 'movie' ? 'فيلم' : 'مسلسل'}</span></div>
-                <div><span class="info-label">الجودة: </span><span class="info-value">HD / 4K</span></div>
-                <div><span class="info-label">اللغة: </span><span class="info-value">عربي / إنجليزي</span></div>
-            `;
-            document.getElementById('playBtn').onclick = () => { closeDetails(); openPlayer(item.url, item.name, item.category); };
-            modal.classList.add('active');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeDetails() {
-            document.getElementById('detailsModal').classList.remove('active');
-            document.body.style.overflow = 'auto';
-        }
-
-        function showFeaturedDetails() {
-            if (allContent.length > 0) showDetails(allContent[0].id);
-        }
-
-        function playFeatured() {
-            if (allContent.length > 0) {
-                const item = allContent[0];
-                openPlayer(item.url, item.name, item.category);
-            }
-        }
-
-        // ===== مشغل محسّن =====
+        // ===== Player =====
         function openPlayer(url, name, category) {
             const modal = document.getElementById('playerModal');
             const video = document.getElementById('videoPlayer');
@@ -792,10 +711,9 @@
             status.style.color = '#ffc107';
             modal.classList.add('active');
             
-            // إعادة تعيين وضع الاحتواء
             fitMode = 'contain';
             video.classList.remove('fit-cover');
-            document.getElementById('fitBtn').textContent = ' احتواء';
+            document.getElementById('fitBtn').textContent = '🔲 احتواء';
             document.getElementById('fitBtn').classList.remove('active');
             
             if (hls) { hls.destroy(); hls = null; }
@@ -838,7 +756,7 @@
                                     hls.recoverMediaError();
                                     break;
                                 default:
-                                    status.textContent = '❌ تعذر التشغيل';
+                                    status.textContent = ' تعذر التشغيل';
                                     status.style.color = '#e50914';
                                     hls.destroy();
                                     break;
@@ -853,7 +771,7 @@
                         video.play();
                     });
                     video.addEventListener('error', () => {
-                        status.textContent = ' تعذر التشغيل';
+                        status.textContent = '❌ تعذر التشغيل';
                         status.style.color = '#e50914';
                     });
                 }
@@ -868,19 +786,17 @@
             modal.classList.remove('active');
             video.pause();
             if (hls) { hls.destroy(); hls = null; }
-            // الخروج من ملء الشاشة إن كان نشطاً
             if (document.fullscreenElement) {
                 document.exitFullscreen().catch(e => {});
             }
         }
 
-        // تبديل بين الاحتواء والقص
         function toggleFitMode() {
             const video = document.getElementById('videoPlayer');
             const btn = document.getElementById('fitBtn');
             if (fitMode === 'contain') {
                 video.classList.add('fit-cover');
-                btn.textContent = '️ قص';
+                btn.textContent = '✂️ قص';
                 btn.classList.add('active');
                 fitMode = 'cover';
             } else {
@@ -891,7 +807,6 @@
             }
         }
 
-        // ملء الشاشة الحقيقي
         function toggleFullscreen() {
             const container = document.querySelector('.player-container');
             if (!document.fullscreenElement) {
@@ -906,19 +821,29 @@
         }
 
         function searchContent(query) {
-            if (!query.trim()) { loadAllContent(); return; }
+            if (!query.trim()) {
+                selectCategory(currentCategory);
+                return;
+            }
             const q = query.toLowerCase();
             const results = allContent.filter(item =>
                 (item.name && item.name.toLowerCase().includes(q)) ||
                 (item.category && item.category.toLowerCase().includes(q))
             );
-            renderRow('channelsRow', results);
-            renderRow('trendingRow', results.slice(0, 10));
-            document.getElementById('loadMoreChannels').style.display = 'none';
-        }
-
-        function scrollToSection(id) {
-            document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
+            
+            filteredContent = results;
+            currentPage = 0;
+            const grid = document.getElementById('channelsGrid');
+            grid.innerHTML = '';
+            
+            if (results.length === 0) {
+                grid.innerHTML = '<div class="no-content">لا توجد نتائج</div>';
+                document.getElementById('loadMoreBtn').style.display = 'none';
+            } else {
+                document.getElementById('currentSectionTitle').textContent = '🔍 نتائج البحث';
+                document.getElementById('currentSectionCount').textContent = `${results.length} نتيجة`;
+                loadMore();
+            }
         }
 
         // ===== ADMIN =====
@@ -1141,9 +1066,9 @@
                     item.className = 'channel-item';
                     item.dataset.name = (ch.name || '').toLowerCase();
                     item.innerHTML = `
-                        <div class="channel-info">
-                            <div class="channel-name">${ch.name || 'بدون اسم'}</div>
-                            <div class="channel-cat">${ch.category || 'عام'} • ${ch.type === 'live' ? 'مباشر' : ch.type}</div>
+                        <div class="channel-info-admin">
+                            <div class="channel-name-admin">${ch.name || 'بدون اسم'}</div>
+                            <div class="channel-cat-admin">${ch.category || 'عام'} • ${ch.type === 'live' ? 'مباشر' : ch.type}</div>
                         </div>
                         <div class="channel-actions">
                             <button class="btn-icon btn-edit" onclick="editChannel('${doc.id}')">✏️</button>
@@ -1192,7 +1117,7 @@
         }
 
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') { closePlayer(); closeDetails(); closeAdmin(); }
+            if (e.key === 'Escape') { closePlayer(); closeAdmin(); }
         });
     </script>
 </body>
