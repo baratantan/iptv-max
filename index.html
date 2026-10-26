@@ -13,25 +13,16 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; }
         body { background: #141414; color: white; overflow-x: hidden; }
 
-        /* ===== Login ===== */
         .auth-screen {
             min-height: 100vh;
             background: linear-gradient(rgba(0,0,0,0.75), rgba(20,20,20,0.95)),
                         url('https://assets.nflxext.com/ffe/siteui/vlv3/9d3533b2-0e2b-40b2-95e0-ecd7979cc88b/a3873901-5b7c-46eb-b9fa-12f517af68e4/EG-ar-20240408-popsignuptwoweeks-perspective_alpha_website_large.jpg');
-            background-size: cover;
-            background-position: center;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
+            background-size: cover; background-position: center;
+            display: flex; align-items: center; justify-content: center; padding: 20px;
         }
         .auth-box {
-            background: rgba(0,0,0,0.85);
-            padding: 60px 40px;
-            border-radius: 8px;
-            width: 100%;
-            max-width: 450px;
-            backdrop-filter: blur(10px);
+            background: rgba(0,0,0,0.85); padding: 60px 40px; border-radius: 8px;
+            width: 100%; max-width: 450px; backdrop-filter: blur(10px);
             border: 1px solid rgba(255,255,255,0.1);
         }
         .auth-box h1 { color: #e50914; font-size: 36px; margin-bottom: 10px; font-weight: 900; letter-spacing: 2px; }
@@ -41,9 +32,7 @@
             width: 100%; padding: 16px; background: #333; border: none;
             border-radius: 4px; color: white; font-size: 16px; font-family: 'Cairo', sans-serif;
         }
-        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
-            outline: none; background: #454545;
-        }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; background: #454545; }
         .form-group textarea { min-height: 120px; resize: vertical; }
         .btn-primary {
             width: 100%; padding: 16px; background: #e50914; color: white;
@@ -53,45 +42,34 @@
         .btn-primary:hover { background: #f40612; }
         .btn-secondary {
             width: 100%; padding: 16px; background: rgba(109,109,110,0.7);
-            color: white; border: none; border-radius: 4px; font-size: 16px;
-            cursor: pointer; margin-top: 10px;
+            color: white; border: none; border-radius: 4px; font-size: 16px; cursor: pointer; margin-top: 10px;
         }
-        .error-msg {
-            background: #e50914; color: white; padding: 12px;
-            border-radius: 4px; margin-bottom: 15px; display: none; font-size: 14px;
-        }
-        .success-msg {
-            background: #46d369; color: black; padding: 12px;
-            border-radius: 4px; margin-bottom: 15px; display: none; font-size: 14px; font-weight: 700;
-        }
+        .error-msg { background: #e50914; color: white; padding: 12px; border-radius: 4px; margin-bottom: 15px; display: none; font-size: 14px; }
+        .success-msg { background: #46d369; color: black; padding: 12px; border-radius: 4px; margin-bottom: 15px; display: none; font-size: 14px; font-weight: 700; }
 
-        /* ===== Header ===== */
         .header {
             position: fixed; top: 0; width: 100%; padding: 20px 50px;
             background: linear-gradient(180deg, rgba(0,0,0,0.9) 0%, transparent 100%);
             display: flex; justify-content: space-between; align-items: center;
-            z-index: 100; transition: background 0.3s;
+            z-index: 100; transition: background 0.3s; flex-wrap: wrap; gap: 10px;
         }
         .header.scrolled { background: #141414; }
         .logo { color: #e50914; font-size: 32px; font-weight: 900; cursor: pointer; letter-spacing: 2px; }
-        .nav { display: flex; gap: 25px; align-items: center; }
+        .nav { display: flex; gap: 25px; align-items: center; flex-wrap: wrap; }
         .nav a { color: white; text-decoration: none; font-size: 14px; cursor: pointer; }
         .nav a:hover, .nav a.active { color: #e50914; }
-        .user-section { display: flex; align-items: center; gap: 15px; }
+        .user-section { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
         .search-input {
             padding: 8px 15px; background: rgba(0,0,0,0.7);
-            border: 1px solid #555; border-radius: 4px; color: white; width: 200px;
+            border: 1px solid #555; border-radius: 4px; color: white; width: 180px;
         }
-        .search-input:focus { outline: none; border-color: #e50914; width: 250px; }
+        .search-input:focus { outline: none; border-color: #e50914; width: 220px; }
         .logout-btn, .admin-btn {
-            padding: 8px 16px; color: white; border: none;
-            border-radius: 4px; cursor: pointer; font-weight: 600;
+            padding: 8px 16px; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600;
         }
         .logout-btn { background: #e50914; }
         .admin-btn { background: #54b9c5; color: black; }
-        .admin-btn:hover { background: #6ec8d3; }
 
-        /* ===== Hero ===== */
         .hero {
             position: relative; height: 85vh;
             background: linear-gradient(to right, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.6) 50%, transparent 100%),
@@ -108,7 +86,7 @@
         }
         .hero-title { font-size: 56px; font-weight: 900; margin-bottom: 20px; line-height: 1.1; }
         .hero-desc { font-size: 18px; line-height: 1.6; margin-bottom: 30px; color: #ddd; }
-        .hero-buttons { display: flex; gap: 15px; }
+        .hero-buttons { display: flex; gap: 15px; flex-wrap: wrap; }
         .btn-play, .btn-info {
             padding: 14px 32px; border: none; border-radius: 4px;
             font-size: 16px; font-weight: 700; cursor: pointer;
@@ -118,13 +96,13 @@
         .btn-play:hover { background: #e50914; color: white; }
         .btn-info { background: rgba(109,109,110,0.7); color: white; }
 
-        /* ===== Content Rows ===== */
         .content-section { padding: 0 50px; margin-bottom: 40px; }
         .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
         .section-title { font-size: 24px; font-weight: 700; }
         .see-all { color: #54b9c5; font-size: 14px; cursor: pointer; }
         .content-row {
             display: flex; gap: 8px; overflow-x: auto; padding-bottom: 20px;
+            scroll-behavior: smooth;
         }
         .content-row::-webkit-scrollbar { height: 6px; }
         .content-row::-webkit-scrollbar-thumb { background: #e50914; border-radius: 3px; }
@@ -133,10 +111,7 @@
             border-radius: 4px; cursor: pointer; transition: all 0.4s;
             position: relative; overflow: hidden; flex-shrink: 0;
         }
-        .content-card:hover {
-            transform: scale(1.3); z-index: 10;
-            box-shadow: 0 15px 40px rgba(0,0,0,0.9);
-        }
+        .content-card:hover { transform: scale(1.15); z-index: 10; box-shadow: 0 15px 40px rgba(0,0,0,0.9); }
         .content-card img { width: 100%; height: 100%; object-fit: cover; }
         .card-placeholder {
             width: 100%; height: 100%; display: flex;
@@ -149,25 +124,18 @@
             padding: 40px 10px 10px; opacity: 0; transition: opacity 0.3s;
         }
         .content-card:hover .card-overlay { opacity: 1; }
-        .card-title { font-size: 13px; font-weight: 700; margin-bottom: 5px; }
-        .card-meta { font-size: 11px; color: #aaa; display: flex; align-items: center; gap: 5px; }
-        .card-badge {
-            display: inline-block; padding: 2px 6px; border-radius: 2px;
-            font-size: 9px; font-weight: 700;
-        }
+        .card-title { font-size: 13px; font-weight: 700; margin-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .card-meta { font-size: 11px; color: #aaa; display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+        .card-badge { display: inline-block; padding: 2px 6px; border-radius: 2px; font-size: 9px; font-weight: 700; }
         .card-badge.live { background: #e50914; }
         .card-badge.hd { background: #54b9c5; color: black; }
 
-        /* ===== Details Modal ===== */
         .details-modal {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.9); z-index: 1000; overflow-y: auto; padding: 40px 20px;
         }
         .details-modal.active { display: block; }
-        .details-container {
-            max-width: 900px; margin: 0 auto; background: #181818;
-            border-radius: 8px; overflow: hidden; position: relative;
-        }
+        .details-container { max-width: 900px; margin: 0 auto; background: #181818; border-radius: 8px; overflow: hidden; position: relative; }
         .details-hero { position: relative; height: 450px; background-size: cover; background-position: center; }
         .details-hero::after {
             content: ''; position: absolute; bottom: 0; left: 0; right: 0;
@@ -198,16 +166,12 @@
         }
         .close-details:hover { background: #e50914; }
 
-        /* ===== Admin Panel ===== */
         .admin-modal {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.95); z-index: 1500; overflow-y: auto; padding: 20px;
         }
         .admin-modal.active { display: block; }
-        .admin-container {
-            max-width: 1100px; margin: 0 auto; background: #181818;
-            border-radius: 8px; overflow: hidden;
-        }
+        .admin-container { max-width: 1100px; margin: 0 auto; background: #181818; border-radius: 8px; overflow: hidden; }
         .admin-header {
             background: linear-gradient(135deg, #54b9c5 0%, #3a8a95 100%);
             padding: 25px 30px; display: flex; justify-content: space-between; align-items: center;
@@ -218,109 +182,53 @@
             width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 20px;
         }
         .admin-body { padding: 30px; }
-        .admin-tabs {
-            display: flex; gap: 10px; margin-bottom: 25px; border-bottom: 2px solid #333;
-            padding-bottom: 15px; flex-wrap: wrap;
-        }
-        .admin-tab {
-            padding: 10px 20px; background: #333; color: white;
-            border: none; border-radius: 4px; cursor: pointer; font-weight: 600;
-        }
+        .admin-tabs { display: flex; gap: 10px; margin-bottom: 25px; border-bottom: 2px solid #333; padding-bottom: 15px; flex-wrap: wrap; }
+        .admin-tab { padding: 10px 20px; background: #333; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; }
         .admin-tab.active { background: #e50914; }
         .admin-section { display: none; }
         .admin-section.active { display: block; }
 
-        /* Stats */
-        .stats-grid {
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px; margin-bottom: 30px;
-        }
-        .stat-card {
-            background: linear-gradient(135deg, #e50914 0%, #b0060f 100%);
-            padding: 25px; border-radius: 8px; text-align: center;
-        }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .stat-card { background: linear-gradient(135deg, #e50914 0%, #b0060f 100%); padding: 25px; border-radius: 8px; text-align: center; }
         .stat-card.blue { background: linear-gradient(135deg, #54b9c5 0%, #3a8a95 100%); }
         .stat-card.green { background: linear-gradient(135deg, #46d369 0%, #2ea84e 100%); }
         .stat-card.purple { background: linear-gradient(135deg, #9b59b6 0%, #7d3c98 100%); }
         .stat-number { font-size: 42px; font-weight: 900; margin-bottom: 5px; }
         .stat-label { font-size: 14px; opacity: 0.9; }
 
-        /* Forms */
-        .admin-form {
-            background: #252525; padding: 25px; border-radius: 8px; margin-bottom: 25px;
-        }
+        .admin-form { background: #252525; padding: 25px; border-radius: 8px; margin-bottom: 25px; }
         .admin-form h3 { margin-bottom: 20px; color: #54b9c5; font-size: 20px; }
         .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .btn-submit {
-            padding: 14px 30px; background: #46d369; color: black;
-            border: none; border-radius: 4px; font-weight: 700; cursor: pointer;
-            font-size: 16px; margin-top: 10px;
-        }
+        .btn-submit { padding: 14px 30px; background: #46d369; color: black; border: none; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 16px; margin-top: 10px; }
         .btn-submit:hover { background: #5ae07a; }
-        .btn-danger {
-            padding: 14px 30px; background: #e50914; color: white;
-            border: none; border-radius: 4px; font-weight: 700; cursor: pointer;
-            font-size: 16px; margin-top: 10px;
-        }
 
-        /* Channels List */
-        .channels-list {
-            background: #252525; border-radius: 8px; overflow: hidden;
-        }
-        .channel-item {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 15px 20px; border-bottom: 1px solid #333;
-        }
+        .channels-list { background: #252525; border-radius: 8px; overflow: hidden; max-height: 500px; overflow-y: auto; }
+        .channel-item { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; border-bottom: 1px solid #333; }
         .channel-item:last-child { border-bottom: none; }
         .channel-info { flex: 1; }
         .channel-name { font-weight: 700; margin-bottom: 5px; }
         .channel-cat { font-size: 12px; color: #aaa; }
         .channel-actions { display: flex; gap: 8px; }
-        .btn-icon {
-            padding: 8px 12px; border: none; border-radius: 4px;
-            cursor: pointer; font-size: 14px;
-        }
+        .btn-icon { padding: 8px 12px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; }
         .btn-edit { background: #54b9c5; color: black; }
         .btn-delete { background: #e50914; color: white; }
 
-        /* M3U Import */
-        .import-info {
-            background: rgba(84, 185, 197, 0.1); border-right: 4px solid #54b9c5;
-            padding: 15px; border-radius: 4px; margin-bottom: 20px; font-size: 14px;
-        }
-        .import-progress {
-            background: #333; height: 8px; border-radius: 4px; overflow: hidden;
-            margin-top: 15px; display: none;
-        }
-        .import-progress-bar {
-            height: 100%; background: linear-gradient(90deg, #46d369 0%, #54b9c5 100%);
-            width: 0%; transition: width 0.3s;
-        }
-        .import-log {
-            background: #0a0a0a; padding: 15px; border-radius: 4px;
-            margin-top: 15px; max-height: 200px; overflow-y: auto;
-            font-family: monospace; font-size: 12px; display: none;
-        }
+        .import-info { background: rgba(84,185,197,0.1); border-right: 4px solid #54b9c5; padding: 15px; border-radius: 4px; margin-bottom: 20px; font-size: 14px; }
+        .import-progress { background: #333; height: 8px; border-radius: 4px; overflow: hidden; margin-top: 15px; display: none; }
+        .import-progress-bar { height: 100%; background: linear-gradient(90deg, #46d369 0%, #54b9c5 100%); width: 0%; transition: width 0.3s; }
+        .import-log { background: #0a0a0a; padding: 15px; border-radius: 4px; margin-top: 15px; max-height: 200px; overflow-y: auto; font-family: monospace; font-size: 12px; display: none; }
         .log-item { padding: 3px 0; color: #46d369; }
         .log-item.error { color: #e50914; }
 
-        /* Player Modal */
         .player-modal {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.98); z-index: 2000;
-            justify-content: center; align-items: center;
+            background: rgba(0,0,0,0.98); z-index: 2000; justify-content: center; align-items: center;
         }
         .player-modal.active { display: flex; }
-        .player-container {
-            width: 90%; max-width: 1100px; background: #000;
-            border-radius: 8px; overflow: hidden; position: relative;
-        }
+        .player-container { width: 90%; max-width: 1100px; background: #000; border-radius: 8px; overflow: hidden; position: relative; }
         .video-wrapper { position: relative; width: 100%; padding-top: 56.25%; background: #000; }
         .video-wrapper video { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
-        .player-info-bar {
-            padding: 20px; background: #181818;
-            display: flex; justify-content: space-between; align-items: center;
-        }
+        .player-info-bar { padding: 20px; background: #181818; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
         .close-player {
             position: absolute; top: 15px; right: 15px; background: rgba(0,0,0,0.8);
             border: none; color: white; width: 40px; height: 40px;
@@ -330,6 +238,20 @@
 
         .loading { text-align: center; padding: 40px; color: #888; }
         .no-content { text-align: center; padding: 60px 20px; color: #666; min-width: 100%; }
+        .load-more-btn {
+            display: block; margin: 20px auto; padding: 12px 30px;
+            background: #e50914; color: white; border: none; border-radius: 4px;
+            cursor: pointer; font-weight: 700; font-size: 14px;
+        }
+        .load-more-btn:hover { background: #f40612; }
+        .load-more-btn:disabled { background: #555; cursor: not-allowed; }
+
+        .status-indicator {
+            display: inline-block; width: 8px; height: 8px;
+            border-radius: 50%; margin-left: 5px;
+        }
+        .status-indicator.live { background: #e50914; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
 
         @media (max-width: 768px) {
             .header { padding: 15px 20px; }
@@ -390,7 +312,7 @@
             </nav>
             <div class="user-section">
                 <input type="text" class="search-input" id="searchInput" placeholder="🔍 بحث..." oninput="searchContent(this.value)">
-                <button class="admin-btn" id="adminBtn" onclick="openAdmin()" style="display:none;">⚙️ لوحة التحكم</button>
+                <button class="admin-btn" id="adminBtn" onclick="openAdmin()" style="display:none;">️ لوحة التحكم</button>
                 <button class="logout-btn" onclick="logout()">خروج</button>
             </div>
         </header>
@@ -410,7 +332,6 @@
         <section class="content-section" id="trendingSection">
             <div class="section-header">
                 <h2 class="section-title">🔥 الأكثر رواجاً</h2>
-                <span class="see-all">عرض الكل ←</span>
             </div>
             <div class="content-row" id="trendingRow"><div class="loading">جاري التحميل...</div></div>
         </section>
@@ -418,15 +339,14 @@
         <section class="content-section" id="channelsSection">
             <div class="section-header">
                 <h2 class="section-title">📺 القنوات المباشرة</h2>
-                <span class="see-all">عرض الكل ←</span>
             </div>
             <div class="content-row" id="channelsRow"><div class="loading">جاري التحميل...</div></div>
+            <button class="load-more-btn" id="loadMoreChannels" style="display:none;" onclick="loadMoreChannels()">تحميل المزيد</button>
         </section>
 
         <section class="content-section" id="sportsSection">
             <div class="section-header">
                 <h2 class="section-title">⚽ الرياضة</h2>
-                <span class="see-all">عرض الكل ←</span>
             </div>
             <div class="content-row" id="sportsRow"><div class="loading">جاري التحميل...</div></div>
         </section>
@@ -434,7 +354,6 @@
         <section class="content-section" id="moviesSection">
             <div class="section-header">
                 <h2 class="section-title">🎬 الأفلام</h2>
-                <span class="see-all">عرض الكل ←</span>
             </div>
             <div class="content-row" id="moviesRow"><div class="loading">جاري التحميل...</div></div>
         </section>
@@ -442,7 +361,6 @@
         <section class="content-section" id="kidsSection">
             <div class="section-header">
                 <h2 class="section-title">👶 الأطفال</h2>
-                <span class="see-all">عرض الكل ←</span>
             </div>
             <div class="content-row" id="kidsRow"><div class="loading">جاري التحميل...</div></div>
         </section>
@@ -470,7 +388,7 @@
     <div class="admin-modal" id="adminModal">
         <div class="admin-container">
             <div class="admin-header">
-                <h2>️ لوحة تحكم المدير</h2>
+                <h2>⚙️ لوحة تحكم المدير</h2>
                 <button class="close-admin" onclick="closeAdmin()">✕</button>
             </div>
             <div class="admin-body">
@@ -481,45 +399,28 @@
                     <button class="admin-tab" onclick="showAdminTab('manage')">📋 إدارة القنوات</button>
                 </div>
 
-                <!-- Stats -->
                 <div class="admin-section active" id="statsSection">
                     <div class="stats-grid">
-                        <div class="stat-card">
-                            <div class="stat-number" id="statChannels">0</div>
-                            <div class="stat-label">إجمالي القنوات</div>
-                        </div>
-                        <div class="stat-card blue">
-                            <div class="stat-number" id="statLive">0</div>
-                            <div class="stat-label">قنوات مباشرة</div>
-                        </div>
-                        <div class="stat-card green">
-                            <div class="stat-number" id="statMovies">0</div>
-                            <div class="stat-label">أفلام ومسلسلات</div>
-                        </div>
-                        <div class="stat-card purple">
-                            <div class="stat-number" id="statUsers">0</div>
-                            <div class="stat-label">المشتركين</div>
-                        </div>
+                        <div class="stat-card"><div class="stat-number" id="statChannels">0</div><div class="stat-label">إجمالي القنوات</div></div>
+                        <div class="stat-card blue"><div class="stat-number" id="statLive">0</div><div class="stat-label">قنوات مباشرة</div></div>
+                        <div class="stat-card green"><div class="stat-number" id="statMovies">0</div><div class="stat-label">أفلام ومسلسلات</div></div>
+                        <div class="stat-card purple"><div class="stat-number" id="statUsers">0</div><div class="stat-label">المشتركين</div></div>
                     </div>
                 </div>
 
-                <!-- Add Channel -->
                 <div class="admin-section" id="addSection">
                     <div class="admin-form">
                         <h3>➕ إضافة قناة جديدة</h3>
                         <div class="success-msg" id="addSuccess">تمت إضافة القناة بنجاح!</div>
                         <div class="form-row">
-                            <div class="form-group">
-                                <label>اسم القناة *</label>
-                                <input type="text" id="addName" placeholder="beIN Sports HD">
-                            </div>
+                            <div class="form-group"><label>اسم القناة *</label><input type="text" id="addName" placeholder="beIN Sports HD"></div>
                             <div class="form-group">
                                 <label>التصنيف *</label>
                                 <select id="addCategory">
                                     <option value="رياضة">⚽ رياضة</option>
-                                    <option value="أخبار"> أخبار</option>
+                                    <option value="أخبار">📰 أخبار</option>
                                     <option value="أطفال">👶 أطفال</option>
-                                    <option value="أفلام">🎬 أفلام</option>
+                                    <option value="أفلام"> أفلام</option>
                                     <option value="مسلسلات">📺 مسلسلات</option>
                                     <option value="وثائقي"> وثائقي</option>
                                     <option value="موسيقى">🎵 موسيقى</option>
@@ -529,15 +430,9 @@
                                 </select>
                             </div>
                         </div>
-                        <div class="form-group">
-                            <label>رابط البث (M3U8 / Stream URL) *</label>
-                            <input type="text" id="addUrl" placeholder="https://example.com/stream.m3u8">
-                        </div>
+                        <div class="form-group"><label>رابط البث (M3U8 / Stream URL) *</label><input type="text" id="addUrl" placeholder="https://example.com/stream.m3u8"></div>
                         <div class="form-row">
-                            <div class="form-group">
-                                <label>رابط الشعار (اختياري)</label>
-                                <input type="text" id="addLogo" placeholder="https://example.com/logo.png">
-                            </div>
+                            <div class="form-group"><label>رابط الشعار (اختياري)</label><input type="text" id="addLogo" placeholder="https://example.com/logo.png"></div>
                             <div class="form-group">
                                 <label>النوع</label>
                                 <select id="addType">
@@ -547,21 +442,15 @@
                                 </select>
                             </div>
                         </div>
-                        <div class="form-group">
-                            <label>الوصف (اختياري)</label>
-                            <textarea id="addDesc" placeholder="وصف القناة..."></textarea>
-                        </div>
+                        <div class="form-group"><label>الوصف (اختياري)</label><textarea id="addDesc" placeholder="وصف القناة..."></textarea></div>
                         <button class="btn-submit" onclick="addChannel()">➕ إضافة القناة</button>
                     </div>
                 </div>
 
-                <!-- Import M3U -->
                 <div class="admin-section" id="importSection">
                     <div class="admin-form">
                         <h3>📥 استيراد قائمة M3U</h3>
-                        <div class="import-info">
-                            💡 <strong>كيف يعمل؟</strong> الصق رابط قائمة M3U أو محتوى القائمة مباشرة، وسيتم استيراد جميع القنوات تلقائياً!
-                        </div>
+                        <div class="import-info">💡 <strong>كيف يعمل؟</strong> الصق رابط قائمة M3U أو محتوى القائمة مباشرة، وسيتم استيراد جميع القنوات تلقائياً!</div>
                         <div class="success-msg" id="importSuccess"></div>
                         <div class="form-group">
                             <label>طريقة الاستيراد</label>
@@ -570,38 +459,21 @@
                                 <option value="text">لصق محتوى القائمة</option>
                             </select>
                         </div>
-                        <div class="form-group" id="importUrlGroup">
-                            <label>رابط قائمة M3U</label>
-                            <input type="text" id="importUrl" placeholder="https://example.com/playlist.m3u">
-                        </div>
-                        <div class="form-group" id="importTextGroup" style="display:none;">
-                            <label>محتوى القائمة (M3U)</label>
-                            <textarea id="importText" placeholder="#EXTM3U&#10;#EXTINF:-1,Channel Name&#10;http://..."></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label>
-                                <input type="checkbox" id="importOverwrite"> استبدال القنوات الحالية (احذف القديم أولاً)
-                            </label>
-                        </div>
-                        <button class="btn-submit" onclick="importM3U()"> بدء الاستيراد</button>
-                        <div class="import-progress" id="importProgress">
-                            <div class="import-progress-bar" id="importProgressBar"></div>
-                        </div>
+                        <div class="form-group" id="importUrlGroup"><label>رابط قائمة M3U</label><input type="text" id="importUrl" placeholder="https://example.com/playlist.m3u"></div>
+                        <div class="form-group" id="importTextGroup" style="display:none;"><label>محتوى القائمة (M3U)</label><textarea id="importText" placeholder="#EXTM3U&#10;#EXTINF:-1,Channel Name&#10;http://..."></textarea></div>
+                        <div class="form-group"><label><input type="checkbox" id="importOverwrite"> استبدال القنوات الحالية (احذف القديم أولاً)</label></div>
+                        <button class="btn-submit" onclick="importM3U()">🚀 بدء الاستيراد</button>
+                        <div class="import-progress" id="importProgress"><div class="import-progress-bar" id="importProgressBar"></div></div>
                         <div class="import-log" id="importLog"></div>
                     </div>
                 </div>
 
-                <!-- Manage Channels -->
                 <div class="admin-section" id="manageSection">
                     <div class="admin-form">
                         <h3> إدارة القنوات</h3>
-                        <div class="form-group">
-                            <input type="text" id="manageSearch" placeholder="🔍 ابحث عن قناة..." oninput="filterChannels(this.value)">
-                        </div>
+                        <div class="form-group"><input type="text" id="manageSearch" placeholder="🔍 ابحث عن قناة..." oninput="filterChannels(this.value)"></div>
                     </div>
-                    <div class="channels-list" id="channelsList">
-                        <div class="loading">جاري التحميل...</div>
-                    </div>
+                    <div class="channels-list" id="channelsList"><div class="loading">جاري التحميل...</div></div>
                 </div>
             </div>
         </div>
@@ -611,12 +483,13 @@
     <div class="player-modal" id="playerModal">
         <button class="close-player" onclick="closePlayer()">✕</button>
         <div class="player-container">
-            <div class="video-wrapper"><video id="videoPlayer" controls></video></div>
+            <div class="video-wrapper"><video id="videoPlayer" controls playsinline></video></div>
             <div class="player-info-bar">
                 <div>
                     <h2 id="playerTitle">عنوان</h2>
                     <p id="playerCategory">التصنيف</p>
                 </div>
+                <div id="playerStatus" style="color:#46d369;font-weight:700;"></div>
             </div>
         </div>
     </div>
@@ -635,13 +508,15 @@
         const auth = firebase.auth();
         const db = firebase.firestore();
 
-        // ⚠️ ضع بريدك الإلكتروني هنا كمدير
         const ADMIN_EMAIL = 'tantanporte@gmail.com';
+        const CHANNELS_PER_PAGE = 30; // تحميل 30 قناة في كل مرة (أسرع!)
 
         let hls = null;
         let allContent = [];
         let currentUser = null;
         let isAdmin = false;
+        let channelsPage = 0;
+        let filteredChannels = [];
 
         const demoPosters = {
             'رياضة': 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=500',
@@ -721,17 +596,92 @@
             else header.classList.remove('scrolled');
         });
 
+        // تحميل القنوات مع ترتيب وتقسيم للسرعة
         async function loadAllContent() {
             try {
-                const snapshot = await db.collection('channels').get();
+                // ترتيب حسب الاسم (أبجدي)
+                const snapshot = await db.collection('channels').orderBy('name', 'asc').get();
                 allContent = [];
                 snapshot.forEach(doc => allContent.push({ id: doc.id, ...doc.data() }));
-                renderRow('trendingRow', allContent.slice(0, 10));
-                renderRow('channelsRow', allContent.filter(c => c.type !== 'movie'));
-                renderRow('sportsRow', allContent.filter(c => c.category && c.category.includes('رياض')));
-                renderRow('moviesRow', allContent.filter(c => c.type === 'movie'));
-                renderRow('kidsRow', allContent.filter(c => c.category && c.category.includes('طفل')));
-            } catch (error) { console.error('Error:', error); }
+                
+                channelsPage = 0;
+                renderInitialRows();
+                loadMoreChannels();
+            } catch (error) {
+                console.error('Error:', error);
+                // إذا فشل الترتيب، حمّل بدون ترتيب
+                try {
+                    const snapshot = await db.collection('channels').get();
+                    allContent = [];
+                    snapshot.forEach(doc => allContent.push({ id: doc.id, ...doc.data() }));
+                    channelsPage = 0;
+                    renderInitialRows();
+                    loadMoreChannels();
+                } catch (e2) {
+                    console.error('Fallback error:', e2);
+                }
+            }
+        }
+
+        function renderInitialRows() {
+            // الأقسام الخاصة (تrending, sports, movies, kids) - تعرض فقط المحتوى المناسب
+            renderRow('trendingRow', allContent.slice(0, 15));
+            renderRow('sportsRow', allContent.filter(c => c.category && c.category.includes('رياض')));
+            renderRow('moviesRow', allContent.filter(c => c.type === 'movie'));
+            renderRow('kidsRow', allContent.filter(c => c.category && c.category.includes('طفل')));
+        }
+
+        function loadMoreChannels() {
+            const start = channelsPage * CHANNELS_PER_PAGE;
+            const end = start + CHANNELS_PER_PAGE;
+            const pageChannels = allContent.slice(start, end);
+            
+            if (pageChannels.length === 0) {
+                document.getElementById('loadMoreChannels').style.display = 'none';
+                return;
+            }
+
+            const row = document.getElementById('channelsRow');
+            // إذا كانت أول دفعة، امسح "جاري التحميل"
+            if (channelsPage === 0) row.innerHTML = '';
+            
+            pageChannels.forEach(item => {
+                row.appendChild(createCard(item));
+            });
+
+            channelsPage++;
+            
+            // إظهار/إخفاء زر "تحميل المزيد"
+            const btn = document.getElementById('loadMoreChannels');
+            if (end < allContent.length) {
+                btn.style.display = 'block';
+                btn.textContent = `تحميل المزيد (${allContent.length - end} متبقي)`;
+            } else {
+                btn.style.display = 'none';
+            }
+        }
+
+        function createCard(item) {
+            const card = document.createElement('div');
+            card.className = 'content-card';
+            card.onclick = () => showDetails(item.id);
+            
+            const poster = getPoster(item);
+            const isLive = item.type === 'live';
+            
+            card.innerHTML = `
+                <img src="${poster}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" style="display:block">
+                <div class="card-placeholder" style="display:none">${getIcon(item.category, item.type)}</div>
+                <div class="card-overlay">
+                    <div class="card-title">${item.name || 'بدون اسم'}</div>
+                    <div class="card-meta">
+                        ${item.category || 'عام'}
+                        ${isLive ? '<span class="card-badge live"><span class="status-indicator live"></span>مباشر</span>' : ''}
+                        <span class="card-badge hd">HD</span>
+                    </div>
+                </div>
+            `;
+            return card;
         }
 
         function getPoster(item) {
@@ -744,11 +694,11 @@
         }
 
         function getIcon(category, type) {
-            if (type === 'movie') return '🎬';
+            if (type === 'movie') return '';
             if (category && category.includes('رياض')) return '⚽';
-            if (category && category.includes('طفل')) return '';
+            if (category && category.includes('طفل')) return '👶';
             if (category && category.includes('أخبار')) return '📰';
-            return '📺';
+            return '';
         }
 
         function renderRow(rowId, items) {
@@ -757,24 +707,8 @@
                 row.innerHTML = '<div class="no-content">لا يوجد محتوى في هذا القسم حالياً</div>';
                 return;
             }
-            row.innerHTML = items.map(item => {
-                const poster = getPoster(item);
-                const isLive = item.type === 'live';
-                return `
-                    <div class="content-card" onclick="showDetails('${item.id}')">
-                        <img src="${poster}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" style="display:block">
-                        <div class="card-placeholder" style="display:none">${getIcon(item.category, item.type)}</div>
-                        <div class="card-overlay">
-                            <div class="card-title">${item.name || 'بدون اسم'}</div>
-                            <div class="card-meta">
-                                ${item.category || 'عام'}
-                                ${isLive ? '<span class="card-badge live">مباشر</span>' : ''}
-                                <span class="card-badge hd">HD</span>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }).join('');
+            row.innerHTML = '';
+            items.forEach(item => row.appendChild(createCard(item)));
         }
 
         function showDetails(id) {
@@ -810,11 +744,6 @@
             if (allContent.length > 0) showDetails(allContent[0].id);
         }
 
-        function playContent(id) {
-            const item = allContent.find(c => c.id === id);
-            if (item) openPlayer(item.url, item.name, item.category);
-        }
-
         function playFeatured() {
             if (allContent.length > 0) {
                 const item = allContent[0];
@@ -822,25 +751,83 @@
             }
         }
 
+        // مشغل محسّن مع معالجة CORS وأخطاء أفضل
         function openPlayer(url, name, category) {
             const modal = document.getElementById('playerModal');
             const video = document.getElementById('videoPlayer');
+            const status = document.getElementById('playerStatus');
+            
             document.getElementById('playerTitle').textContent = name || 'بدون عنوان';
             document.getElementById('playerCategory').textContent = category || 'عام';
+            status.textContent = '⏳ جاري التحميل...';
             modal.classList.add('active');
-            if (hls) hls.destroy();
-            if (Hls.isSupported()) {
-                hls = new Hls();
-                hls.loadSource(url);
-                hls.attachMedia(video);
-                hls.on(Hls.Events.MANIFEST_PARSED, () => video.play().catch(e => console.log(e)));
-                hls.on(Hls.Events.ERROR, (event, data) => {
-                    if (data.fatal) alert('تعذر تشغيل البث. تأكد من صحة الرابط.');
-                });
-            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-                video.src = url;
-                video.play().catch(e => console.log(e));
-            }
+            
+            if (hls) { hls.destroy(); hls = null; }
+            video.pause();
+            video.removeAttribute('src');
+            video.load();
+
+            // محاولة تشغيل الرابط مباشرة أولاً
+            const tryPlay = (sourceUrl) => {
+                if (Hls.isSupported()) {
+                    hls = new Hls({
+                        enableWorker: true,
+                        lowLatencyMode: true,
+                        backBufferLength: 90
+                    });
+                    
+                    hls.loadSource(sourceUrl);
+                    hls.attachMedia(video);
+                    
+                    hls.on(Hls.Events.MANIFEST_PARSED, () => {
+                        status.textContent = '▶ يعمل';
+                        status.style.color = '#46d369';
+                        video.play().catch(e => {
+                            status.textContent = '⚠️ اضغط للتشغيل';
+                            console.log('Auto-play blocked:', e);
+                        });
+                    });
+                    
+                    hls.on(Hls.Events.ERROR, (event, data) => {
+                        console.log('HLS Error:', data);
+                        if (data.fatal) {
+                            switch(data.type) {
+                                case Hls.ErrorTypes.NETWORK_ERROR:
+                                    status.textContent = '❌ خطأ في الشبكة - محاولة إعادة...';
+                                    status.style.color = '#e50914';
+                                    hls.startLoad();
+                                    break;
+                                case Hls.ErrorTypes.MEDIA_ERROR:
+                                    status.textContent = '⚠️ خطأ في الوسائط - إصلاح...';
+                                    status.style.color = '#ffc107';
+                                    hls.recoverMediaError();
+                                    break;
+                                default:
+                                    status.textContent = '❌ تعذر التشغيل';
+                                    status.style.color = '#e50914';
+                                    hls.destroy();
+                                    alert('⚠️ تعذر تشغيل هذا البث.\n\nالأسباب المحتملة:\n• الرابط غير صالح أو منتهي\n• المشكلة من مصدر البث نفسه\n• جرب قناة أخرى');
+                                    break;
+                            }
+                        }
+                    });
+                } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                    video.src = sourceUrl;
+                    video.addEventListener('loadedmetadata', () => {
+                        status.textContent = '▶ يعمل';
+                        video.play();
+                    });
+                    video.addEventListener('error', () => {
+                        status.textContent = ' تعذر التشغيل';
+                        alert('️ تعذر تشغيل هذا البث.');
+                    });
+                } else {
+                    alert('متصفحك لا يدعم تشغيل هذا النوع من البث.');
+                }
+            };
+
+            // محاولة مع proxy إذا فشل المباشر
+            tryPlay(url);
         }
 
         function closePlayer() {
@@ -859,14 +846,15 @@
                 (item.category && item.category.toLowerCase().includes(q))
             );
             renderRow('channelsRow', results);
-            renderRow('trendingRow', results);
+            renderRow('trendingRow', results.slice(0, 10));
+            document.getElementById('loadMoreChannels').style.display = 'none';
         }
 
         function scrollToSection(id) {
             document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
         }
 
-        // ===== ADMIN FUNCTIONS =====
+        // ===== ADMIN =====
         function openAdmin() {
             if (!isAdmin) { alert('هذه الصفحة للمدير فقط!'); return; }
             document.getElementById('adminModal').classList.add('active');
@@ -949,10 +937,12 @@
                 const url = document.getElementById('importUrl').value.trim();
                 if (!url) { alert('الرجاء إدخال رابط القائمة'); return; }
                 try {
-                    const resp = await fetch(url);
+                    // استخدام proxy لتجاوز CORS
+                    const proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url);
+                    const resp = await fetch(proxyUrl);
                     content = await resp.text();
                 } catch (error) {
-                    alert('فشل في تحميل القائمة: ' + error.message);
+                    alert('فشل في تحميل القائمة: ' + error.message + '\n\nجرب طريقة "لصق محتوى القائمة" بدلاً من ذلك.');
                     return;
                 }
             } else {
@@ -988,12 +978,12 @@
                     currentName = nameMatch ? nameMatch[1].trim() : null;
                     currentLogo = logoMatch ? logoMatch[1] : null;
                     currentGroup = groupMatch ? groupMatch[1] : null;
-                } else if (line && !line.startsWith('#') && currentName) {
+                } else if (line && !line.startsWith('#') && currentName && line.startsWith('http')) {
                     channels.push({
                         name: currentName,
                         url: line,
                         logo: currentLogo || '',
-                        category: currentGroup || detectCategory(currentName),
+                        category: currentGroup ? mapGroupToCategory(currentGroup) : detectCategory(currentName),
                         type: 'live'
                     });
                     currentName = null;
@@ -1008,29 +998,53 @@
             let added = 0, errors = 0;
             const total = channels.length;
 
-            for (let i = 0; i < channels.length; i++) {
-                const ch = channels[i];
-                try {
-                    await db.collection('channels').add({
+            // إضافة على دفعات لتجنب الإرهاق
+            const batchSize = 10;
+            for (let i = 0; i < channels.length; i += batchSize) {
+                const batch = db.batch();
+                const batchChannels = channels.slice(i, i + batchSize);
+                
+                for (const ch of batchChannels) {
+                    const docRef = db.collection('channels').doc();
+                    batch.set(docRef, {
                         ...ch,
                         createdAt: firebase.firestore.FieldValue.serverTimestamp()
                     });
-                    added++;
-                    if (i % 10 === 0) {
-                        log.innerHTML += `<div class="log-item">✅ تمت إضافة: ${ch.name}</div>`;
-                        log.scrollTop = log.scrollHeight;
-                    }
-                } catch (error) {
-                    errors++;
-                    log.innerHTML += `<div class="log-item error"> فشل: ${ch.name}</div>`;
                 }
-                progressBar.style.width = ((i + 1) / total * 100) + '%';
+                
+                try {
+                    await batch.commit();
+                    added += batchChannels.length;
+                    log.innerHTML += `<div class="log-item">✅ تمت إضافة ${batchChannels.length} قناة</div>`;
+                } catch (error) {
+                    errors += batchChannels.length;
+                    log.innerHTML += `<div class="log-item error">❌ فشل في إضافة الدفعة</div>`;
+                }
+                
+                progressBar.style.width = (Math.min(i + batchSize, total) / total * 100) + '%';
+                log.scrollTop = log.scrollHeight;
+                
+                // تأخير بسيط لتجنب rate limiting
+                await new Promise(r => setTimeout(r, 100));
             }
 
             log.innerHTML += `<div class="log-item"><strong>✅ اكتمل الاستيراد: ${added} قناة تمت إضافتها، ${errors} خطأ</strong></div>`;
             success.textContent = `تم استيراد ${added} قناة بنجاح!`;
             success.style.display = 'block';
             loadAllContent();
+        }
+
+        function mapGroupToCategory(group) {
+            const g = group.toLowerCase();
+            if (g.includes('sport')) return 'رياضة';
+            if (g.includes('news')) return 'أخبار';
+            if (g.includes('kids') || g.includes('children')) return 'أطفال';
+            if (g.includes('movie') || g.includes('cinema')) return 'أفلام';
+            if (g.includes('music')) return 'موسيقى';
+            if (g.includes('doc')) return 'وثائقي';
+            if (g.includes('entertainment')) return 'ترفيه';
+            if (g.includes('religious') || g.includes('islam')) return 'ديني';
+            return 'عام';
         }
 
         function detectCategory(name) {
@@ -1047,7 +1061,7 @@
         async function loadChannelsList() {
             const list = document.getElementById('channelsList');
             try {
-                const snap = await db.collection('channels').get();
+                const snap = await db.collection('channels').orderBy('name', 'asc').get();
                 if (snap.empty) {
                     list.innerHTML = '<div class="no-content">لا توجد قنوات</div>';
                     return;
@@ -1064,14 +1078,37 @@
                             <div class="channel-cat">${ch.category || 'عام'} • ${ch.type === 'live' ? 'مباشر' : ch.type}</div>
                         </div>
                         <div class="channel-actions">
-                            <button class="btn-icon btn-edit" onclick="editChannel('${doc.id}')">️</button>
+                            <button class="btn-icon btn-edit" onclick="editChannel('${doc.id}')">✏️</button>
                             <button class="btn-icon btn-delete" onclick="deleteChannel('${doc.id}')">🗑️</button>
                         </div>
                     `;
                     list.appendChild(item);
                 });
             } catch (error) {
-                list.innerHTML = '<div class="no-content">خطأ في التحميل</div>';
+                // Fallback بدون ترتيب
+                try {
+                    const snap = await db.collection('channels').get();
+                    list.innerHTML = '';
+                    snap.forEach(doc => {
+                        const ch = doc.data();
+                        const item = document.createElement('div');
+                        item.className = 'channel-item';
+                        item.dataset.name = (ch.name || '').toLowerCase();
+                        item.innerHTML = `
+                            <div class="channel-info">
+                                <div class="channel-name">${ch.name || 'بدون اسم'}</div>
+                                <div class="channel-cat">${ch.category || 'عام'}</div>
+                            </div>
+                            <div class="channel-actions">
+                                <button class="btn-icon btn-edit" onclick="editChannel('${doc.id}')">✏️</button>
+                                <button class="btn-icon btn-delete" onclick="deleteChannel('${doc.id}')">🗑️</button>
+                            </div>
+                        `;
+                        list.appendChild(item);
+                    });
+                } catch (e2) {
+                    list.innerHTML = '<div class="no-content">خطأ في التحميل</div>';
+                }
             }
         }
 
