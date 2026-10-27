@@ -796,17 +796,22 @@
 
         // ===== CORS Fetch =====
         async function fetchWithCORS(url) {
-            for(const proxyFn of CORS_PROXIES) {
+            // 1) اتصال مباشر (ينجح مع المواقع التي تسمح بـ CORS مثل github.io) ثم الـ Worker ثم الاحتياطي
+            const names = ['مباشر', 'Worker', 'allorigins', 'corsproxy'];
+            const tries = [url, ...CORS_PROXIES.map(fn => fn(url))];
+            const errs = [];
+            for(let i = 0; i < tries.length; i++) {
+                const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), 25000);
                 try {
-                    const proxyUrl = proxyFn(url);
-                    const res = await fetch(proxyUrl, { headers: { 'Accept': 'application/json, text/plain, */*' } });
-                    if(res.ok) {
-                        const text = await res.text();
-                        try { return JSON.parse(text); } catch(e) { return text; }
-                    }
-                } catch(e) { continue; }
+                    const res = await fetch(tries[i], { signal: ctl.signal });
+                    if(!res.ok) throw new Error('HTTP ' + res.status);
+                    const text = await res.text();
+                    if(!text.trim()) throw new Error('رد فارغ');
+                    try { return JSON.parse(text); } catch(e) { return text; }
+                } catch(e) { errs.push((names[i] || 'proxy') + ': ' + (e.name === 'AbortError' ? 'مهلة' : e.message)); }
+                finally { clearTimeout(t); }
             }
-            throw new Error('فشل الاتصال عبر جميع الـ proxies');
+            throw new Error('فشل (' + errs.join(' | ') + ')');
         }
 
         // ===== Xtream Codes =====
@@ -823,11 +828,12 @@
             const user = document.getElementById('xtreamUser').value.trim();
             const pass = document.getElementById('xtreamPass').value.trim();
             if(!server || !user || !pass) return null;
+            if(!/^https?:\/\//i.test(server)) server = 'http://' + server;
             server = server.replace(/\/+$/, '').replace(/:\d+$/, '');
             return {
                 base: `${server}:${port}`,
                 user, pass,
-                api: `${server}:${port}/player_api.php?username=${user}&password=${pass}`
+                api: `${server}:${port}/player_api.php?username=${encodeURIComponent(user)}&password=${encodeURIComponent(pass)}`
             };
         }
 
@@ -933,7 +939,7 @@
                     content = await fetchWithCORS(url);
                     if(typeof content !== 'string') throw new Error('استجابة غير صالحة');
                     addLog('✅ تم الجلب', 'success');
-                } catch(e) { addLog('❌ فشل', 'error'); resetImportUI(); return; }
+                } catch(e) { addLog('❌ ' + e.message, 'error'); resetImportUI(); return; }
             } else {
                 content = document.getElementById('importText').value.trim();
                 if(!content) { alert('الصق المحتوى'); resetImportUI(); return; }
