@@ -573,11 +573,15 @@
             return n;
         }
         function exportChannels() {
+            if(!allChannels.length) { alert('المسودة فارغة. استورد القنوات أولاً ثم صدّر.'); return; }
             const data = allChannels.map(c => { const o={id:c.id,name:c.name,url:c.url,category:c.category,type:c.type}; if(c.logo)o.logo=c.logo; if(c.description)o.description=c.description; return o; }).sort((a,b)=>(a.name||'')<(b.name||'')?-1:1);
+            const blob = new Blob([JSON.stringify(data)], {type:'application/json'});
             const a = document.createElement('a');
-            a.href = URL.createObjectURL(new Blob([JSON.stringify(data)],{type:'application/json'}));
-            a.download = 'channels.json'; a.click();
-            setTimeout(()=>URL.revokeObjectURL(a.href),5000);
+            a.href = URL.createObjectURL(blob);
+            a.download = 'channels.json';
+            document.body.appendChild(a); a.click();
+            setTimeout(() => { a.remove(); URL.revokeObjectURL(a.href); }, 60000);
+            alert('تم تصدير ' + data.length + ' قناة (' + Math.round(blob.size/1024) + ' KB).\nتأكد أن حجم الملف في التنزيلات قريب من هذا الرقم قبل رفعه.');
         }
         async function refreshChannels() {
             if(isAdmin && !confirm('سيتم تجاهل مسودتك المحلية غير المرفوعة. متابعة؟')) return;
