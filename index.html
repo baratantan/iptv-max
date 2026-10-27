@@ -254,6 +254,7 @@
                 <h3>عام</h3>
                 <div class="setting-item"><span class="setting-label">جودة التشغيل</span><span class="setting-value">تلقائي ›</span></div>
                 <div class="setting-item"><span class="setting-label">اللغة</span><span class="setting-value">العربية ›</span></div>
+                <div class="setting-item" onclick="refreshChannels()"><span class="setting-label">🔄 تحديث القنوات</span><span class="setting-value">›</span></div>
                 <div class="setting-item" onclick="logout()" style="color:#f44336;"><span class="setting-label">تسجيل الخروج</span><span class="setting-value">›</span></div>
             </div>
         </div>
@@ -266,6 +267,8 @@
                 <div class="admin-card">
                     <h3>⚠️ إدارة قاعدة البيانات</h3>
                     <p>احذف جميع القنوات الحالية قبل استيراد قائمة جديدة.</p>
+                    <p style="font-size:13px;color:#aaa;margin-bottom:10px;">القنوات في المسودة: <b id="chCount">0</b>. بعد أي استيراد أو حذف اضغط تصدير، ثم ارفع channels.json إلى المستودع بجانب index.html.</p>
+                    <button class="btn-primary btn-success" onclick="exportChannels()" style="margin-bottom:10px;">⬇️ تصدير channels.json</button>
                     <button class="btn-danger" onclick="deleteAllChannels()">🗑️ حذف جميع القنوات الحالية</button>
                 </div>
 
@@ -437,6 +440,10 @@
         };
         
         // ✅ تهيئة Firebase
+        if (typeof firebase === 'undefined') {
+            document.body.innerHTML = '<div style="padding:40px 20px;text-align:center;color:#fff;font-family:Cairo,sans-serif;direction:rtl"><h2 style="color:#e50914">تعذر تحميل Firebase</h2><p style="margin-top:12px;line-height:1.9">الاتصال بـ gstatic.com محجوب أو فشل.<br>جرّب: إيقاف مانع الإعلانات، أو شبكة/VPN مختلف، أو تحديث الصفحة بقوة (Ctrl+Shift+R).</p></div>';
+            throw new Error('Firebase SDK failed to load');
+        }
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
@@ -523,14 +530,58 @@
             renderLibrary(tab);
         }
 
-        // ===== Data Loading =====
-        async function loadChannels() {
-            try {
-                const snap = await db.collection('channels').orderBy('name').get();
-                allChannels = [];
-                snap.forEach(doc => allChannels.push({ id: doc.id, ...doc.data() }));
-                renderHome();
-            } catch (e) { console.error(e); }
+        // ===== أدوات =====
+        const esc = s => String(s ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+        const hid = s => { let h1=0xdeadbeef,h2=0x41c6ce57; for(let i=0;i<s.length;i++){const c=s.charCodeAt(i);h1=Math.imul(h1^c,2654435761);h2=Math.imul(h2^c,1597334677)} h1=Math.imul(h1^(h1>>>16),2246822507)^Math.imul(h2^(h2>>>13),3266489909); h2=Math.imul(h2^(h2>>>16),2246822507)^Math.imul(h1^(h1>>>13),3266489909); return (4294967296*(2097151&h2)+(h1>>>0)).toString(36); };
+        const idb = {
+            open: () => new Promise((res,rej)=>{const r=indexedDB.open('iptvmax',1);r.onupgradeneeded=()=>r.result.createObjectStore('kv');r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}),
+            async get(k){try{const d=await this.open();return await new Promise(res=>{const q=d.transaction('kv').objectStore('kv').get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>res(null)})}catch(e){return null}},
+            async set(k,v){try{const d=await this.open();d.transaction('kv','readwrite').objectStore('kv').put(v,k)}catch(e){}}
+        };
+
+        // ===== القنوات: من channels.json (بلا حصة Firestore) =====
+        async function loadChannels(force) {
+            const c = await idb.get('channels');
+            if(isAdmin && c && c.draft && !force) allChannels = c.l;
+            else {
+                try {
+                    const r = await fetch('channels.json', {cache: force ? 'reload' : 'no-cache'});
+                    if(!r.ok) throw new Error('HTTP '+r.status);
+                    allChannels = await r.json();
+                    idb.set('channels', {t:Date.now(), l:allChannels, draft:false});
+                } catch(e) { allChannels = c ? c.l : []; }
+            }
+            updateCount(); renderHome();
+        }
+        function persistLocal() { idb.set('channels', {t:Date.now(), l:allChannels, draft:true}); }
+        function updateCount() { const e=document.getElementById('chCount'); if(e) e.textContent = allChannels.length; }
+        async function addLocal(list, fillId, logId) {
+            const have = new Set(allChannels.map(c=>c.url));
+            list = list.filter(c => c.url && !have.has(c.url));
+            const fill = document.getElementById(fillId);
+            let n = 0;
+            for(let i=0;i<list.length;i+=2000) {
+                if(stopImportFlag) { addLog('⏹ تم الإيقاف','warn',logId); break; }
+                const chunk = list.slice(i,i+2000);
+                chunk.forEach(c => allChannels.push({id:hid(c.url), ...c}));
+                n += chunk.length;
+                if(fill) fill.style.width = Math.min(100,(i+2000)/list.length*100)+'%';
+                await new Promise(r=>setTimeout(r,50));
+            }
+            persistLocal(); updateCount();
+            addLog('⬇️ صدّر channels.json وارفعه للمستودع لنشر القنوات','info',logId);
+            return n;
+        }
+        function exportChannels() {
+            const data = allChannels.map(c => { const o={id:c.id,name:c.name,url:c.url,category:c.category,type:c.type}; if(c.logo)o.logo=c.logo; if(c.description)o.description=c.description; return o; }).sort((a,b)=>(a.name||'')<(b.name||'')?-1:1);
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(new Blob([JSON.stringify(data)],{type:'application/json'}));
+            a.download = 'channels.json'; a.click();
+            setTimeout(()=>URL.revokeObjectURL(a.href),5000);
+        }
+        async function refreshChannels() {
+            if(isAdmin && !confirm('سيتم تجاهل مسودتك المحلية غير المرفوعة. متابعة؟')) return;
+            await loadChannels(true); alert('تم التحديث');
         }
 
         function renderHome() {
@@ -571,10 +622,10 @@
             const img = channel.logo && channel.logo.startsWith('http') ? channel.logo : '';
             return `
                 <div class="card" onclick="openDetails('${channel.id}')">
-                    ${img ? `<img src="${img}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">` : ''}
+                    ${img ? `<img src="${esc(img)}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">` : ''}
                     <div class="card-placeholder" style="${img ? 'display:none' : ''}"></div>
                     <div class="card-info">
-                        <div class="card-title">${channel.name}</div>
+                        <div class="card-title">${esc(channel.name)}</div>
                         <div class="card-category"><span class="dot"></span>${channel.category || 'عام'}</div>
                     </div>
                     ${channel.type === 'live' ? '<div class="card-overlay">مباشر</div>' : ''}
@@ -586,10 +637,10 @@
             const img = channel.logo && channel.logo.startsWith('http') ? channel.logo : '';
             return `
                 <div class="channel-grid-card" onclick="openDetails('${channel.id}')">
-                    ${img ? `<img src="${img}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">` : ''}
+                    ${img ? `<img src="${esc(img)}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">` : ''}
                     <div class="card-placeholder" style="${img ? 'display:none' : ''}">📺</div>
                     <div class="channel-grid-info">
-                        <div class="channel-grid-name">${channel.name}</div>
+                        <div class="channel-grid-name">${esc(channel.name)}</div>
                         <div class="channel-grid-cat"><span class="dot"></span>${channel.category || 'عام'}</div>
                     </div>
                 </div>
@@ -675,7 +726,7 @@
             if(hls) { hls.destroy(); hls = null; }
             video.pause(); video.removeAttribute('src'); video.load();
 
-            if(Hls.isSupported()) {
+            if(!/\.(mp4|mkv|avi|mov|webm|m4v)(\?|$)/i.test(channel.url) && Hls.isSupported()) {
                 hls = new Hls({ enableWorker: true, lowLatencyMode: true });
                 hls.loadSource(channel.url);
                 hls.attachMedia(video);
@@ -687,7 +738,7 @@
                         else { alert('تعذر تشغيل هذا البث'); closePlayer(); }
                     }
                 });
-            } else if(video.canPlayType('application/vnd.apple.mpegurl')) {
+            } else {
                 video.src = channel.url;
                 video.play().catch(()=>{});
             }
@@ -729,21 +780,8 @@
             btn.textContent = 'جاري الحذف...';
             btn.disabled = true;
             try {
-                const snap = await db.collection('channels').get();
-                const total = snap.size;
-                const docs = snap.docs;
-                let deleted = 0;
-                const batchSize = 50;
-                for(let i = 0; i < docs.length; i += batchSize) {
-                    await new Promise(resolve => setTimeout(resolve, 100));
-                    const batch = db.batch();
-                    docs.slice(i, i + batchSize).forEach(doc => batch.delete(doc.ref));
-                    await batch.commit();
-                    deleted += Math.min(batchSize, docs.length - i);
-                }
-                allChannels = [];
-                renderHome();
-                alert(`✅ تم حذف ${deleted} قناة`);
+                const deleted = allChannels.length; allChannels = []; persistLocal(); updateCount(); renderHome();
+                alert(`✅ تم حذف ${deleted} قناة من المسودة`);
             } catch(e) { alert('خطأ: ' + e.message); }
             btn.textContent = '️ حذف جميع القنوات الحالية';
             btn.disabled = false;
@@ -855,18 +893,7 @@
                     };
                 });
                 addLog(`📦 إضافة ${channelsToAdd.length} عنصر...`, 'warn', 'xtreamLog');
-                let added = 0;
-                const batchSize = 10;
-                for(let i=0; i<channelsToAdd.length; i+=batchSize) {
-                    if(stopImportFlag) break;
-                    await new Promise(r => setTimeout(r, 50));
-                    const batch = db.batch();
-                    channelsToAdd.slice(i, i+batchSize).forEach(ch => {
-                        batch.set(db.collection('channels').doc(), { ...ch, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
-                    });
-                    try { await batch.commit(); added += batchSize; } catch(e) {}
-                    progressFill.style.width = ((i+batchSize)/channelsToAdd.length * 100) + '%';
-                }
+                const added = await addLocal(channelsToAdd, 'xtreamProgressFill', 'xtreamLog');
                 addLog(`✅ تمت إضافة ${added}`, 'success', 'xtreamLog');
                 await loadChannels();
             } catch(e) { addLog('❌ ' + e.message, 'error', 'xtreamLog'); }
@@ -934,18 +961,7 @@
 
             if(channelsToAdd.length === 0) { addLog('❌ لا قنوات', 'error'); resetImportUI(); return; }
             addLog(`📦 ${channelsToAdd.length} قناة...`, 'warn');
-            let added = 0;
-            const batchSize = 10;
-            for(let i=0; i<channelsToAdd.length; i+=batchSize) {
-                if(stopImportFlag) break;
-                await new Promise(r => setTimeout(r, 50));
-                const batch = db.batch();
-                channelsToAdd.slice(i, i+batchSize).forEach(ch => {
-                    batch.set(db.collection('channels').doc(), { ...ch, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
-                });
-                try { await batch.commit(); added += batchSize; } catch(e) {}
-                document.getElementById('importProgressFill').style.width = ((i+batchSize)/channelsToAdd.length * 100) + '%';
-            }
+            const added = await addLocal(channelsToAdd, 'importProgressFill', 'importLog');
             addLog(`✅ ${added} قناة`, 'success');
             await loadChannels();
             resetImportUI();
@@ -966,7 +982,7 @@
             const logo = document.getElementById('addLogo').value.trim();
             if(!name || !url) { alert('أكمل البيانات'); return; }
             try {
-                await db.collection('channels').add({ name, url, category: cat, logo, type: 'live', createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+                allChannels.push({id:hid(url), name, url, category:cat, logo, type:'live'}); persistLocal(); updateCount();
                 alert('✅ تمت الإضافة');
                 document.getElementById('addName').value = '';
                 document.getElementById('addUrl').value = '';
