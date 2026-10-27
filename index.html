@@ -724,7 +724,7 @@
             if(!el) {
                 el = document.createElement('div');
                 el.id = 'playerMsg';
-                el.style.cssText = 'position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);text-align:center;padding:16px;background:rgba(0,0,0,.75);font-size:15px;line-height:1.8;z-index:5;pointer-events:none';
+                el.style.cssText = 'position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);text-align:center;padding:16px;background:rgba(0,0,0,.75);font-size:15px;line-height:1.8;z-index:5;pointer-events:none;white-space:pre-line';
                 document.querySelector('.player-wrapper').appendChild(el);
             }
             el.style.display = text ? 'block' : 'none';
@@ -758,10 +758,10 @@
                 console.error('[IPTV] فشل التشغيل:', reason, '| محاولة', attempt);
                 if(!document.getElementById('playerModal').classList.contains('active')) return;
                 if(attempt === 1) {
-                    playerMsg('⚠️ تعذر التشغيل، إعادة المحاولة بعد 3 ثوانٍ...', true);
+                    playerMsg('⚠️ تعذر التشغيل، إعادة المحاولة بعد 3 ثوانٍ...\nالسبب: ' + reason, true);
                     playRetry = setTimeout(() => startPlayback(channel, 2, true), 3000);
                 } else {
-                    playerMsg('❌ تعذر تشغيل هذا البث. قد يكون الرابط معطلاً أو السيرفر يرفض الاتصال. جرّب قناة أخرى.', true);
+                    playerMsg('❌ تعذر تشغيل هذا البث. قد يكون الرابط معطلاً أو السيرفر يرفض الاتصال. جرّب قناة أخرى.\nالسبب: ' + reason, true);
                 }
             };
 
@@ -770,12 +770,6 @@
                 hls = new Hls({
                     enableWorker: true, lowLatencyMode: true,
                     manifestLoadingMaxRetry: 1, levelLoadingMaxRetry: 2, fragLoadingMaxRetry: 2,
-                    // كل طلب (القائمة والمقاطع) يمر عبر prox() فتُحوَّل روابط http تلقائياً
-                    xhrSetup: (xhr, u) => {
-                        const p = prox(u);
-                        if(/\.m3u8/i.test(u)) console.log('[IPTV] طلب قائمة:', p);
-                        xhr.open('GET', p, true);
-                    }
                 });
                 hls.on(Hls.Events.MANIFEST_PARSED, () => { video.play().catch(()=>{}); });
                 hls.on(Hls.Events.FRAG_LOADED, () => playerMsg(''));
@@ -784,9 +778,9 @@
                     if(!data.fatal) return;
                     if(data.type === Hls.ErrorTypes.MEDIA_ERROR && !recovered) { recovered = true; hls.recoverMediaError(); return; }
                     hls.destroy(); hls = null;
-                    fail(data.type + ' / ' + data.details);
+                    fail(data.details + (data.response ? ' | HTTP ' + data.response.code : '') + (data.url ? ' | ' + (() => { try { return new URL(data.url).host; } catch(e) { return ''; } })() : ''));
                 });
-                hls.loadSource(channel.url);
+                hls.loadSource(finalUrl);
                 hls.attachMedia(video);
             } else {
                 video.onerror = () => fail('video error ' + (video.error ? video.error.code : ''));
