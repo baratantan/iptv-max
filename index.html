@@ -717,34 +717,83 @@
         function showFeaturedDetails() { if(allChannels.length > 0) openDetails(allChannels[0].id); }
         function playFeatured() { if(allChannels.length > 0) playChannel(allChannels[0]); }
 
+        let playRetry = null;
+
+        function playerMsg(text, isErr) {
+            let el = document.getElementById('playerMsg');
+            if(!el) {
+                el = document.createElement('div');
+                el.id = 'playerMsg';
+                el.style.cssText = 'position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);text-align:center;padding:16px;background:rgba(0,0,0,.75);font-size:15px;line-height:1.8;z-index:5;pointer-events:none';
+                document.querySelector('.player-wrapper').appendChild(el);
+            }
+            el.style.display = text ? 'block' : 'none';
+            el.style.color = isErr ? '#ff6b6b' : '#fff';
+            el.textContent = text || '';
+        }
+
         function playChannel(channel) {
+            clearTimeout(playRetry);
             document.getElementById('playerTitle').textContent = channel.name;
             document.getElementById('playerCategory').textContent = channel.category || 'عام';
             document.getElementById('playerModal').classList.add('active');
-            
+            saveToWatchHistory(channel);
+            startPlayback(channel, 1, false);
+        }
+
+        // المحاولة 1: الـ Proxy لروابط http فقط. المحاولة 2 (بعد 3 ثوانٍ): الـ Proxy لكل الطلبات.
+        function startPlayback(channel, attempt, forceProxy) {
             const video = document.getElementById('videoPlayer');
+            const prox = u => (forceProxy || /^http:/i.test(u)) ? MY_PROXY + encodeURIComponent(u) : u;
+            const isFile = /\.(mp4|mkv|avi|mov|webm|m4v)(\?|$)/i.test(channel.url);
+            const finalUrl = prox(channel.url);
+            console.log(`[IPTV] محاولة ${attempt} | ${channel.name}\n  الرابط الأصلي: ${channel.url}\n  الرابط الفعلي: ${finalUrl}`);
+            playerMsg('⏳ جاري التشغيل...');
+
             if(hls) { hls.destroy(); hls = null; }
+            video.onerror = null; video.onplaying = null;
             video.pause(); video.removeAttribute('src'); video.load();
 
-            if(!/\.(mp4|mkv|avi|mov|webm|m4v)(\?|$)/i.test(channel.url) && Hls.isSupported()) {
-                hls = new Hls({ enableWorker: true, lowLatencyMode: true });
-                hls.loadSource(channel.url);
-                hls.attachMedia(video);
-                hls.on(Hls.Events.MANIFEST_PARSED, () => video.play().catch(()=>{}));
-                hls.on(Hls.Events.ERROR, (e, data) => {
-                    if(data.fatal) {
-                        if(data.type === Hls.ErrorTypes.NETWORK_ERROR) hls.startLoad();
-                        else if(data.type === Hls.ErrorTypes.MEDIA_ERROR) hls.recoverMediaError();
-                        else { alert('تعذر تشغيل هذا البث'); closePlayer(); }
+            const fail = reason => {
+                console.error('[IPTV] فشل التشغيل:', reason, '| محاولة', attempt);
+                if(!document.getElementById('playerModal').classList.contains('active')) return;
+                if(attempt === 1) {
+                    playerMsg('⚠️ تعذر التشغيل، إعادة المحاولة بعد 3 ثوانٍ...', true);
+                    playRetry = setTimeout(() => startPlayback(channel, 2, true), 3000);
+                } else {
+                    playerMsg('❌ تعذر تشغيل هذا البث. قد يكون الرابط معطلاً أو السيرفر يرفض الاتصال. جرّب قناة أخرى.', true);
+                }
+            };
+
+            if(!isFile && window.Hls && Hls.isSupported()) {
+                let recovered = false;
+                hls = new Hls({
+                    enableWorker: true, lowLatencyMode: true,
+                    manifestLoadingMaxRetry: 1, levelLoadingMaxRetry: 2, fragLoadingMaxRetry: 2,
+                    // كل طلب (القائمة والمقاطع) يمر عبر prox() فتُحوَّل روابط http تلقائياً
+                    xhrSetup: (xhr, u) => {
+                        const p = prox(u);
+                        if(/\.m3u8/i.test(u)) console.log('[IPTV] طلب قائمة:', p);
+                        xhr.open('GET', p, true);
                     }
                 });
+                hls.on(Hls.Events.MANIFEST_PARSED, () => { video.play().catch(()=>{}); });
+                hls.on(Hls.Events.FRAG_LOADED, () => playerMsg(''));
+                hls.on(Hls.Events.ERROR, (e, data) => {
+                    console.warn('[IPTV] HLS:', data.type, data.details, data.response ? 'HTTP ' + data.response.code : '', data.url || '');
+                    if(!data.fatal) return;
+                    if(data.type === Hls.ErrorTypes.MEDIA_ERROR && !recovered) { recovered = true; hls.recoverMediaError(); return; }
+                    hls.destroy(); hls = null;
+                    fail(data.type + ' / ' + data.details);
+                });
+                hls.loadSource(channel.url);
+                hls.attachMedia(video);
             } else {
-                video.src = channel.url;
+                video.onerror = () => fail('video error ' + (video.error ? video.error.code : ''));
+                video.onplaying = () => playerMsg('');
+                video.src = finalUrl;
                 video.play().catch(()=>{});
             }
-
-            // حفظ في سجل المشاهدة
-            saveToWatchHistory(channel);
         }
 
         function saveToWatchHistory(channel) {
@@ -756,6 +805,8 @@
         }
 
         function closePlayer() {
+            clearTimeout(playRetry); playerMsg('');
+            { const v = document.getElementById('videoPlayer'); v.onerror = null; v.onplaying = null; }
             document.getElementById('playerModal').classList.remove('active');
             const video = document.getElementById('videoPlayer');
             video.pause();
