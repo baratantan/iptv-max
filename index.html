@@ -234,7 +234,14 @@
             <div class="search-box">
                 <input type="text" class="search-input" id="channelSearch" placeholder=" ابحث عن قناة..." oninput="filterChannels(this.value)">
             </div>
+            <div style="display:flex;gap:8px;padding:0 20px 8px;flex-wrap:wrap;">
+                <select id="fCat" onchange="applyFilters()" style="background:#333;color:#fff;border:none;border-radius:6px;padding:9px;flex:1;min-width:110px;font-family:Cairo,sans-serif;"></select>
+                <select id="fCountry" onchange="applyFilters()" style="background:#333;color:#fff;border:none;border-radius:6px;padding:9px;flex:1;min-width:110px;font-family:Cairo,sans-serif;"></select>
+                <select id="fLang" onchange="applyFilters()" style="background:#333;color:#fff;border:none;border-radius:6px;padding:9px;flex:1;min-width:110px;font-family:Cairo,sans-serif;"></select>
+            </div>
+            <div id="chanCount" style="padding:0 20px 8px;color:#aaa;font-size:13px;"></div>
             <div class="channels-grid" id="channelsGrid"></div>
+            <button id="chanMore" class="btn-secondary" onclick="chanMore()" style="display:none;margin:12px 20px;width:calc(100% - 40px);">عرض المزيد</button>
         </div>
 
         <!-- LIBRARY VIEW -->
@@ -369,6 +376,13 @@
                         <select id="importMethod" onchange="toggleImportUI()" style="width:100%; padding:12px; background:#333; color:white; border:none; border-radius:4px;">
                             <option value="url">رابط القائمة (URL)</option>
                             <option value="text">لصق النص (M3U Text)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <select id="importGroupMode" style="width:100%; padding:12px; background:#333; color:white; border:none; border-radius:4px;">
+                            <option value="category">اسم المجموعة = التصنيف (الافتراضي)</option>
+                            <option value="country">اسم المجموعة = الدولة (مثل index.country.m3u)</option>
+                            <option value="language">اسم المجموعة = اللغة (مثل index.language.m3u)</option>
                         </select>
                     </div>
                     <div class="form-group" id="importUrlGroup">
@@ -601,8 +615,17 @@
         function persistLocal() { idb.set('channels', {t:Date.now(), l:allChannels, draft:true}); }
         function updateCount() { const e=document.getElementById('chCount'); if(e) e.textContent = allChannels.length; }
         async function addLocal(list, fillId, logId) {
-            const have = new Set(allChannels.map(c=>c.url));
-            list = list.filter(c => c.url && !have.has(c.url));
+            const byUrl = new Map(allChannels.map(c => [c.url, c]));
+            let merged = 0;
+            list = list.filter(c => {
+                if(!c.url) return false;
+                const ex = byUrl.get(c.url);
+                if(!ex) return true;
+                if(c.country && !ex.country) { ex.country = c.country; merged++; }
+                if(c.language && !ex.language) { ex.language = c.language; merged++; }
+                return false;
+            });
+            if(merged) addLog('🧩 تم تحديث الدولة/اللغة لـ ' + merged + ' قناة موجودة', 'info', logId);
             const fill = document.getElementById(fillId);
             let n = 0;
             for(let i=0;i<list.length;i+=2000) {
@@ -619,7 +642,7 @@
         }
         function exportChannels() {
             if(!allChannels.length) { alert('المسودة فارغة. استورد القنوات أولاً ثم صدّر.'); return; }
-            const data = allChannels.map(c => { const o={id:c.id,name:c.name,url:c.url,category:c.category,type:c.type}; if(c.logo)o.logo=c.logo; if(c.description)o.description=c.description; return o; }).sort((a,b)=>(a.name||'')<(b.name||'')?-1:1);
+            const data = allChannels.map(c => { const o={id:c.id,name:c.name,url:c.url,category:c.category,type:c.type}; if(c.logo)o.logo=c.logo; if(c.description)o.description=c.description; if(c.country)o.country=c.country; if(c.language)o.language=c.language; return o; }).sort((a,b)=>(a.name||'')<(b.name||'')?-1:1);
             const blob = new Blob([JSON.stringify(data)], {type:'application/json'});
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
@@ -638,7 +661,7 @@
             const btn = document.getElementById('publishBtn');
             btn.disabled = true; btn.textContent = '⏳ جاري النشر...';
             try {
-                const data = allChannels.map(c => { const o={id:c.id,name:c.name,url:c.url,category:c.category,type:c.type}; if(c.logo)o.logo=c.logo; if(c.description)o.description=c.description; return o; }).sort((a,b)=>(a.name||'')<(b.name||'')?-1:1);
+                const data = allChannels.map(c => { const o={id:c.id,name:c.name,url:c.url,category:c.category,type:c.type}; if(c.logo)o.logo=c.logo; if(c.description)o.description=c.description; if(c.country)o.country=c.country; if(c.language)o.language=c.language; return o; }).sort((a,b)=>(a.name||'')<(b.name||'')?-1:1);
                 const bytes = new TextEncoder().encode(JSON.stringify(data));
                 let bin = '';
                 for(let i=0;i<bytes.length;i+=0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i+0x8000));
@@ -837,6 +860,104 @@
             box.appendChild(b);
         }
 
+        // ===== المرحلة 4: الدول واللغات والتصفح بالصفحات =====
+        const PAGE_SIZE = 60;
+        let chFilter = { cat: '', country: '', lang: '', q: '' }, chPage = 1, chList = [], moreObs = null;
+        const nc = new WeakMap();
+        const normTxt = s => String(s || '').toLowerCase().replace(/[\u064B-\u065F\u0670]/g, '').replace(/[أإآ]/g, 'ا').replace(/ى/g, 'ي').replace(/ة/g, 'ه');
+        let _cn = null, _ln = null, _en = null, _ar = null;
+        const canonReg = c => { try { return Intl.getCanonicalLocales('und-' + c)[0].split('-')[1]; } catch(e) { return c; } };
+        const canonLang = l => { try { return Intl.getCanonicalLocales(l)[0]; } catch(e) { return l; } };
+        function nameMaps() {
+            if(_cn) return; _cn = {}; _ln = {};
+            try {
+                _en = { r: new Intl.DisplayNames(['en'], { type: 'region' }), l: new Intl.DisplayNames(['en'], { type: 'language' }) };
+                _ar = { r: new Intl.DisplayNames(['ar'], { type: 'region' }), l: new Intl.DisplayNames(['ar'], { type: 'language' }) };
+            } catch(e) { return; }
+            const A = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            for(const a of A) for(const b of A) {
+                const c = a + b, l = c.toLowerCase();
+                try { const n = _en.r.of(c); if(n && n !== c && !/unknown/i.test(n) && canonReg(c) === c) { const k = n.toLowerCase(); if(!(k in _cn)) _cn[k] = c; } } catch(e) {}
+                try { const m = _en.l.of(l); if(m && m !== l && canonLang(l) === l) { const k = m.toLowerCase(); if(!(k in _ln)) _ln[k] = l; } } catch(e) {}
+            }
+            Object.assign(_cn, { 'czech republic': 'CZ', 'turkey': 'TR', 'uk': 'GB', 'macedonia': 'MK' });
+        }
+        function toCountry(v) {
+            if(!v) return ''; v = String(v).trim(); nameMaps();
+            if(/^[A-Za-z]{2}$/.test(v)) { const c = v.toUpperCase(); return Object.values(_cn).includes(c) ? c : ''; }
+            return _cn[v.toLowerCase()] || '';
+        }
+        function toLang(v) {
+            if(!v) return ''; v = String(v).trim().toLowerCase(); nameMaps();
+            if(/^[a-z]{2}$/.test(v)) return Object.values(_ln).includes(v) ? v : '';
+            return _ln[v] || '';
+        }
+        function guessCountry(name, idAttr, cAttr, grp) {
+            let c = toCountry(grp); if(c) return c;
+            if(cAttr) { c = toCountry(cAttr.split(/[;,]/)[0]); if(c) return c; }
+            const m = String(idAttr || '').match(/\.([a-z]{2})(?:@|$)/i); if(m) { c = toCountry(m[1]); if(c) return c; }
+            const p = String(name || '').match(/^([A-Za-z]{2})\s*[-|:]/); if(p) { c = toCountry(p[1]); if(c) return c; }
+            return '';
+        }
+        function guessLang(lAttr, grp) { return toLang(grp) || toLang(String(lAttr || '').split(/[;,]/)[0]); }
+        const flagOf = c => String.fromCodePoint(...[...c].map(x => 127397 + x.charCodeAt(0)));
+        const countryLabel = c => { nameMaps(); return flagOf(c) + ' ' + (_ar ? _ar.r.of(c) : c); };
+        const langLabel = l => { nameMaps(); return _ar ? _ar.l.of(l) : l; };
+
+        function buildFilterOptions() {
+            const cnt = { cat: {}, country: {}, lang: {} };
+            for(const c of allChannels) {
+                if(c.category) cnt.cat[c.category] = (cnt.cat[c.category] || 0) + 1;
+                if(c.country) cnt.country[c.country] = (cnt.country[c.country] || 0) + 1;
+                if(c.language) cnt.lang[c.language] = (cnt.lang[c.language] || 0) + 1;
+            }
+            const fill = (id, all, obj, labelFn, key) => {
+                const sel = document.getElementById(id), keys = Object.keys(obj).sort((a, b) => obj[b] - obj[a]);
+                sel.style.display = keys.length ? '' : 'none';
+                sel.innerHTML = '<option value="">' + all + '</option>' + keys.map(k => '<option value="' + esc(k) + '">' + esc(labelFn(k)) + ' (' + obj[k] + ')</option>').join('');
+                sel.value = (chFilter[key] && obj[chFilter[key]]) ? chFilter[key] : '';
+                chFilter[key] = sel.value;
+            };
+            fill('fCat', 'كل التصنيفات', cnt.cat, k => k, 'cat');
+            fill('fCountry', 'كل الدول', cnt.country, countryLabel, 'country');
+            fill('fLang', 'كل اللغات', cnt.lang, langLabel, 'lang');
+        }
+        function applyFilters() {
+            chFilter.cat = document.getElementById('fCat').value;
+            chFilter.country = document.getElementById('fCountry').value;
+            chFilter.lang = document.getElementById('fLang').value;
+            chPage = 1; renderGrid();
+        }
+        function renderGrid() {
+            const f = chFilter, tokens = normTxt(f.q).split(/\s+/).filter(Boolean);
+            chList = allChannels.filter(c => {
+                if(f.cat && c.category !== f.cat) return false;
+                if(f.country && c.country !== f.country) return false;
+                if(f.lang && c.language !== f.lang) return false;
+                if(!tokens.length) return true;
+                let n = nc.get(c); if(n === undefined) { n = normTxt(c.name + ' ' + (c.category || '')); nc.set(c, n); }
+                return tokens.every(t => n.includes(t));
+            });
+            document.getElementById('chanCount').textContent = chList.length + ' قناة';
+            document.getElementById('channelsGrid').innerHTML = chList.slice(0, PAGE_SIZE).map(c => createGridCard(c)).join('')
+                || '<div class="empty-state" style="grid-column:1/-1;"><h3>لا نتائج</h3></div>';
+            updateMore();
+        }
+        function chanMore() {
+            const g = document.getElementById('channelsGrid'), from = g.children.length;
+            if(from >= chList.length) return;
+            g.insertAdjacentHTML('beforeend', chList.slice(from, from + PAGE_SIZE).map(c => createGridCard(c)).join(''));
+            updateMore();
+        }
+        function updateMore() {
+            const b = document.getElementById('chanMore'), shown = document.getElementById('channelsGrid').children.length;
+            b.style.display = chList.length > shown ? 'block' : 'none';
+            if(!moreObs && 'IntersectionObserver' in window) {
+                moreObs = new IntersectionObserver(es => { if(es.some(e => e.isIntersecting)) chanMore(); }, { rootMargin: '400px' });
+                moreObs.observe(b);
+            }
+        }
+
         async function refreshChannels() {
             if(isAdmin && !confirm('سيتم تجاهل مسودتك المحلية غير المرفوعة. متابعة؟')) return;
             await loadChannels(true); alert('تم التحديث');
@@ -869,12 +990,13 @@
         }
 
         function renderChannelsGrid() {
-            const grid = document.getElementById('channelsGrid');
             if(allChannels.length === 0) {
-                grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1;"><h3>لا توجد قنوات</h3><p>استورد قنوات من لوحة التحكم</p></div>';
+                document.getElementById('channelsGrid').innerHTML = '<div class="empty-state" style="grid-column:1/-1;"><h3>لا توجد قنوات</h3><p>استورد قنوات من لوحة التحكم</p></div>';
+                document.getElementById('chanCount').textContent = '';
                 return;
             }
-            grid.innerHTML = allChannels.map(c => createGridCard(c)).join('');
+            buildFilterOptions();
+            renderGrid();
         }
 
         function createCard(channel) {
@@ -906,14 +1028,7 @@
             `;
         }
 
-        function filterChannels(query) {
-            const q = query.toLowerCase();
-            const filtered = allChannels.filter(c => 
-                (c.name && c.name.toLowerCase().includes(q)) || 
-                (c.category && c.category.toLowerCase().includes(q))
-            );
-            document.getElementById('channelsGrid').innerHTML = filtered.map(c => createGridCard(c)).join('');
-        }
+        function filterChannels(q) { chFilter.q = q || ''; chPage = 1; renderGrid(); }
 
         // ===== المفضلة وسجل المشاهدة: نسخة محلية سريعة + مزامنة Firestore (users/{uid}/favorites و watchHistory) =====
         const nowTS = () => firebase.firestore.FieldValue.serverTimestamp();
@@ -1323,7 +1438,8 @@
 
             const lines = content.split('\n');
             const channelsToAdd = [];
-            let currentName = '', currentLogo = '', currentCat = 'عام';
+            let currentName = '', currentLogo = '', currentCat = 'عام', currentCountry = '', currentLang = '';
+            const gmode = document.getElementById('importGroupMode').value;
 
             for(let i=0; i<lines.length; i++) {
                 if(stopImportFlag) break;
@@ -1332,11 +1448,14 @@
                     const nameMatch = line.match(/,(.+)$/);
                     const logoMatch = line.match(/tvg-logo="([^"]*)"/);
                     const groupMatch = line.match(/group-title="([^"]*)"/);
+                    const grp = groupMatch ? groupMatch[1] : '';
                     currentName = nameMatch ? nameMatch[1].trim() : 'قناة';
                     currentLogo = logoMatch ? logoMatch[1] : '';
-                    currentCat = mapCategory(groupMatch ? groupMatch[1] : '', 'live');
+                    currentCat = mapCategory(gmode === 'category' ? grp : currentName, 'live');
+                    currentCountry = guessCountry(currentName, (line.match(/tvg-id="([^"]*)"/) || [])[1], (line.match(/tvg-country="([^"]*)"/) || [])[1], gmode === 'country' ? grp.split(';')[0] : '');
+                    currentLang = guessLang((line.match(/tvg-language="([^"]*)"/) || [])[1], gmode === 'language' ? grp.split(';')[0] : '');
                 } else if(line && !line.startsWith('#') && currentName && line.startsWith('http')) {
-                    channelsToAdd.push({ name: currentName, url: line, logo: currentLogo, category: currentCat, type: 'live' });
+                    channelsToAdd.push({ name: currentName, url: line, logo: currentLogo, category: currentCat, type: 'live', ...(currentCountry ? { country: currentCountry } : {}), ...(currentLang ? { language: currentLang } : {}) });
                     currentName = '';
                 }
             }
