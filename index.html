@@ -291,6 +291,16 @@
                     <button class="btn-primary btn-success" onclick="exportChannels()" style="margin-bottom:10px;">⬇️ تصدير channels.json</button>
                     <button class="btn-danger" onclick="deleteAllChannels()">🗑️ حذف جميع القنوات الحالية</button>
                 </div>
+                <!-- إزالة المكرر -->
+                <div class="admin-card">
+                    <h3>🧹 إزالة القنوات المكررة</h3>
+                    <p>يجمع القنوات التي لها نفس الاسم (مع تجاهل أرقام الجودة مثل 720p و HD) ونفس الدولة والتصنيف، ويُبقي أفضل جودة من كل مجموعة.</p>
+                    <label style="display:block;margin-bottom:10px;font-size:14px;"><input type="checkbox" id="dupSkip" checked> تجاهل القنوات التي بلا دولة (أكثر أماناً)</label>
+                    <button class="btn-primary" onclick="scanDup()">🔎 فحص المكرر</button>
+                    <div id="dupOut" style="font-size:13px;line-height:1.8;color:#ddd;margin-top:10px;white-space:pre-line;"></div>
+                    <button class="btn-danger" id="dupDel" onclick="deleteDup()" style="display:none;margin-top:10px;">🗑️ حذف المكرر من المسودة</button>
+                </div>
+
                 <!-- حماية بيانات الاشتراك -->
                 <div class="admin-card">
                     <h3>🔒 حماية بيانات الاشتراك</h3>
@@ -958,6 +968,93 @@
             }
         }
 
+        // ===== المرحلة 5أ: أدوات المدير (المكرر، التعديل، الحذف) =====
+        let dupIds = [];
+        function normName(n) {
+            return normTxt(String(n || '').replace(/\(.*?\)|\[.*?\]/g, ' ').replace(/\b(4k|uhd|fhd|hd|sd|hevc|h265|\d{3,4}p)\b/gi, ' ')).replace(/[^\p{L}\p{N}]+/gu, '');
+        }
+        function quality(c) {
+            const n = String(c.name || ''), m = n.match(/(\d{3,4})p/i);
+            if(m) return +m[1];
+            if(/4k|uhd/i.test(n)) return 2160; if(/fhd/i.test(n)) return 1080; if(/\bhd\b/i.test(n)) return 720; if(/\bsd\b/i.test(n)) return 480;
+            return 0;
+        }
+        function scanDup() {
+            const skip = document.getElementById('dupSkip').checked, groups = new Map();
+            for(const c of allChannels) {
+                const nk = normName(c.name); if(!nk || (skip && !c.country)) continue;
+                const k = [nk, c.country || '', c.category || '', c.type || ''].join('|');
+                if(!groups.has(k)) groups.set(k, []);
+                groups.get(k).push(c);
+            }
+            dupIds = []; const sample = []; let gcount = 0;
+            for(const g of groups.values()) {
+                if(g.length < 2) continue; gcount++;
+                g.sort((a, b) => quality(b) - quality(a) || (b.logo ? 1 : 0) - (a.logo ? 1 : 0));
+                g.slice(1).forEach(c => dupIds.push(c.id));
+                if(sample.length < 8) sample.push('• ' + g[0].name + ' (' + g.length + ' نسخ)');
+            }
+            const out = document.getElementById('dupOut'), btn = document.getElementById('dupDel');
+            if(!dupIds.length) { out.textContent = '✅ لا توجد قنوات مكررة بهذه المعايير.'; btn.style.display = 'none'; return; }
+            out.textContent = 'وُجدت ' + gcount + ' مجموعة مكررة، وسيُحذف ' + dupIds.length + ' قناة.\nأمثلة:\n' + sample.join('\n');
+            btn.style.display = 'block';
+        }
+        function deleteDup() {
+            if(!dupIds.length) return;
+            if(!confirm('حذف ' + dupIds.length + ' قناة مكررة من المسودة؟ بعدها انشر القنوات.')) return;
+            const ids = new Set(dupIds);
+            allChannels = allChannels.filter(c => !ids.has(c.id));
+            persistLocal(); updateCount(); renderHome();
+            document.getElementById('dupOut').textContent = '✅ تم حذف ' + dupIds.length + ' قناة. اضغط «نشر القنوات على GitHub» لتصل للجميع.';
+            document.getElementById('dupDel').style.display = 'none'; dupIds = [];
+        }
+
+        function addAdminButtons() {
+            document.querySelectorAll('.adm-btn').forEach(b => b.remove());
+            const box = document.querySelector('#detailsModal .modal-actions');
+            if(!box || !isAdmin || !currentChannel) return;
+            const mk = (t, f) => { const b = document.createElement('button'); b.className = 'btn-hero info adm-btn'; b.textContent = t; b.onclick = f; box.appendChild(b); };
+            mk('✏️ تعديل', () => editChannel(currentChannel.id));
+            mk('🗑️ حذف', () => deleteChannel(currentChannel.id));
+        }
+        function refreshAfterEdit() {
+            persistLocal(); updateCount(); renderHome();
+            if(document.getElementById('view-channels').classList.contains('active')) renderChannelsGrid();
+        }
+        function deleteChannel(id) {
+            if(!confirm('حذف هذه القناة من المسودة؟')) return;
+            allChannels = allChannels.filter(c => c.id !== id);
+            closeDetails(); refreshAfterEdit();
+            showToast('تم الحذف. انشر القنوات لتصل للجميع');
+        }
+        function editChannel(id) {
+            const c = allChannels.find(x => x.id === id); if(!c) return;
+            closeDetails();
+            const cats = [...new Set(['رياضة', 'أخبار', 'أفلام', 'مسلسلات', 'أطفال', 'موسيقى', 'ديني', 'وثائقي', 'عام', ...allChannels.map(x => x.category).filter(Boolean)])];
+            const fld = (i, l, v, dir) => '<label style="color:#aaa;font-size:13px;">' + l + '</label><input id="' + i + '" value="' + esc(v || '') + '"' + (dir ? ' dir="ltr"' : '') + ' style="width:100%;padding:12px;margin:4px 0 10px;background:#333;border:none;border-radius:4px;color:#fff;font-size:15px;font-family:inherit;">';
+            const sel = 'width:100%;padding:12px;margin:4px 0 10px;background:#333;border:none;border-radius:4px;color:#fff;font-size:15px;font-family:inherit;';
+            const ov = document.createElement('div'); ov.id = 'editOv';
+            ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:3500;overflow:auto;padding:20px;';
+            ov.innerHTML = '<div style="max-width:480px;margin:0 auto;background:#1f1f1f;padding:18px;border-radius:10px;"><h3 style="margin-bottom:12px;">✏️ تعديل القناة</h3>'
+                + fld('ed_name', 'الاسم', c.name) + fld('ed_url', 'رابط البث', c.url, true) + fld('ed_logo', 'رابط الشعار', c.logo, true)
+                + '<label style="color:#aaa;font-size:13px;">التصنيف</label><select id="ed_cat" style="' + sel + '">' + cats.map(k => '<option' + (k === c.category ? ' selected' : '') + '>' + esc(k) + '</option>').join('') + '</select>'
+                + '<label style="color:#aaa;font-size:13px;">النوع</label><select id="ed_type" style="' + sel + '">' + [['live', 'مباشر'], ['movie', 'فيلم'], ['series', 'مسلسل']].map(t => '<option value="' + t[0] + '"' + (t[0] === c.type ? ' selected' : '') + '>' + t[1] + '</option>').join('') + '</select>'
+                + fld('ed_country', 'رمز الدولة (مثل SA أو DE)', c.country, true) + fld('ed_lang', 'رمز اللغة (مثل ar أو en)', c.language, true)
+                + '<button class="btn-primary" id="edSave">حفظ</button><button class="btn-secondary" id="edCancel">إلغاء</button></div>';
+            document.body.appendChild(ov);
+            document.getElementById('edCancel').onclick = () => ov.remove();
+            document.getElementById('edSave').onclick = () => {
+                const name = document.getElementById('ed_name').value.trim(), url = document.getElementById('ed_url').value.trim();
+                if(!name || !url) { alert('الاسم والرابط مطلوبان'); return; }
+                c.name = name; c.url = url; c.logo = document.getElementById('ed_logo').value.trim();
+                c.category = document.getElementById('ed_cat').value; c.type = document.getElementById('ed_type').value;
+                c.country = toCountry(document.getElementById('ed_country').value); c.language = toLang(document.getElementById('ed_lang').value);
+                if(!c.logo) delete c.logo; if(!c.country) delete c.country; if(!c.language) delete c.language;
+                nc.delete(c); ov.remove(); refreshAfterEdit();
+                showToast('تم الحفظ. انشر القنوات لتصل للجميع');
+            };
+        }
+
         async function refreshChannels() {
             if(isAdmin && !confirm('سيتم تجاهل مسودتك المحلية غير المرفوعة. متابعة؟')) return;
             await loadChannels(true); alert('تم التحديث');
@@ -1141,6 +1238,7 @@
             document.getElementById('modalHero').style.backgroundImage = `linear-gradient(to top, #141414 0%, transparent 60%), url('${currentChannel.logo || "https://image.tmdb.org/t/p/original/8b8R8l88Qje9dn9OE8PY05Nez7S.jpg"}')`;
             document.getElementById('modalPlayBtn').onclick = () => { closeDetails(); playChannel(currentChannel); };
             updateFavButton();
+            addAdminButtons();
             document.getElementById('detailsModal').classList.add('active');
         }
         function closeDetails() { document.getElementById('detailsModal').classList.remove('active'); }
@@ -1398,99 +1496,4 @@
 
         function mapCategory(name, type) {
             const n = (name || '').toLowerCase();
-            if(n.includes('sport') || n.includes('bein')) return 'رياضة';
-            if(n.includes('news')) return 'أخبار';
-            if(n.includes('kids')) return 'أطفال';
-            if(n.includes('movie') || type === 'vod') return 'أفلام';
-            if(type === 'series') return 'مسلسلات';
-            return 'عام';
-        }
-
-        // ===== M3U Import =====
-        function toggleImportUI() {
-            const method = document.getElementById('importMethod').value;
-            document.getElementById('importUrlGroup').style.display = method === 'url' ? 'block' : 'none';
-            document.getElementById('importTextGroup').style.display = method === 'text' ? 'block' : 'none';
-        }
-
-        async function startImport() {
-            stopImportFlag = false;
-            const method = document.getElementById('importMethod').value;
-            let content = '';
-            document.getElementById('startImportBtn').style.display = 'none';
-            document.getElementById('stopImportBtn').style.display = 'block';
-            document.getElementById('importProgress').style.display = 'block';
-            document.getElementById('importLog').innerHTML = '';
-
-            if(method === 'url') {
-                const url = document.getElementById('importUrl').value.trim();
-                if(!url) { alert('أدخل الرابط'); resetImportUI(); return; }
-                addLog('🔄 جاري الجلب...', 'warn');
-                try {
-                    content = await fetchWithCORS(url);
-                    if(typeof content !== 'string') throw new Error('استجابة غير صالحة');
-                    addLog('✅ تم الجلب', 'success');
-                } catch(e) { addLog('❌ ' + e.message, 'error'); resetImportUI(); return; }
-            } else {
-                content = document.getElementById('importText').value.trim();
-                if(!content) { alert('الصق المحتوى'); resetImportUI(); return; }
-            }
-
-            const lines = content.split('\n');
-            const channelsToAdd = [];
-            let currentName = '', currentLogo = '', currentCat = 'عام', currentCountry = '', currentLang = '';
-            const gmode = document.getElementById('importGroupMode').value;
-
-            for(let i=0; i<lines.length; i++) {
-                if(stopImportFlag) break;
-                const line = lines[i].trim();
-                if(line.startsWith('#EXTINF:')) {
-                    const nameMatch = line.match(/,(.+)$/);
-                    const logoMatch = line.match(/tvg-logo="([^"]*)"/);
-                    const groupMatch = line.match(/group-title="([^"]*)"/);
-                    const grp = groupMatch ? groupMatch[1] : '';
-                    currentName = nameMatch ? nameMatch[1].trim() : 'قناة';
-                    currentLogo = logoMatch ? logoMatch[1] : '';
-                    currentCat = mapCategory(gmode === 'category' ? grp : currentName, 'live');
-                    currentCountry = guessCountry(currentName, (line.match(/tvg-id="([^"]*)"/) || [])[1], (line.match(/tvg-country="([^"]*)"/) || [])[1], gmode === 'country' ? grp.split(';')[0] : '');
-                    currentLang = guessLang((line.match(/tvg-language="([^"]*)"/) || [])[1], gmode === 'language' ? grp.split(';')[0] : '');
-                } else if(line && !line.startsWith('#') && currentName && line.startsWith('http')) {
-                    channelsToAdd.push({ name: currentName, url: line, logo: currentLogo, category: currentCat, type: 'live', ...(currentCountry ? { country: currentCountry } : {}), ...(currentLang ? { language: currentLang } : {}) });
-                    currentName = '';
-                }
-            }
-
-            if(channelsToAdd.length === 0) { addLog('❌ لا قنوات', 'error'); resetImportUI(); return; }
-            addLog(`📦 ${channelsToAdd.length} قناة...`, 'warn');
-            const added = await addLocal(channelsToAdd, 'importProgressFill', 'importLog');
-            addLog(`✅ ${added} قناة`, 'success');
-            await loadChannels();
-            resetImportUI();
-        }
-
-        function stopImport() { stopImportFlag = true; addLog('⏹ إيقاف...', 'warn'); }
-        function resetImportUI() {
-            document.getElementById('startImportBtn').style.display = 'block';
-            document.getElementById('stopImportBtn').style.display = 'none';
-            document.getElementById('importProgress').style.display = 'none';
-            document.getElementById('importProgressFill').style.width = '0%';
-        }
-
-        async function addChannelManual() {
-            const name = document.getElementById('addName').value.trim();
-            const url = document.getElementById('addUrl').value.trim();
-            const cat = document.getElementById('addCategory').value;
-            const logo = document.getElementById('addLogo').value.trim();
-            if(!name || !url) { alert('أكمل البيانات'); return; }
-            try {
-                allChannels.push({id:hid(url), name, url, category:cat, logo, type:'live'}); persistLocal(); updateCount();
-                alert('✅ تمت الإضافة');
-                document.getElementById('addName').value = '';
-                document.getElementById('addUrl').value = '';
-                document.getElementById('addLogo').value = '';
-                loadChannels();
-            } catch(e) { alert('خطأ: ' + e.message); }
-        }
-    </script>
-</body>
-</html>
+            if(n.includes('sport') || n.includes('bein')) return 'ر
