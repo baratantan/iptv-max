@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>IPTV MAX</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#141414">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <link rel="apple-touch-icon" href="icon-192.png">
     
     <!-- ✅ سكريبتات Firebase - لا تحذفها أبداً -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -146,6 +151,11 @@
             .hero-title { font-size: 48px; }
             .channels-grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
         }
+    @media (orientation: landscape) and (max-height: 520px) {
+            .player-controls-bar { padding: 6px 12px; }
+            .player-title { font-size: 13px; }
+            .player-btn { padding: 6px 10px; font-size: 12px; }
+        }
     </style>
 </head>
 <body>
@@ -254,6 +264,7 @@
                 <h3>عام</h3>
                 <div class="setting-item"><span class="setting-label">جودة التشغيل</span><span class="setting-value">تلقائي ›</span></div>
                 <div class="setting-item"><span class="setting-label">اللغة</span><span class="setting-value">العربية ›</span></div>
+                <div class="setting-item" onclick="installApp()"><span class="setting-label">📲 تثبيت التطبيق على الشاشة الرئيسية</span><span class="setting-value">›</span></div>
                 <div class="setting-item" onclick="refreshChannels()"><span class="setting-label">🔄 تحديث القنوات</span><span class="setting-value">›</span></div>
                 <div class="setting-item" onclick="logout()" style="color:#f44336;"><span class="setting-label">تسجيل الخروج</span><span class="setting-value">›</span></div>
             </div>
@@ -273,6 +284,13 @@
                     <button class="btn-primary btn-success" onclick="exportChannels()" style="margin-bottom:10px;">⬇️ تصدير channels.json</button>
                     <button class="btn-danger" onclick="deleteAllChannels()">🗑️ حذف جميع القنوات الحالية</button>
                 </div>
+                <!-- حماية بيانات الاشتراك -->
+                <div class="admin-card">
+                    <h3>🔒 حماية بيانات الاشتراك</h3>
+                    <p>ملف channels.json عام، وروابط Xtream تحمل اسم المستخدم وكلمة المرور. هذا الزر يحذف من المسودة كل القنوات التي روابطها بهذا الشكل، ثم تنشر الملف.</p>
+                    <button class="btn-danger" onclick="removeXtream()">🔒 حذف قنوات Xtream من المسودة قبل النشر</button>
+                </div>
+
                 <!-- فحص القنوات الميتة -->
                 <div class="admin-card">
                     <h3>🔍 فحص القنوات الميتة</h3>
@@ -445,6 +463,8 @@
                 <div style="font-size:12px; color:#aaa;" id="playerCategory">التصنيف</div>
             </div>
             <div>
+                <button class="player-btn" onclick="switchChannel(-1)">⏮ السابقة</button>
+                <button class="player-btn" onclick="switchChannel(1)">التالية ⏭</button>
                 <button class="player-btn" onclick="toggleFit()">تغيير الحجم</button>
                 <button class="player-btn" onclick="toggleFullscreen()">ملء الشاشة</button>
             </div>
@@ -777,12 +797,52 @@
             } catch(e) { log('\n❌ ' + (e.name === 'AbortError' ? 'انتهت المهلة (15 ثانية)' : e.message)); }
         }
 
+        // ===== حماية بيانات الاشتراك: إزالة روابط Xtream (تحمل user/pass) قبل النشر العام =====
+        const XTREAM_RE = /^https?:\/\/[^\/]+\/(live|movie|series)\/[^\/]+\/[^\/]+\/[^\/?]+$/i;
+        function removeXtream() {
+            const x = allChannels.filter(c => XTREAM_RE.test(c.url || ''));
+            if(!x.length) { alert('لا توجد في المسودة قنوات بروابط تحمل بيانات اشتراك.'); return; }
+            if(!confirm('وُجدت ' + x.length + ' قناة روابطها تحمل بيانات اشتراك (Xtream).\\nحذفها من المسودة؟ بعدها انشر القنوات لتخلو الملف العام منها.')) return;
+            const ids = new Set(x.map(c => c.id));
+            allChannels = allChannels.filter(c => !ids.has(c.id));
+            persistLocal(); updateCount(); renderHome();
+            alert('تم حذف ' + x.length + ' قناة من المسودة.\\nالآن اضغط «نشر القنوات على GitHub» بتوكن جديد قصير المدة.');
+        }
+
+        // ===== المرحلة 2: PWA + تجربة الهاتف =====
+        let curPlaying = null, deferredInstall = null;
+        if('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+        window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredInstall = e; });
+        async function installApp() {
+            if(deferredInstall) { deferredInstall.prompt(); try { await deferredInstall.userChoice; } catch(e) {} deferredInstall = null; }
+            else alert('لتثبيت التطبيق: افتح قائمة Chrome ⋮ ثم اختر «إضافة إلى الشاشة الرئيسية» (Add to Home screen).');
+        }
+        function switchChannel(dir) {
+            if(!curPlaying) return;
+            const list = allChannels.filter(c => c.category === curPlaying.category && c.type === curPlaying.type);
+            if(list.length < 2) return;
+            const i = list.findIndex(c => c.id === curPlaying.id);
+            playChannel(list[(i + dir + list.length) % list.length]);
+        }
+        function renderLastBtn() {
+            const box = document.querySelector('.hero-buttons'); if(!box) return;
+            const old = document.getElementById('lastBtn'); if(old) old.remove();
+            let id = null; try { id = localStorage.getItem('iptvmax_last'); } catch(e) {}
+            const c = id && allChannels.find(x => x.id === id); if(!c) return;
+            const b = document.createElement('button');
+            b.id = 'lastBtn'; b.className = 'btn-hero info';
+            b.textContent = '⏯ ' + String(c.name).slice(0, 22);
+            b.onclick = () => playChannel(c);
+            box.appendChild(b);
+        }
+
         async function refreshChannels() {
             if(isAdmin && !confirm('سيتم تجاهل مسودتك المحلية غير المرفوعة. متابعة؟')) return;
             await loadChannels(true); alert('تم التحديث');
         }
 
         function renderHome() {
+            renderLastBtn();
             const live = allChannels.filter(c => c.type === 'live' && c.category !== 'أفلام' && c.category !== 'مسلسلات').slice(0, 20);
             const sports = allChannels.filter(c => c.category === 'رياضة').slice(0, 15);
             const news = allChannels.filter(c => c.category === 'أخبار').slice(0, 15);
@@ -938,6 +998,8 @@
             document.getElementById('playerCategory').textContent = channel.category || 'عام';
             document.getElementById('playerModal').classList.add('active');
             saveToWatchHistory(channel);
+            curPlaying = channel;
+            try { localStorage.setItem("iptvmax_last", channel.id); } catch(e) {}
             startPlayback(channel, 1, false);
         }
 
