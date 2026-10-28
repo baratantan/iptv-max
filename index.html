@@ -179,6 +179,7 @@
                 <button class="btn-secondary" onclick="toggleAuth('login')">العودة</button>
             </div>
         </div>
+    <div style="position:absolute;bottom:14px;left:0;right:0;text-align:center;font-size:12px;"><a href="#" onclick="resetApp();return false;" style="color:#888;">مشكلة في التحميل؟ إعادة ضبط التطبيق</a></div>
     </div>
 
     <!-- Main App -->
@@ -497,6 +498,27 @@
 
     <script>
         // ===== Firebase Config =====
+        // ===== كشف الأخطاء: أي خطأ برمجي يظهر في شريط أحمر أعلى الشاشة (اضغط عليه لإخفائه) =====
+        function showFatal(msg) {
+            if(/ResizeObserver|Script error/i.test(msg)) return;
+            let b = document.getElementById('fatalBar');
+            if(!b) {
+                b = document.createElement('div'); b.id = 'fatalBar';
+                b.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:#b00020;color:#fff;font-size:12px;padding:8px 12px;direction:ltr;text-align:left;white-space:pre-wrap;max-height:30vh;overflow:auto;';
+                b.onclick = () => b.remove(); document.body.appendChild(b);
+            }
+            b.textContent += msg + '\n';
+        }
+        window.addEventListener('error', e => showFatal((e.message || 'error') + (e.lineno ? ' @' + e.lineno : '')));
+        window.addEventListener('unhandledrejection', e => showFatal('Promise: ' + ((e.reason && e.reason.message) || e.reason)));
+        async function resetApp() {
+            if(!confirm('إعادة ضبط التطبيق؟ يمسح الذاكرة المؤقتة وملفات التشغيل فقط، ولا يحذف حسابك ولا مفضلتك.')) return;
+            try { for(const r of await navigator.serviceWorker.getRegistrations()) await r.unregister(); } catch(e) {}
+            try { for(const k of await caches.keys()) await caches.delete(k); } catch(e) {}
+            try { indexedDB.deleteDatabase('iptvmax'); } catch(e) {}
+            location.reload();
+        }
+
         const firebaseConfig = {
             apiKey: "AIzaSyB_q5oVLcsJatJhhjLhzPOfSSjodMac258",
             authDomain: "iptv-platform-683da.firebaseapp.com",
@@ -1470,30 +1492,4 @@
                 addLog(`✅ ${categories.length} تصنيف`, 'success', 'xtreamLog');
                 addLog('📺 جلب المحتوى...', 'info', 'xtreamLog');
                 let streams = await fetchWithCORS(config.api + '&action=' + streamsAction);
-                if(!Array.isArray(streams)) { addLog('❌ فشل', 'error', 'xtreamLog'); return; }
-                addLog(`✅ ${streams.length} عنصر`, 'success', 'xtreamLog');
-                const catMap = {};
-                categories.forEach(c => { catMap[c.category_id] = c.category_name; });
-                const channelsToAdd = streams.map(s => {
-                    let streamUrl = '';
-                    if(type === 'live') streamUrl = `${config.base}/live/${config.user}/${config.pass}/${s.stream_id}.m3u8`;
-                    else if(type === 'vod') streamUrl = `${config.base}/movie/${config.user}/${config.pass}/${s.stream_id}.${s.container_extension || 'mp4'}`;
-                    else streamUrl = `${config.base}/series/${config.user}/${config.pass}/${s.series_id}.json`;
-                    return {
-                        name: s.name || 'بدون اسم',
-                        url: streamUrl,
-                        logo: s.stream_icon || s.cover || '',
-                        category: catMap[s.category_id] || mapCategory(s.name, type),
-                        type: type === 'live' ? 'live' : type === 'vod' ? 'movie' : 'series'
-                    };
-                });
-                addLog(`📦 إضافة ${channelsToAdd.length} عنصر...`, 'warn', 'xtreamLog');
-                const added = await addLocal(channelsToAdd, 'xtreamProgressFill', 'xtreamLog');
-                addLog(`✅ تمت إضافة ${added}`, 'success', 'xtreamLog');
-                await loadChannels();
-            } catch(e) { addLog('❌ ' + e.message, 'error', 'xtreamLog'); }
-        }
-
-        function mapCategory(name, type) {
-            const n = (name || '').toLowerCase();
-            if(n.includes('sport') || n.includes('bein')) return 'ر
+                if(!Array.isArray(streams)) { addLog('❌ فشل', 'error', 'xtr
