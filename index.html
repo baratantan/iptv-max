@@ -273,6 +273,25 @@
                     <button class="btn-primary btn-success" onclick="exportChannels()" style="margin-bottom:10px;">⬇️ تصدير channels.json</button>
                     <button class="btn-danger" onclick="deleteAllChannels()">🗑️ حذف جميع القنوات الحالية</button>
                 </div>
+                <!-- فحص القنوات الميتة -->
+                <div class="admin-card">
+                    <h3>🔍 فحص القنوات الميتة</h3>
+                    <p>يفحص كل قناة عبر الـ Worker (أول 1KB، مهلة 5 ثوانٍ). النتائج تُحفظ فتتابع لاحقاً من حيث توقفت. القنوات الميتة تُحذف من المسودة ثم تنشرها.</p>
+                    <p style="color:#ff9800;">⚠️ بعض المزوّدين يحددون عدد الاتصالات فقد تظهر قنوات صالحة كميتة. جرّب الفحص السريع أولاً، وأبقِ الشاشة شغّالة أثناء الفحص.</p>
+                    <button class="btn-primary" id="chkStartBtn" onclick="runCheck(0)">🔍 فحص وحذف القنوات الميتة</button>
+                    <button class="btn-primary btn-info" id="chkQuickBtn" onclick="runCheck(100)">⚡ فحص سريع (أول 100 قناة)</button>
+                    <button class="btn-danger" id="chkStopBtn" onclick="stopCheck()" style="display:none;margin-top:10px;">⏹ إيقاف</button>
+                    <div class="progress-bar" style="display:block;"><div class="progress-fill" id="chkFill"></div></div>
+                    <div id="chkText" style="font-size:14px;line-height:1.8;"></div>
+                    <div id="chkDeadBox" style="display:none;max-height:220px;overflow-y:auto;background:#000;padding:8px;border-radius:4px;margin-top:10px;"></div>
+                    <div id="chkActions" style="display:none;margin-top:10px;">
+                        <button class="btn-danger" onclick="deleteDead()">🗑️ حذف القنوات الميتة</button>
+                        <button class="btn-primary" style="margin-top:10px;" onclick="exportChannels()">⬇️ تصدير channels.json</button>
+                        <button class="btn-primary btn-success" onclick="publishChannels()">☁️ نشر القنوات على GitHub (الصق التوكن في الحقل أعلاه)</button>
+                    </div>
+                    <button class="btn-secondary" onclick="resetCheck()" style="margin-top:10px;">↺ فحص من جديد (مسح النتائج)</button>
+                </div>
+
 
                 <!-- Xtream Codes -->
                 <div class="admin-card">
@@ -554,6 +573,7 @@
                 } catch(e) { allChannels = c ? c.l : []; }
             }
             updateCount(); renderHome();
+            if(typeof chkPaint === 'function') { chkLoad(); chk.pool = allChannels; chkPaint(); }
         }
         function persistLocal() { idb.set('channels', {t:Date.now(), l:allChannels, draft:true}); }
         function updateCount() { const e=document.getElementById('chCount'); if(e) e.textContent = allChannels.length; }
@@ -612,6 +632,103 @@
             } catch(e) { alert('❌ فشل النشر: ' + e.message); }
             if(inp) inp.value = '';
             btn.disabled = false; btn.textContent = '☁️ نشر القنوات على GitHub';
+        }
+
+        // ===== فحص القنوات الميتة =====
+        const CHK_KEY = 'iptvmax_check_v1', CHK_CONC = 3, CHK_TIMEOUT = 5000;
+        let chk = { res: {}, running: false, stop: false, pool: null };
+        function chkLoad() { try { chk.res = JSON.parse(localStorage.getItem(CHK_KEY) || '{}'); } catch(e) { chk.res = {}; } }
+        function chkSave() { try { localStorage.setItem(CHK_KEY, JSON.stringify(chk.res)); } catch(e) {} }
+
+        async function probeChannel(url) {
+            const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), CHK_TIMEOUT);
+            try {
+                const r = await fetch(MY_PROXY + encodeURIComponent(url), { headers: { Range: 'bytes=0-1023' }, signal: ctl.signal });
+                if(!r.ok) return false;
+                const reader = r.body.getReader();
+                const { value } = await reader.read();
+                try { reader.cancel(); } catch(e) {}
+                return !!(value && value.length > 0);
+            } catch(e) { return false; }
+            finally { clearTimeout(t); }
+        }
+
+        function chkStats() {
+            const pool = chk.pool || allChannels; let ok = 0, dead = 0;
+            for(const c of pool) { const v = chk.res[c.id]; if(v === 1) ok++; else if(v === 0) dead++; }
+            return { total: pool.length, ok, dead, done: ok + dead };
+        }
+        function chkPaint() {
+            const s = chkStats(), f = document.getElementById('chkFill'), t = document.getElementById('chkText');
+            if(!f || !t) return;
+            f.style.width = (s.total ? s.done / s.total * 100 : 0) + '%';
+            t.innerHTML = `المفحوصة: <b>${s.done}</b> / ${s.total}<br>✅ صالحة: <b style="color:#46d369">${s.ok}</b> &nbsp; ❌ ميتة: <b style="color:#f44336">${s.dead}</b>`;
+            if(!chk.running) chkShowDead();
+        }
+        function chkShowDead() {
+            const dead = allChannels.filter(c => chk.res[c.id] === 0);
+            const box = document.getElementById('chkDeadBox'), act = document.getElementById('chkActions');
+            if(!box || !act) return;
+            box.style.display = dead.length ? 'block' : 'none';
+            act.style.display = dead.length ? 'block' : 'none';
+            box.innerHTML = dead.slice(0, 300).map(c => `<div style="padding:4px 0;border-bottom:1px solid #222;font-size:12px;color:#f44336;">${esc(c.name)}</div>`).join('')
+                + (dead.length > 300 ? `<div style="padding:6px 0;color:#aaa;font-size:12px;">و ${dead.length - 300} قناة أخرى...</div>` : '');
+        }
+        function chkUI(running) {
+            document.getElementById('chkStopBtn').style.display = running ? 'block' : 'none';
+            document.getElementById('chkStartBtn').disabled = running;
+            document.getElementById('chkQuickBtn').disabled = running;
+        }
+        function stopCheck() { chk.stop = true; }
+
+        async function runCheck(limit) {
+            if(chk.running) return;
+            if(!allChannels.length) { alert('لا توجد قنوات للفحص'); return; }
+            // تأكد أن الـ Worker يعمل قبل البدء، حتى لا تُعتبر كل القنوات ميتة بسبب عطل الاتصال
+            try {
+                const c = new AbortController(), t = setTimeout(() => c.abort(), 8000);
+                const r = await fetch(MY_PROXY + encodeURIComponent('https://example.com'), { signal: c.signal });
+                clearTimeout(t); if(!r.ok) throw new Error('HTTP ' + r.status);
+            } catch(e) { alert('تعذر الاتصال بالـ Worker، فلن يكون الفحص صحيحاً. تحقق من الاتصال ثم أعد المحاولة.'); return; }
+
+            chkLoad();
+            const pool = limit ? allChannels.slice(0, limit) : allChannels;
+            const todo = pool.filter(c => !(c.id in chk.res));
+            chk.pool = pool; chk.running = true; chk.stop = false;
+            chkUI(true); chkPaint();
+            let idx = 0, since = 0, last = 0;
+            const run = async () => {
+                while(!chk.stop) {
+                    const i = idx++; if(i >= todo.length) break;
+                    const c = todo[i];
+                    chk.res[c.id] = (await probeChannel(c.url)) ? 1 : 0;
+                    if(++since >= 25) { chkSave(); since = 0; }
+                    const now = Date.now(); if(now - last > 250) { last = now; chkPaint(); }
+                }
+            };
+            await Promise.all(Array.from({ length: CHK_CONC }, run));
+            chkSave(); chk.running = false; chkUI(false); chkPaint();
+            alert(chk.stop ? '⏹ تم الإيقاف. النتائج محفوظة ويمكنك المتابعة لاحقاً.' : '✅ اكتمل الفحص.');
+        }
+
+        function resetCheck() {
+            if(chk.running) { alert('أوقف الفحص أولاً'); return; }
+            if(!confirm('مسح كل نتائج الفحص المحفوظة؟')) return;
+            chk.res = {}; chkSave(); chk.pool = allChannels; chkPaint();
+        }
+
+        // الحذف من المسودة (القنوات صارت في channels.json وليست في Firebase) ثم النشر أو التصدير
+        function deleteDead() {
+            const dead = new Set(allChannels.filter(c => chk.res[c.id] === 0).map(c => c.id));
+            if(!dead.size) { alert('لا توجد قنوات ميتة'); return; }
+            const st = chkStats();
+            if(st.done && dead.size / st.done > 0.8 && !confirm('⚠️ نسبة القنوات الميتة عالية جداً (أكثر من 80%). قد يكون السبب الاتصال أو حجب المزوّد لا القنوات نفسها. هل تتابع الحذف؟')) return;
+            if(!confirm('حذف ' + dead.size + ' قناة ميتة من المسودة؟\nبعدها اضغط «نشر القنوات على GitHub» لتصل التغييرات للجميع.')) return;
+            allChannels = allChannels.filter(c => !dead.has(c.id));
+            dead.forEach(id => delete chk.res[id]); chkSave();
+            persistLocal(); updateCount(); renderHome();
+            chk.pool = allChannels; chkPaint();
+            alert('تم الحذف من المسودة. اضغط «نشر القنوات على GitHub» أو «تصدير» لتحديث الموقع.');
         }
 
         async function refreshChannels() {
@@ -752,23 +869,25 @@
         function showFeaturedDetails() { if(allChannels.length > 0) openDetails(allChannels[0].id); }
         function playFeatured() { if(allChannels.length > 0) playChannel(allChannels[0]); }
 
-        let playRetry = null;
+        let playRetry = null, playWatch = null;
 
         function playerMsg(text, isErr) {
             let el = document.getElementById('playerMsg');
             if(!el) {
                 el = document.createElement('div');
                 el.id = 'playerMsg';
-                el.style.cssText = 'position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);text-align:center;padding:16px;background:rgba(0,0,0,.75);font-size:15px;line-height:1.8;z-index:5;pointer-events:none;white-space:pre-line';
                 document.querySelector('.player-wrapper').appendChild(el);
             }
+            // التحميل: شارة صغيرة في الأعلى لا تحجب الصورة. الخطأ النهائي فقط: شريط في الوسط.
+            el.style.cssText = isErr
+                ? 'position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);text-align:center;padding:16px;background:rgba(0,0,0,.8);font-size:15px;line-height:1.8;z-index:5;pointer-events:none;white-space:pre-line;color:#ff6b6b'
+                : 'position:absolute;top:12px;left:50%;transform:translateX(-50%);padding:5px 14px;border-radius:16px;background:rgba(0,0,0,.55);font-size:12px;z-index:5;pointer-events:none;color:#ddd';
             el.style.display = text ? 'block' : 'none';
-            el.style.color = isErr ? '#ff6b6b' : '#fff';
             el.textContent = text || '';
         }
 
         function playChannel(channel) {
-            clearTimeout(playRetry);
+            clearTimeout(playRetry); clearTimeout(playWatch);
             document.getElementById('playerTitle').textContent = channel.name;
             document.getElementById('playerCategory').textContent = channel.category || 'عام';
             document.getElementById('playerModal').classList.add('active');
@@ -776,50 +895,62 @@
             startPlayback(channel, 1, false);
         }
 
-        // المحاولة 1: الـ Proxy لروابط http فقط. المحاولة 2 (بعد 3 ثوانٍ): الـ Proxy لكل الطلبات.
+        // المحاولة 1: الـ Proxy لروابط http فقط. المحاولة 2: الـ Proxy لكل الطلبات (بصمت، دون رسالة خطأ).
         function startPlayback(channel, attempt, forceProxy) {
             const video = document.getElementById('videoPlayer');
             const prox = u => (forceProxy || /^http:/i.test(u)) ? MY_PROXY + encodeURIComponent(u) : u;
             const isFile = /\.(mp4|mkv|avi|mov|webm|m4v)(\?|$)/i.test(channel.url);
             const finalUrl = prox(channel.url);
             console.log(`[IPTV] محاولة ${attempt} | ${channel.name}\n  الرابط الأصلي: ${channel.url}\n  الرابط الفعلي: ${finalUrl}`);
-            playerMsg('⏳ جاري التشغيل...');
+            playerMsg('⏳ جاري التحميل...');
 
+            clearTimeout(playWatch);
             if(hls) { hls.destroy(); hls = null; }
-            video.onerror = null; video.onplaying = null;
+            video.onerror = null; video.onplaying = null; video.onloadeddata = null;
             video.pause(); video.removeAttribute('src'); video.load();
 
+            let started = false;
+            const ok = () => { started = true; clearTimeout(playWatch); playerMsg(''); };
             const fail = reason => {
-                console.error('[IPTV] فشل التشغيل:', reason, '| محاولة', attempt);
-                if(!document.getElementById('playerModal').classList.contains('active')) return;
+                console.warn('[IPTV] فشلت المحاولة', attempt, ':', reason);
+                if(started || !document.getElementById('playerModal').classList.contains('active')) return;
                 if(attempt === 1) {
-                    playerMsg('⚠️ تعذر التشغيل، إعادة المحاولة بعد 3 ثوانٍ...\nالسبب: ' + reason, true);
+                    // إعادة محاولة صامتة: لا نُظهر خطأ للمستخدم قبل المحاولة الثانية
                     playRetry = setTimeout(() => startPlayback(channel, 2, true), 3000);
                 } else {
-                    playerMsg('❌ تعذر تشغيل هذا البث. قد يكون الرابط معطلاً أو السيرفر يرفض الاتصال. جرّب قناة أخرى.\nالسبب: ' + reason, true);
+                    playerMsg('❌ تعذر تشغيل هذا البث. قد يكون الرابط معطلاً أو السيرفر يرفض الاتصال. جرّب قناة أخرى.', true);
                 }
             };
+            // مهلة لكل محاولة: إن لم يبدأ التشغيل خلال 15 ثانية تُعدّ فاشلة
+            playWatch = setTimeout(() => {
+                if(started) return;
+                if(hls) { hls.destroy(); hls = null; }
+                fail('انتهت المهلة');
+            }, 15000);
+
+            video.onplaying = ok;
+            video.onloadeddata = ok;
 
             if(!isFile && window.Hls && Hls.isSupported()) {
-                let recovered = false;
+                let recovered = false, netRetried = false;
                 hls = new Hls({
                     enableWorker: true, lowLatencyMode: true,
                     manifestLoadingMaxRetry: 1, levelLoadingMaxRetry: 2, fragLoadingMaxRetry: 2,
                 });
                 hls.on(Hls.Events.MANIFEST_PARSED, () => { video.play().catch(()=>{}); });
-                hls.on(Hls.Events.FRAG_LOADED, () => playerMsg(''));
                 hls.on(Hls.Events.ERROR, (e, data) => {
                     console.warn('[IPTV] HLS:', data.type, data.details, data.response ? 'HTTP ' + data.response.code : '', data.url || '');
-                    if(!data.fatal) return;
+                    if(!data.fatal || started) return;
                     if(data.type === Hls.ErrorTypes.MEDIA_ERROR && !recovered) { recovered = true; hls.recoverMediaError(); return; }
+                    if(data.type === Hls.ErrorTypes.NETWORK_ERROR && !netRetried) { netRetried = true; hls.startLoad(); return; }
+                    clearTimeout(playWatch);
                     hls.destroy(); hls = null;
-                    fail(data.details + (data.response ? ' | HTTP ' + data.response.code : '') + (data.url ? ' | ' + (() => { try { return new URL(data.url).host; } catch(e) { return ''; } })() : ''));
+                    fail(data.details + (data.response ? ' | HTTP ' + data.response.code : ''));
                 });
                 hls.loadSource(finalUrl);
                 hls.attachMedia(video);
             } else {
-                video.onerror = () => fail('video error ' + (video.error ? video.error.code : ''));
-                video.onplaying = () => playerMsg('');
+                video.onerror = () => { clearTimeout(playWatch); fail('video error ' + (video.error ? video.error.code : '')); };
                 video.src = finalUrl;
                 video.play().catch(()=>{});
             }
@@ -834,7 +965,7 @@
         }
 
         function closePlayer() {
-            clearTimeout(playRetry); playerMsg('');
+            clearTimeout(playRetry); clearTimeout(playWatch); playerMsg('');
             { const v = document.getElementById('videoPlayer'); v.onerror = null; v.onplaying = null; }
             document.getElementById('playerModal').classList.remove('active');
             const video = document.getElementById('videoPlayer');
