@@ -321,6 +321,8 @@
                     
                     <button class="btn-primary btn-info" onclick="testXtream()" style="margin-top:10px;"> اختبار الاتصال</button>
                     <div id="xtreamStatus" style="margin-top:10px;"></div>
+                    <button class="btn-primary btn-warning" onclick="diagXtream()" style="margin-top:10px;">🩺 تشخيص بث Xtream (قناة واحدة)</button>
+                    <pre id="diagOut" style="display:none;white-space:pre-wrap;word-break:break-all;background:#000;color:#ddd;padding:10px;border-radius:4px;margin-top:10px;font-size:12px;line-height:1.7;font-family:Cairo,monospace;"></pre>
 
                     <div class="xtream-tabs" style="margin-top:20px;">
                         <div class="xtream-tab active" onclick="switchXtreamTab('live', this)">📺 قنوات مباشرة</div>
@@ -731,6 +733,50 @@
             alert('تم الحذف من المسودة. اضغط «نشر القنوات على GitHub» أو «تصدير» لتحديث الموقع.');
         }
 
+        // ===== تشخيص بث Xtream: يتتبع القناة عبر الـ Worker خطوة بخطوة ويحدد مكان الفشل =====
+        async function diagXtream() {
+            const out = document.getElementById('diagOut'); out.style.display = 'block';
+            const lines = []; const log = t => { lines.push(t); out.textContent = lines.join('\n'); };
+            const hide = u => String(u || '').replace(/(\/(?:live|movie|series)\/)[^\/]+\/[^\/]+\//, '$1***/***/');
+            const ch = allChannels.find(c => /\/live\//.test(c.url)) || allChannels[0];
+            if(!ch) { log('لا توجد قنوات في المسودة. استورد قنوات Xtream أولاً.'); return; }
+            log('القناة: ' + ch.name); log('الرابط: ' + hide(ch.url)); log('---');
+            const get = async (url, range) => {
+                const c = new AbortController(), t = setTimeout(() => c.abort(), 15000);
+                try { return await fetch(url, { headers: range ? { Range: 'bytes=0-1023' } : {}, signal: c.signal }); }
+                finally { clearTimeout(t); }
+            };
+            const why = st => st === 502 ? 'الـ Worker لا يصل إلى السيرفر (غالباً حجب Cloudflare أو منفذ غير مدعوم)'
+                : (st === 401 || st === 403) ? 'المزوّد يرفض اتصال الـ Worker (حجب عناوين Cloudflare أو ترويسة غير مقبولة)'
+                : st === 404 ? 'المزوّد لا يجد هذا البث بصيغة m3u8'
+                : (st === 509 || st === 458) ? 'تجاوز حد الاتصالات المسموحة في الاشتراك' : 'رد غير متوقع';
+            try {
+                const t0 = Date.now();
+                const r = await get(MY_PROXY + encodeURIComponent(ch.url), false);
+                log('1) قائمة البث عبر الـ Worker: HTTP ' + r.status + ' (' + (Date.now() - t0) + 'ms)');
+                const ct = r.headers.get('content-type'); if(ct) log('   النوع: ' + ct);
+                const up = r.headers.get('x-upstream-url'); if(up) log('   وجهة البث الفعلية: ' + hide(up));
+                const ua = r.headers.get('x-ua'); if(ua) log('   User-Agent الناجح/الأخير: ' + ua);
+                const rd = r.body.getReader(); const first = await rd.read(); try { rd.cancel(); } catch(e) {}
+                let body = new TextDecoder().decode(first.value || new Uint8Array());
+                if(!r.ok) { log('   ' + body.slice(0, 160).replace(/\s+/g, ' ')); log('\n❌ ' + why(r.status)); return; }
+                if(!body.includes('#EXTM3U')) { log('   بداية الرد: ' + body.slice(0, 120).replace(/\s+/g, ' ')); log('\n⚠️ الرد ليس قائمة HLS. قد يكون البث TS مباشراً (لا يعمل في المتصفح) أو صفحة خطأ.'); return; }
+                for(let depth = 0; depth < 2; depth++) {
+                    const seg = body.split(/\r?\n/).map(l => l.trim()).find(l => l && !l.startsWith('#'));
+                    if(!seg) { log('⚠️ القائمة بلا مقاطع'); return; }
+                    if(!/^https?:/i.test(seg)) { log('\n⚠️ روابط المقاطع نسبية، أي أن الـ Worker المنشور قديم. انشر الـ Worker الجديد.'); return; }
+                    const isPl = /\.m3u8/i.test(decodeURIComponent(seg));
+                    const rr = await get(seg, !isPl);
+                    log((depth + 2) + ') ' + (isPl ? 'قائمة فرعية' : 'مقطع فيديو') + ': HTTP ' + rr.status);
+                    if(!rr.ok) { log('\n❌ ' + why(rr.status)); return; }
+                    if(isPl) { body = await rr.text(); continue; }
+                    const r2 = rr.body.getReader(); const v = await r2.read(); try { r2.cancel(); } catch(e) {}
+                    log('\n✅ وصل مقطع بحجم ' + (v.value ? v.value.length : 0) + ' بايت. البث يصل عبر الـ Worker، فالمشكلة ليست في الاتصال بالمزوّد.');
+                    return;
+                }
+            } catch(e) { log('\n❌ ' + (e.name === 'AbortError' ? 'انتهت المهلة (15 ثانية)' : e.message)); }
+        }
+
         async function refreshChannels() {
             if(isAdmin && !confirm('سيتم تجاهل مسودتك المحلية غير المرفوعة. متابعة؟')) return;
             await loadChannels(true); alert('تم التحديث');
@@ -918,7 +964,7 @@
                     // إعادة محاولة صامتة: لا نُظهر خطأ للمستخدم قبل المحاولة الثانية
                     playRetry = setTimeout(() => startPlayback(channel, 2, true), 3000);
                 } else {
-                    playerMsg('❌ تعذر تشغيل هذا البث. قد يكون الرابط معطلاً أو السيرفر يرفض الاتصال. جرّب قناة أخرى.', true);
+                    playerMsg('❌ تعذر تشغيل هذا البث. قد يكون الرابط معطلاً أو السيرفر يرفض الاتصال. جرّب قناة أخرى.\nالسبب: ' + reason, true);
                 }
             };
             // مهلة لكل محاولة: إن لم يبدأ التشغيل خلال 15 ثانية تُعدّ فاشلة
