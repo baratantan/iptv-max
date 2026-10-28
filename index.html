@@ -268,6 +268,8 @@
                     <h3>⚠️ إدارة قاعدة البيانات</h3>
                     <p>احذف جميع القنوات الحالية قبل استيراد قائمة جديدة.</p>
                     <p style="font-size:13px;color:#aaa;margin-bottom:10px;">القنوات في المسودة: <b id="chCount">0</b>. بعد أي استيراد أو حذف اضغط تصدير، ثم ارفع channels.json إلى المستودع بجانب index.html.</p>
+                                        <div class="form-group" style="margin-top:10px;"><input type="password" id="ghToken" placeholder="GitHub Token (لا يُحفظ، الصقه عند كل نشر)" autocomplete="off"></div>
+                    <button class="btn-primary" id="publishBtn" onclick="publishChannels()" style="margin-bottom:10px;">☁️ نشر القنوات على GitHub</button>
                     <button class="btn-primary btn-success" onclick="exportChannels()" style="margin-bottom:10px;">⬇️ تصدير channels.json</button>
                     <button class="btn-danger" onclick="deleteAllChannels()">🗑️ حذف جميع القنوات الحالية</button>
                 </div>
@@ -583,6 +585,35 @@
             setTimeout(() => { a.remove(); URL.revokeObjectURL(a.href); }, 60000);
             alert('تم تصدير ' + data.length + ' قناة (' + Math.round(blob.size/1024) + ' KB).\nتأكد أن حجم الملف في التنزيلات قريب من هذا الرقم قبل رفعه.');
         }
+        const GH_REPO = 'baratantan/iptv-max', GH_BRANCH = 'main';
+        async function publishChannels() {
+            if(!allChannels.length) { alert('المسودة فارغة. استورد القنوات أولاً.'); return; }
+            const inp = document.getElementById('ghToken');
+            const token = inp ? inp.value.trim() : '';
+            try { localStorage.removeItem('gh_token'); } catch(e) {}
+            if(!token) { alert('أدخل GitHub Token أولاً'); return; }
+            const btn = document.getElementById('publishBtn');
+            btn.disabled = true; btn.textContent = '⏳ جاري النشر...';
+            try {
+                const data = allChannels.map(c => { const o={id:c.id,name:c.name,url:c.url,category:c.category,type:c.type}; if(c.logo)o.logo=c.logo; if(c.description)o.description=c.description; return o; }).sort((a,b)=>(a.name||'')<(b.name||'')?-1:1);
+                const bytes = new TextEncoder().encode(JSON.stringify(data));
+                let bin = '';
+                for(let i=0;i<bytes.length;i+=0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i+0x8000));
+                const api = `https://api.github.com/repos/${GH_REPO}/contents/channels.json`;
+                const h = { 'Authorization': 'Bearer ' + token, 'Accept': 'application/vnd.github+json' };
+                let sha;
+                const g = await fetch(api + '?ref=' + GH_BRANCH, { headers: h });
+                if(g.ok) sha = (await g.json()).sha;
+                else if(g.status !== 404) throw new Error('HTTP ' + g.status + (g.status===401 ? ' (التوكن غير صحيح أو منتهي)' : g.status===403||g.status===404 ? ' (لا صلاحية Contents)' : ''));
+                const r = await fetch(api, { method:'PUT', headers:{ ...h, 'Content-Type':'application/json' },
+                    body: JSON.stringify({ message:'Update channels.json (' + data.length + ' channels)', content: btoa(bin), branch: GH_BRANCH, ...(sha ? {sha} : {}) }) });
+                if(!r.ok) throw new Error('HTTP ' + r.status + ' ' + (await r.text()).slice(0,150));
+                alert('✅ تم نشر ' + data.length + ' قناة (' + Math.round(bytes.length/1024) + ' KB). تظهر للجميع خلال 1-2 دقيقة.');
+            } catch(e) { alert('❌ فشل النشر: ' + e.message); }
+            if(inp) inp.value = '';
+            btn.disabled = false; btn.textContent = '☁️ نشر القنوات على GitHub';
+        }
+
         async function refreshChannels() {
             if(isAdmin && !confirm('سيتم تجاهل مسودتك المحلية غير المرفوعة. متابعة؟')) return;
             await loadChannels(true); alert('تم التحديث');
