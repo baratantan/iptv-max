@@ -241,8 +241,8 @@
         <div class="view" id="view-library">
             <div class="page-header">المكتبة</div>
             <div class="tabs">
-                <div class="tab active" onclick="switchLibTab('saved', this)">محفوظ</div>
-                <div class="tab" onclick="switchLibTab('favorites', this)">❤️ المفضلة</div>
+                <div class="tab active" id="favTab" onclick="switchLibTab('favorites', this)">❤️ المفضلة (0)</div>
+                <div class="tab" onclick="switchLibTab('history', this)">🕘 السجل</div>
             </div>
             <div id="libContent">
                 <div class="empty-state">
@@ -518,6 +518,7 @@
                 document.getElementById('settingsEmail').textContent = user.email + ' ›';
                 document.getElementById('userAvatar').textContent = user.email.charAt(0).toUpperCase();
                 loadChannels();
+                syncCloud();
             } else {
                 document.getElementById('authScreen').style.display = 'flex';
                 document.getElementById('mainApp').style.display = 'none';
@@ -914,29 +915,83 @@
             document.getElementById('channelsGrid').innerHTML = filtered.map(c => createGridCard(c)).join('');
         }
 
-        // ===== Favorites (localStorage) =====
-        function getFavorites() {
-            return JSON.parse(localStorage.getItem('favorites') || '[]');
+        // ===== المفضلة وسجل المشاهدة: نسخة محلية سريعة + مزامنة Firestore (users/{uid}/favorites و watchHistory) =====
+        const nowTS = () => firebase.firestore.FieldValue.serverTimestamp();
+        const uk = base => base + '_' + (currentUser ? currentUser.uid : 'anon');
+        const lsRead = k => { try { return JSON.parse(localStorage.getItem(k) || '[]'); } catch(e) { return []; } };
+        const favCol = () => db.collection('users').doc(currentUser.uid).collection('favorites');
+        const histCol = () => db.collection('users').doc(currentUser.uid).collection('watchHistory');
+        function getFavorites() { return lsRead(uk('favorites')); }
+        function saveFavorites(f) { try { localStorage.setItem(uk('favorites'), JSON.stringify(f)); } catch(e) {} }
+        function getHistory() { return lsRead(uk('watchHistory')); }
+        function saveHistoryLocal(h) { try { localStorage.setItem(uk('watchHistory'), JSON.stringify(h)); } catch(e) {} }
+        function isFavorite(channelId) { return getFavorites().includes(channelId); }
+
+        function showToast(msg) {
+            let t = document.getElementById('appToast');
+            if(!t) {
+                t = document.createElement('div'); t.id = 'appToast';
+                t.style.cssText = 'position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:10px 18px;border-radius:20px;font-size:14px;z-index:3000;display:none;';
+                document.body.appendChild(t);
+            }
+            t.textContent = msg; t.style.display = 'block';
+            clearTimeout(showToast.t); showToast.t = setTimeout(() => t.style.display = 'none', 1800);
         }
-        function saveFavorites(favs) {
-            localStorage.setItem('favorites', JSON.stringify(favs));
+        function updateFavCount() { const t = document.getElementById('favTab'); if(t) t.textContent = '❤️ المفضلة (' + getFavorites().length + ')'; }
+
+        // العمليات التي فشلت (بلا إنترنت مثلاً) تُحفظ وتُرسل في المزامنة التالية
+        const pendGet = () => { try { return JSON.parse(localStorage.getItem(uk('pendingFav')) || '{}'); } catch(e) { return {}; } };
+        const pendSet = o => { try { localStorage.setItem(uk('pendingFav'), JSON.stringify(o)); } catch(e) {} };
+        const favOp = (id, on) => on ? favCol().doc(id).set({ channelId: id, createdAt: nowTS() }) : favCol().doc(id).delete();
+        async function cloudFav(id, on) {
+            if(!currentUser) return;
+            const p = pendGet(); p[id] = on; pendSet(p);
+            try { await favOp(id, on); const q = pendGet(); delete q[id]; pendSet(q); }
+            catch(e) { console.warn('[sync] المفضلة ستُزامَن لاحقاً:', e.message); }
         }
-        function isFavorite(channelId) {
-            return getFavorites().includes(channelId);
+        async function flushPending() {
+            const p = pendGet();
+            for(const id of Object.keys(p)) {
+                try { await favOp(id, p[id]); const q = pendGet(); delete q[id]; pendSet(q); } catch(e) { return false; }
+            }
+            return true;
         }
+
         function toggleFavorite() {
             if(!currentChannel) return;
-            let favs = getFavorites();
-            const idx = favs.indexOf(currentChannel.id);
-            if(idx > -1) {
-                favs.splice(idx, 1);
-                alert('تمت الإزالة من المفضلة');
-            } else {
-                favs.push(currentChannel.id);
-                alert('تمت الإضافة للمفضلة ❤️');
-            }
-            saveFavorites(favs);
-            updateFavButton();
+            const id = currentChannel.id; const favs = getFavorites(); const idx = favs.indexOf(id);
+            const adding = idx < 0;
+            if(adding) favs.unshift(id); else favs.splice(idx, 1);
+            saveFavorites(favs); updateFavButton(); updateFavCount(); cloudFav(id, adding);
+            showToast(adding ? 'تمت الإضافة للمفضلة ❤️' : 'تمت الإزالة من المفضلة');
+        }
+
+        async function syncCloud() {
+            if(!currentUser) return;
+            const uid = currentUser.uid, mig = 'cloudMigrated_' + uid;
+            try {
+                if(!(await flushPending())) return;
+                const fs = await favCol().orderBy('createdAt', 'desc').get();
+                const cloudF = fs.docs.map(d => d.id);
+                const hs = await histCol().orderBy('watchedAt', 'desc').limit(10).get();
+                const cloudH = hs.docs.map(d => d.id);
+                if(!localStorage.getItem(mig)) {
+                    // أول مزامنة لهذا الحساب: ادمج ما كان محفوظاً على الجهاز (المفتاح القديم أيضاً) وارفع الناقص
+                    const mergedF = [...new Set([...getFavorites(), ...lsRead('favorites'), ...cloudF])];
+                    const missF = mergedF.filter(id => !cloudF.includes(id));
+                    for(let i = 0; i < missF.length; i += 400) {
+                        const b = db.batch(); missF.slice(i, i + 400).forEach(id => b.set(favCol().doc(id), { channelId: id, createdAt: nowTS() })); await b.commit();
+                    }
+                    const mergedH = [...new Set([...getHistory(), ...lsRead('watchHistory'), ...cloudH])].slice(0, 10);
+                    const b2 = db.batch(); const base = Date.now();
+                    mergedH.forEach((id, i) => { if(!cloudH.includes(id)) b2.set(histCol().doc(id), { channelId: id, watchedAt: firebase.firestore.Timestamp.fromMillis(base - i * 1000) }); });
+                    await b2.commit();
+                    saveFavorites(mergedF); saveHistoryLocal(mergedH);
+                    localStorage.setItem(mig, '1'); localStorage.removeItem('favorites'); localStorage.removeItem('watchHistory');
+                } else { saveFavorites(cloudF); saveHistoryLocal(cloudH); }
+                updateFavButton(); updateFavCount();
+                if(document.getElementById('view-library').classList.contains('active')) renderLibrary();
+            } catch(e) { console.warn('[sync] تعذرت المزامنة:', e.message); }
         }
         function updateFavButton() {
             const btn = document.getElementById('modalFavBtn');
@@ -944,18 +999,20 @@
             btn.textContent = isFavorite(currentChannel.id) ? ' إزالة من المفضلة' : '❤️ المفضلة';
         }
 
-        function renderLibrary(tab = 'saved') {
+        let libTab = 'favorites';
+        function renderLibrary(tab) {
+            if(tab) libTab = tab;
             const content = document.getElementById('libContent');
-            if(tab === 'favorites') {
-                const favs = getFavorites();
-                const favChannels = allChannels.filter(c => favs.includes(c.id));
-                if(favChannels.length === 0) {
-                    content.innerHTML = '<div class="empty-state"><h3>المفضلة فارغة</h3><p>اضغط على ❤️ في صفحة التفاصيل لحفظ القنوات</p></div>';
-                } else {
-                    content.innerHTML = '<div class="channels-grid">' + favChannels.map(c => createGridCard(c)).join('') + '</div>';
-                }
+            const ids = libTab === 'favorites' ? getFavorites() : getHistory();
+            const map = new Map(allChannels.map(c => [c.id, c]));
+            const list = ids.map(id => map.get(id)).filter(Boolean);
+            updateFavCount();
+            if(!list.length) {
+                content.innerHTML = libTab === 'favorites'
+                    ? '<div class="empty-state"><h3>المفضلة فارغة</h3><p>اضغط على ❤️ في صفحة التفاصيل لحفظ القنوات</p></div>'
+                    : '<div class="empty-state"><h3>لا يوجد سجل مشاهدة بعد</h3><p>القنوات التي تشاهدها تظهر هنا</p></div>';
             } else {
-                content.innerHTML = '<div class="empty-state"><h3>المكتبة فارغة</h3><p>القنوات والأفلام التي تحفظها ستظهر هنا.</p></div>';
+                content.innerHTML = '<div class="channels-grid">' + list.map(c => createGridCard(c)).join('') + '</div>';
             }
         }
 
@@ -1065,11 +1122,11 @@
         }
 
         function saveToWatchHistory(channel) {
-            let history = JSON.parse(localStorage.getItem('watchHistory') || '[]');
-            history = history.filter(id => id !== channel.id);
-            history.unshift(channel.id);
-            if(history.length > 10) history = history.slice(0, 10);
-            localStorage.setItem('watchHistory', JSON.stringify(history));
+            let h = getHistory().filter(id => id !== channel.id);
+            h.unshift(channel.id);
+            if(h.length > 10) h = h.slice(0, 10);
+            saveHistoryLocal(h);
+            if(currentUser) histCol().doc(channel.id).set({ channelId: channel.id, watchedAt: nowTS() }).catch(() => {});
         }
 
         function closePlayer() {
