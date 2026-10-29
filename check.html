@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>فحص IPTV MAX</title>
+<style>
+body{font-family:sans-serif;background:#141414;color:#fff;padding:16px;line-height:1.9;font-size:15px}
+h2{margin-bottom:8px}
+button{padding:13px 16px;border:0;border-radius:6px;background:#e50914;color:#fff;font-size:15px;margin:6px 0;width:100%}
+.ok{color:#46d369}.bad{color:#ff6b6b}.warn{color:#ffb74d}.m{color:#999;font-size:13px}
+#out div{border-bottom:1px solid #2a2a2a;padding:4px 0;word-break:break-all}
+#verdict{margin:14px 0;padding:12px;background:#1f1f1f;border-radius:8px;white-space:pre-line}
+</style>
+</head>
+<body>
+<h2>🩺 فحص IPTV MAX</h2>
+<p class="m">يختبر الاتصال بخدمات Firebase وملفات الموقع من جهازك وشبكتك الحالية.</p>
+<button id="go">ابدأ الفحص</button>
+<div id="out"></div>
+<div id="verdict" style="display:none"></div>
+<button id="reset" style="background:#444">🧹 إعادة ضبط التطبيق (مسح الكاش وملفات التشغيل)</button>
+
+<script>
+const KEY = 'AIzaSyB_q5oVLcsJatJhhjLhzPOfSSjodMac258', PROJECT = 'iptv-platform-683da';
+const out = document.getElementById('out'), problems = [];
+const line = (cls, t) => { const d = document.createElement('div'); d.className = cls; d.textContent = t; out.appendChild(d); };
+const T = (p, ms = 12000) => Promise.race([p, new Promise((_, r) => setTimeout(() => r(new Error('انتهت المهلة')), ms))]);
+const bad = (code, t) => { problems.push(code); line('bad', '❌ ' + t); };
+
+async function fileTest(name) {
+  try {
+    const r = await T(fetch(name + '?t=' + Date.now(), { cache: 'no-store' }));
+    if (!r.ok) { bad('file:' + name, name + ' ← HTTP ' + r.status); return; }
+    const txt = await r.text();
+    if (name === 'channels.json') {
+      try { line('ok', '✅ channels.json: ' + JSON.parse(txt).length + ' قناة (' + Math.round(txt.length / 1024) + ' KB)'); }
+      catch (e) { bad('json', 'channels.json ليس JSON صالحاً (حجمه ' + txt.length + ' بايت)'); }
+    } else if (name === 'index.html') {
+      const hasFatal = txt.includes('fatalBar'), hasFb = txt.includes('firebase-app-compat');
+      line(hasFb ? 'ok' : 'bad', (hasFb ? '✅' : '❌') + ' index.html وصل (' + Math.round(txt.length / 1024) + ' KB) ' + (hasFatal ? '— نسخة حديثة' : '— نسخة أقدم'));
+      if (!hasFb) problems.push('index-broken');
+      if (txt.length < 20000) { problems.push('index-small'); line('warn', '⚠️ حجم index.html صغير جداً، قد يكون الرفع ناقصاً'); }
+    } else line('ok', '✅ ' + name + ' (' + txt.length + ' بايت)');
+  } catch (e) { bad('file:' + name, name + ' ← ' + e.message); }
+}
+
+function loadScript(src) {
+  return new Promise(res => {
+    const s = document.createElement('script'); s.src = src;
+    const t = setTimeout(() => res(false), 12000);
+    s.onload = () => { clearTimeout(t); res(true); }; s.onerror = () => { clearTimeout(t); res(false); };
+    document.head.appendChild(s);
+  });
+}
+
+async function run() {
+  out.innerHTML = ''; problems.length = 0; document.getElementById('verdict').style.display = 'none';
+  line('m', 'الاتصال: ' + (navigator.onLine ? 'متصل' : 'غير متصل') + ' | المتصفح: ' + navigator.userAgent.slice(0, 80));
+  line('m', 'الصفحة: ' + location.origin + location.pathname);
+
+  line('warn', '— ملفات الموقع على GitHub Pages —');
+  for (const f of ['index.html', 'channels.json', 'sw.js', 'manifest.json']) await fileTest(f);
+
+  line('warn', '— مكتبة Firebase (gstatic.com) —');
+  const gs = await loadScript('https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js');
+  if (gs) line('ok', '✅ تحميل مكتبة Firebase نجح'); else bad('gstatic', 'فشل تحميل مكتبة Firebase من gstatic.com');
+
+  line('warn', '— خدمة تسجيل الدخول (Auth) —');
+  try {
+    const r = await T(fetch('https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=' + KEY, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: 'check-probe@example.com', password: 'probe-wrong-pass', returnSecureToken: true })
+    }));
+    const j = await r.json().catch(() => ({})); const msg = (j.error && j.error.message) || ('HTTP ' + r.status);
+    if (/EMAIL_NOT_FOUND|INVALID_PASSWORD|INVALID_LOGIN_CREDENTIALS/.test(msg)) line('ok', '✅ خدمة الدخول تعمل (' + msg + ' متوقع)');
+    else if (/API.?KEY|referer|blocked/i.test(msg + JSON.stringify(j))) bad('authkey', 'مفتاح Firebase مرفوض: ' + msg);
+    else if (/OPERATION_NOT_ALLOWED|PASSWORD_LOGIN_DISABLED/.test(msg)) bad('authdisabled', 'الدخول بالبريد وكلمة المرور معطّل في Firebase: ' + msg);
+    else if (/TOO_MANY|QUOTA/.test(msg)) line('warn', '⚠️ ' + msg);
+    else bad('authother', 'رد غير متوقع من الدخول: ' + msg);
+  } catch (e) { bad('authnet', 'تعذر الوصول لخدمة الدخول: ' + e.message); }
+
+  line('warn', '— قاعدة البيانات (Firestore) —');
+  try {
+    const r = await T(fetch('https://firestore.googleapis.com/v1/projects/' + PROJECT + '/databases/(default)/documents/users?pageSize=1&key=' + KEY));
+    if (r.status === 403) line('ok', '✅ Firestore يصل والقواعد تحمي بيانات المستخدمين (403 متوقع)');
+    else if (r.status === 200) line('warn', '⚠️ Firestore يردّ 200 على قراءة users دون تسجيل دخول! قواعد الأمان لا تحمي هذه المجموعة');
+    else if (r.status === 429) bad('fsquota', 'Firestore: تجاوز الحصة (429)');
+    else line('warn', '⚠️ Firestore ردّ HTTP ' + r.status);
+  } catch (e) { bad('fsnet', 'تعذر الوصول لـ Firestore: ' + e.message); }
+
+  line('warn', '— التطبيق المثبّت (Service Worker) —');
+  try {
+    const regs = await navigator.serviceWorker.getRegistrations(), ks = await caches.keys();
+    line('m', 'عدد الـ Service Workers: ' + regs.length + ' | مخازن الكاش: ' + (ks.join(', ') || 'لا شيء'));
+  } catch (e) { line('m', 'Service Worker غير متاح: ' + e.message); }
+
+  const v = [];
+  if (problems.includes('gstatic')) v.push('• شبكتك أو متصفحك يحجب gstatic.com، ولهذا لا يعمل الموقع. جرّب بيانات الهاتف بدل الواي فاي، أو أوقف مانع الإعلانات أو الـ VPN.');
+  if (problems.includes('authnet')) v.push('• جهازك لا يصل لخدمة تسجيل الدخول من Google. جرّب شبكة أخرى.');
+  if (problems.includes('authkey')) v.push('• مفتاح Firebase مرفوض. افتح Google Cloud Console ← APIs & Services ← Credentials، وراجع قيود المفتاح (HTTP referrers) وأضف https://baratantan.github.io/*');
+  if (problems.includes('authdisabled')) v.push('• فعّل الدخول بالبريد وكلمة المرور: Firebase Console ← Authentication ← Sign-in method.');
+  if (problems.includes('file:index.html') || problems.includes('index-broken') || problems.includes('index-small')) v.push('• ملف index.html على GitHub Pages ناقص أو غير موجود. أعد رفعه وتأكد أن اسمه index.html بالضبط، وانتظر اكتمال النشر (علامة ✓ خضراء في المستودع).');
+  if (problems.includes('json') || problems.includes('file:channels.json')) v.push('• ملف channels.json تالف أو غير موجود (لا يمنع الدخول لكنه يفرغ القنوات).');
+  if (problems.includes('fsquota')) v.push('• حصة Firestore مستنفدة اليوم. تتجدد عند منتصف الليل بتوقيت المحيط الهادئ.');
+  const verdict = document.getElementById('verdict'); verdict.style.display = 'block';
+  verdict.textContent = v.length ? '🔎 الخلاصة:\n' + v.join('\n') : '✅ لا مشكلة ظاهرة في الاتصال والملفات. إن بقي الموقع متوقفاً فاضغط «إعادة ضبط التطبيق» أدناه ثم افتح الموقع من جديد، وأرسل لي لقطة هذه الصفحة.';
+}
+
+document.getElementById('go').onclick = run;
+document.getElementById('reset').onclick = async () => {
+  if (!confirm('مسح الكاش وملفات التشغيل؟ لن يُحذف حسابك ولا مفضلتك.')) return;
+  try { for (const r of await navigator.serviceWorker.getRegistrations()) await r.unregister(); } catch (e) {}
+  try { for (const k of await caches.keys()) await caches.delete(k); } catch (e) {}
+  try { indexedDB.deleteDatabase('iptvmax'); } catch (e) {}
+  alert('تم. افتح الموقع من جديد.'); 
+};
+</script>
+</body>
+</html>
