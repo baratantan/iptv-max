@@ -1,0 +1,1922 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>IPTV MAX</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#141414">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    
+    <!-- ✅ سكريبتات Firebase - لا تحذفها أبداً -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        :root { --primary: #e50914; --bg: #141414; --surface: #1f1f1f; --text: #ffffff; --text-sec: #b3b3b3; --success: #46d369; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; }
+        body { background: var(--bg); color: var(--text); padding-bottom: 70px; overflow-x: hidden; }
+        
+        .auth-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.9)), url('https://assets.nflxext.com/ffe/siteui/vlv3/9d3533b2-0e2b-40b2-95e0-ecd7979cc88b/a3873901-5b7c-46eb-b9fa-12f517af68e4/EG-ar-20240408-popsignuptwoweeks-perspective_alpha_website_large.jpg') center/cover; display: flex; align-items: center; justify-content: center; z-index: 2000; padding: 20px; }
+        .auth-box { background: rgba(0,0,0,0.85); padding: 40px 30px; border-radius: 8px; width: 100%; max-width: 400px; backdrop-filter: blur(10px); }
+        .auth-box h1 { color: var(--primary); font-size: 32px; margin-bottom: 20px; text-align: center; }
+        .form-group { margin-bottom: 15px; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 14px; background: #333; border: none; border-radius: 4px; color: white; font-size: 16px; font-family: 'Cairo', sans-serif; }
+        .form-group input:focus { outline: 2px solid var(--primary); background: #454545; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .btn-primary { width: 100%; padding: 14px; background: var(--primary); color: white; border: none; border-radius: 4px; font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 10px; }
+        .btn-primary:hover { background: #f40612; }
+        .btn-secondary { width: 100%; padding: 14px; background: rgba(109,109,110,0.7); color: white; border: none; border-radius: 4px; font-size: 16px; cursor: pointer; margin-top: 10px; }
+        .btn-success { background: var(--success); color: black; }
+        .btn-info { background: #54b9c5; color: black; }
+        .error-msg { background: var(--primary); color: white; padding: 10px; border-radius: 4px; margin-bottom: 15px; display: none; font-size: 14px; text-align: center; }
+
+        .top-header { position: fixed; top: 0; width: 100%; padding: 15px 20px; background: linear-gradient(180deg, rgba(0,0,0,0.9) 0%, transparent 100%); z-index: 100; display: flex; justify-content: space-between; align-items: center; }
+        .logo { color: var(--primary); font-size: 24px; font-weight: 900; letter-spacing: 1px; }
+        .avatar { width: 32px; height: 32px; background: var(--primary); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-weight: bold; cursor: pointer; }
+
+        .view { display: none; padding-top: 60px; animation: fadeIn 0.3s ease; }
+        .view.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .hero { position: relative; height: 65vh; background: #1a1a1a; display: flex; align-items: flex-end; padding: 0 20px 40px; overflow: hidden; }
+        .hero-bg { position: absolute; inset: -20px; background-size: cover; background-position: center; filter: blur(25px) brightness(.45) saturate(1.2); transform: scale(1.15); transition: background-image .6s ease; z-index: 0; }
+        .hero::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, var(--bg) 0%, rgba(20,20,20,.35) 55%, rgba(20,20,20,.15) 100%); z-index: 1; }
+        .hero-content, #heroDots { position: relative; z-index: 2; }
+        .hero-logo-box { width: 96px; height: 96px; border-radius: 16px; background: rgba(255,255,255,.08); backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; margin-bottom: 14px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,.4); }
+        .hero-logo-box img { max-width: 80%; max-height: 80%; object-fit: contain; }
+        .hero-logo-box .ph { font-size: 34px; font-weight: 900; color: var(--text-sec); }
+        .hero-content { max-width: 500px; }
+        #heroTitle { font-size: 36px; font-weight: 900; margin-bottom: 10px; text-shadow: 2px 2px 10px rgba(0,0,0,0.8); }
+        .hero-meta { color: var(--text-sec); font-size: 14px; margin-bottom: 20px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+        .hero-meta span.match { color: var(--success); font-weight: 700; }
+        .hero-buttons { display: flex; gap: 10px; flex-wrap: wrap; }
+        .btn-hero { padding: 10px 24px; border: none; border-radius: 4px; font-size: 16px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+        .btn-hero.play { background: white; color: black; }
+        .btn-hero.info { background: rgba(109,109,110,0.7); color: white; }
+
+        .section { padding: 20px 0; }
+        .section-title { font-size: 18px; font-weight: 700; margin-bottom: 15px; padding: 0 20px; display: flex; align-items: center; gap: 8px; }
+        .section-title .count { background: var(--primary); color: white; padding: 2px 10px; border-radius: 12px; font-size: 12px; }
+        .row { display: flex; gap: 10px; overflow-x: auto; padding: 0 20px 20px; scrollbar-width: none; }
+        .row::-webkit-scrollbar { display: none; }
+        
+        .card { min-width: 140px; height: 200px; background: var(--surface); border-radius: 8px; overflow: hidden; position: relative; cursor: pointer; transition: all 0.3s; flex-shrink: 0; border: 1px solid transparent; }
+        .card:hover { transform: scale(1.08) translateY(-5px); border-color: var(--primary); box-shadow: 0 10px 30px rgba(229, 9, 20, 0.3); }
+        .card img { width: 100%; height: 75%; object-fit: cover; }
+        .card-placeholder { width: 100%; height: 75%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; font-size: 40px; }
+        .card-info { padding: 8px; }
+        .card-title { font-size: 12px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 4px; }
+        .card-category { font-size: 10px; color: var(--text-sec); display: flex; align-items: center; gap: 4px; }
+        .card-category .dot { width: 6px; height: 6px; background: var(--success); border-radius: 50%; }
+        .card-overlay { position: absolute; top: 8px; right: 8px; background: var(--primary); padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: 700; }
+
+        .page-header { padding: 20px; font-size: 24px; font-weight: 700; }
+        .tabs { display: flex; gap: 20px; padding: 0 20px 15px; border-bottom: 1px solid #333; overflow-x: auto; }
+        .tab { color: var(--text-sec); font-weight: 600; cursor: pointer; padding-bottom: 10px; border-bottom: 3px solid transparent; white-space: nowrap; }
+        .tab.active { color: white; border-bottom-color: white; }
+        .empty-state { text-align: center; padding: 60px 20px; color: var(--text-sec); }
+        
+        .settings-group { padding: 20px; border-bottom: 1px solid #333; }
+        .settings-group h3 { font-size: 16px; color: var(--text-sec); margin-bottom: 15px; }
+        .setting-item { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid #222; cursor: pointer; }
+        .setting-item:last-child { border-bottom: none; }
+        .setting-label { font-size: 16px; }
+        .setting-value { color: var(--text-sec); font-size: 14px; }
+
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: #121212; border-top: 1px solid #333; display: flex; justify-content: space-around; padding: 10px 0; z-index: 100; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--text-sec); font-size: 11px; cursor: pointer; padding: 5px 15px; }
+        .nav-item.active { color: white; }
+        .nav-item svg { width: 24px; height: 24px; fill: currentColor; }
+
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1500; overflow-y: auto; }
+        .modal.active { display: block; }
+        .modal-hero { position: relative; height: 50vh; background-size: cover; background-position: center; }
+        .modal-hero::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 200px; background: linear-gradient(to top, var(--bg), transparent); }
+        .modal-content { padding: 0 20px 40px; margin-top: -80px; position: relative; z-index: 2; }
+        .modal-title { font-size: 28px; font-weight: 900; margin-bottom: 15px; }
+        .modal-actions { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        .modal-desc { color: var(--text-sec); line-height: 1.6; margin-bottom: 20px; font-size: 15px; }
+        .close-modal { position: absolute; top: 15px; left: 15px; background: rgba(0,0,0,0.6); border: none; color: white; width: 40px; height: 40px; border-radius: 50%; font-size: 20px; cursor: pointer; z-index: 10; }
+
+        .player-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: black; z-index: 2000; flex-direction: column; }
+        .player-modal.active { display: flex; }
+        .player-wrapper { flex: 1; display: flex; align-items: center; justify-content: center; position: relative; }
+        .player-wrapper video { max-width: 100%; max-height: 100%; width: 100%; height: 100%; object-fit: contain; }
+        .player-controls-bar { padding: 15px 20px; background: #111; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        .player-title { font-size: 16px; font-weight: 700; }
+        .player-btn { background: #333; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; }
+        .player-btn:hover { background: var(--primary); }
+
+        .admin-section { padding: 20px; }
+        .admin-card { background: var(--surface); padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+        .admin-card h3 { margin-bottom: 15px; color: var(--primary); display: flex; align-items: center; gap: 8px; }
+        .admin-card p { color: var(--text-sec); font-size: 14px; margin-bottom: 15px; line-height: 1.6; }
+        .btn-danger { background: #d32f2f; color: white; width: 100%; padding: 14px; border: none; border-radius: 4px; font-weight: 700; cursor: pointer; }
+        .btn-danger:hover { background: #b71c1c; }
+        .progress-bar { height: 6px; background: #333; border-radius: 3px; overflow: hidden; margin: 15px 0; display: none; }
+        .progress-fill { height: 100%; background: var(--success); width: 0%; transition: width 0.3s; }
+        .log-box { background: #000; padding: 10px; border-radius: 4px; max-height: 200px; overflow-y: auto; font-family: monospace; font-size: 12px; color: var(--success); display: none; margin-top: 10px; }
+        .log-item { padding: 3px 0; border-bottom: 1px solid #222; }
+        .log-item.error { color: #f44336; }
+        .log-item.warn { color: #ff9800; }
+        .log-item.success { color: var(--success); }
+        .log-item.info { color: #54b9c5; }
+
+        .xtream-tabs { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
+        .xtream-tab { flex: 1; min-width: 100px; padding: 10px; background: #333; color: white; border: 2px solid transparent; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; text-align: center; }
+        .xtream-tab.active { background: var(--primary); border-color: var(--primary); }
+        .xtream-section { display: none; }
+        .xtream-section.active { display: block; }
+        
+        .status-badge { display: inline-block; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 700; margin-right: 8px; }
+        .status-ok { background: var(--success); color: black; }
+        .status-err { background: #f44336; color: white; }
+        .status-wait { background: #ff9800; color: black; }
+
+        .search-box { padding: 15px 20px; }
+        .search-input { width: 100%; padding: 12px 15px; background: var(--surface); border: 1px solid #333; border-radius: 25px; color: white; font-size: 14px; }
+        .search-input:focus { outline: none; border-color: var(--primary); }
+
+        .channels-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 15px; padding: 0 20px 20px; }
+        .channel-grid-card { background: var(--surface); border-radius: 8px; overflow: hidden; cursor: pointer; transition: all 0.3s; border: 1px solid transparent; }
+        .channel-grid-card:hover { transform: translateY(-5px); border-color: var(--primary); box-shadow: 0 10px 30px rgba(229, 9, 20, 0.3); }
+        .channel-grid-card img { width: 100%; height: 120px; object-fit: cover; }
+        .channel-grid-info { padding: 12px; }
+        .channel-grid-name { font-size: 14px; font-weight: 700; margin-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .channel-grid-cat { font-size: 11px; color: var(--text-sec); display: flex; align-items: center; gap: 5px; }
+
+        @media (min-width: 768px) {
+            .card { min-width: 180px; height: 260px; }
+            .hero { height: 75vh; }
+            .hero-title { font-size: 48px; }
+            .channels-grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+        }
+    @media (orientation: landscape) and (max-height: 520px) {
+            .player-controls-bar { padding: 6px 12px; }
+            .player-title { font-size: 13px; }
+            .player-btn { padding: 6px 10px; font-size: 12px; }
+        }
+    .hero { transition: background-image .6s ease; }
+        .hero-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,.35); cursor: pointer; transition: background .3s, width .3s; }
+        .hero-dot.on { background: #e50914; width: 20px; border-radius: 4px; }
+    </style>
+</head>
+<body>
+
+    <!-- Auth Screen -->
+    <div class="auth-screen" id="authScreen">
+        <div class="auth-box">
+            <h1>IPTV MAX</h1>
+            <div class="error-msg" id="authError"></div>
+            <div id="loginForm">
+                <div class="form-group"><input type="email" id="loginEmail" placeholder="البريد الإلكتروني"></div>
+                <div class="form-group"><input type="password" id="loginPassword" placeholder="كلمة المرور"></div>
+                <button class="btn-primary" onclick="login()">تسجيل الدخول</button>
+                <button class="btn-secondary" onclick="toggleAuth('register')">إنشاء حساب جديد</button>
+            </div>
+            <div id="registerForm" style="display:none;">
+                <div class="form-group"><input type="text" id="regName" placeholder="الاسم الكامل"></div>
+                <div class="form-group"><input type="email" id="regEmail" placeholder="البريد الإلكتروني"></div>
+                <div class="form-group"><input type="password" id="regPassword" placeholder="كلمة المرور"></div>
+                <button class="btn-primary" onclick="register()">إنشاء الحساب</button>
+                <button class="btn-secondary" onclick="toggleAuth('login')">العودة</button>
+            </div>
+        </div>
+    <div style="position:absolute;bottom:14px;left:0;right:0;text-align:center;font-size:12px;"><a href="#" onclick="resetApp();return false;" style="color:#888;">مشكلة في التحميل؟ إعادة ضبط التطبيق</a><span style="color:#555;"> | </span><a href="#" onclick="showDoc('terms');return false;" style="color:#888;">الشروط</a><span style="color:#555;"> | </span><a href="#" onclick="showDoc('privacy');return false;" style="color:#888;">الخصوصية</a></div>
+    </div>
+
+    <!-- Main App -->
+    <div id="mainApp" style="display:none;">
+        <div class="top-header">
+            <div class="logo">IPTV MAX</div>
+            <div class="header-actions">
+                <div class="avatar" id="userAvatar" onclick="logout()">خ</div>
+            </div>
+        </div>
+
+        <!-- HOME VIEW -->
+        <div class="view active" id="view-home">
+            <div class="hero" id="heroBanner">
+                <div class="hero-bg" id="heroBg"></div>
+                <div class="hero-content">
+                    <div class="hero-logo-box" id="heroLogoBox"></div>
+                    <h1 id="heroTitle">منصة البث الاحترافية</h1>
+                    <div class="hero-meta">
+                        <span class="match" id="heroCat">عام</span>
+                        <span id="heroType">مباشر</span>
+                        <span style="border:1px solid #fff; padding:0 4px; font-size:12px;">HD</span>
+                    </div>
+                    <div class="hero-buttons">
+                        <button class="btn-hero play" onclick="playFeatured()">▶ تشغيل</button>
+                        <button class="btn-hero info" onclick="showFeaturedDetails()">ℹ معلومات</button>
+                    </div>
+                </div>
+                <div id="heroDots" style="position:absolute;bottom:10px;left:0;right:0;display:flex;justify-content:center;gap:6px;z-index:2;">
+                </div>
+            </div>
+            <div class="section" id="myCountrySection" style="display:none;">
+                <div class="section-title" style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+                    <span>🌍 قنوات بلدك</span>
+                    <select id="myCountrySel" onchange="setMyCountry(this.value)" style="background:#333;color:#fff;border:none;border-radius:6px;padding:6px;font-family:inherit;font-size:13px;max-width:55%;"></select>
+                </div>
+                <div class="row" id="myCountryRow"></div>
+            </div>
+            <div class="section" id="featuredSection" style="display:none;">
+                <div class="section-title">⭐ مختارات المدير <span class="count" id="featuredCount">0</span></div>
+                <div class="row" id="featuredRow"></div>
+            </div>
+            <div class="section" id="ramadanSection" style="display:none;">
+                <div class="section-title">🌙 خاص برمضان <span class="count" id="ramadanCount">0</span></div>
+                <div class="row" id="ramadanRow"></div>
+            </div>
+            <div class="section">
+                <div class="section-title">📺 قنوات مباشرة <span class="count" id="liveCount">0</span></div>
+                <div class="row" id="liveRow"></div>
+            </div>
+            <div class="section">
+                <div class="section-title"> رياضة <span class="count" id="sportsCount">0</span></div>
+                <div class="row" id="sportsRow"></div>
+            </div>
+            <div class="section">
+                <div class="section-title">📰 أخبار <span class="count" id="newsCount">0</span></div>
+                <div class="row" id="newsRow"></div>
+            </div>
+            <div class="section">
+                <div class="section-title">🎬 أفلام <span class="count" id="moviesCount">0</span></div>
+                <div class="row" id="moviesRow"></div>
+            </div>
+            <div class="section">
+                <div class="section-title">👶 أطفال <span class="count" id="kidsCount">0</span></div>
+                <div class="row" id="kidsRow"></div>
+            </div>
+            <div class="section" id="quranSection" style="display:none;">
+                <div class="section-title">📻 القرآن والدين <span class="count" id="quranCount">0</span></div>
+                <div class="row" id="quranRow"></div>
+            </div>
+            <div class="section" id="familySection" style="display:none;">
+                <div class="section-title">👨‍👩‍👧 منوعات العائلة <span class="count" id="familyCount">0</span></div>
+                <div class="row" id="familyRow"></div>
+            </div>
+        </div>
+
+        <!-- CHANNELS LIST VIEW -->
+        <div class="view" id="view-channels">
+            <div class="page-header">جميع القنوات</div>
+            <div class="search-box">
+                <input type="text" class="search-input" id="channelSearch" placeholder=" ابحث عن قناة..." oninput="filterChannels(this.value)">
+            </div>
+            <div style="display:flex;gap:8px;padding:0 20px 8px;flex-wrap:wrap;">
+                <select id="fCat" onchange="applyFilters()" style="background:#333;color:#fff;border:none;border-radius:6px;padding:9px;flex:1;min-width:110px;font-family:Cairo,sans-serif;"></select>
+                <select id="fCountry" onchange="applyFilters()" style="background:#333;color:#fff;border:none;border-radius:6px;padding:9px;flex:1;min-width:110px;font-family:Cairo,sans-serif;"></select>
+                <select id="fLang" onchange="applyFilters()" style="background:#333;color:#fff;border:none;border-radius:6px;padding:9px;flex:1;min-width:110px;font-family:Cairo,sans-serif;"></select>
+                <label style="display:flex;align-items:center;gap:6px;font-size:14px;color:#ddd;white-space:nowrap;"><input type="checkbox" id="fArab" onchange="applyFilters()"> 🕌 عربي فقط</label>
+            </div>
+            <div id="chanCount" style="padding:0 20px 8px;color:#aaa;font-size:13px;"></div>
+            <div class="channels-grid" id="channelsGrid"></div>
+            <button id="chanMore" class="btn-secondary" onclick="chanMore()" style="display:none;margin:12px 20px;width:calc(100% - 40px);">عرض المزيد</button>
+        </div>
+
+        <!-- LIBRARY VIEW -->
+        <div class="view" id="view-library">
+            <div class="page-header">المكتبة</div>
+            <div class="tabs">
+                <div class="tab active" id="favTab" onclick="switchLibTab('favorites', this)">❤️ المفضلة (0)</div>
+                <div class="tab" onclick="switchLibTab('history', this)">🕘 السجل</div>
+            </div>
+            <div id="libContent">
+                <div class="empty-state">
+                    <h3>مكتبتك فارغة</h3>
+                    <p style="margin-top:10px; font-size:14px;">القنوات والأفلام التي تحفظها ستظهر هنا.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SETTINGS VIEW -->
+        <div class="view" id="view-settings">
+            <div class="page-header">الإعدادات</div>
+            <div class="settings-group">
+                <h3>الحساب</h3>
+                <div class="setting-item"><span class="setting-label">تبديل الملف الشخصي</span><span class="setting-value">›</span></div>
+                <div class="setting-item"><span class="setting-label">تفاصيل الحساب</span><span class="setting-value" id="settingsEmail" style="direction:ltr;word-break:break-all;max-width:65%;text-align:left;">›</span></div>
+                <div class="setting-item" id="verifyRow" style="display:none;" onclick="sendVerifyEmail()">
+                    <span class="setting-label" id="verifyLabel">✉️ توثيق البريد الإلكتروني</span><span class="setting-value">›</span></div>
+            </div>
+            <div class="settings-group">
+                <h3>عام</h3>
+                <div class="setting-item"><span class="setting-label">جودة التشغيل</span><span class="setting-value">تلقائي ›</span></div>
+                <div class="setting-item"><span class="setting-label">اللغة</span><span class="setting-value">العربية ›</span></div>
+                <div class="setting-item" onclick="showDoc('terms')"><span class="setting-label">📜 شروط الاستخدام</span><span class="setting-value">›</span></div>
+                <div class="setting-item" onclick="showDoc('privacy')"><span class="setting-label">🔒 سياسة الخصوصية</span><span class="setting-value">›</span></div>
+                <div class="setting-item" onclick="showDoc('remove')"><span class="setting-label">📩 طلب إزالة قناة (لأصحاب الحقوق)</span><span class="setting-value">›</span></div>
+                <div class="setting-item" onclick="installApp()"><span class="setting-label">📲 تثبيت التطبيق على الشاشة الرئيسية</span><span class="setting-value">›</span></div>
+                <div class="setting-item"><span class="setting-label">🔄 آخر تحديث تلقائي للقنوات</span><span class="setting-value" id="lastUpd">—</span></div>
+                <div class="setting-item" onclick="refreshChannels()"><span class="setting-label">🔄 تحديث القنوات</span><span class="setting-value">›</span></div>
+                <div class="setting-item" onclick="logout()" style="color:#f44336;"><span class="setting-label">تسجيل الخروج</span><span class="setting-value">›</span></div>
+            </div>
+        </div>
+
+        <!-- ADMIN VIEW -->
+        <div class="view" id="view-admin">
+            <div class="page-header">لوحة تحكم المدير</div>
+            <div class="admin-section">
+                
+                <div class="admin-card">
+                    <h3>⚠️ إدارة قاعدة البيانات</h3>
+                    <p>احذف جميع القنوات الحالية قبل استيراد قائمة جديدة.</p>
+                    <p style="font-size:13px;color:#aaa;margin-bottom:10px;">القنوات في المسودة: <b id="chCount">0</b>. بعد أي استيراد أو حذف اضغط تصدير، ثم ارفع channels.json إلى المستودع بجانب index.html.</p>
+                                        <div class="form-group" style="margin-top:10px;"><input type="password" id="ghToken" placeholder="GitHub Token (لا يُحفظ، الصقه عند كل نشر)" autocomplete="off"></div>
+                    <button class="btn-primary" id="publishBtn" onclick="publishChannels()" style="margin-bottom:10px;">☁️ نشر القنوات على GitHub</button>
+                    <button class="btn-primary btn-success" onclick="exportChannels()" style="margin-bottom:10px;">⬇️ تصدير channels.json</button>
+                    <button class="btn-danger" onclick="deleteAllChannels()">🗑️ حذف جميع القنوات الحالية</button>
+                </div>
+                <!-- إدارة المستخدمين والإحصائيات -->
+                <div class="admin-card">
+                    <h3>👥 إدارة المستخدمين</h3>
+                    <p>يعرض المستخدمين المسجلين، ويتيح حظر الحساب أو رفع الحظر عنه.</p>
+                    <button class="btn-primary" onclick="loadUsers()">تحميل المستخدمين</button>
+                    <div id="usersOut" style="margin-top:10px;"></div>
+                </div>
+                <div class="admin-card">
+                    <h3>📊 إحصائيات المشاهدة</h3>
+                    <p>أكثر 20 قناة مشاهدة (يُحتسب التشغيل مرة كل 5 دقائق لكل مستخدم وقناة).</p>
+                    <button class="btn-primary" onclick="loadStats()">تحميل الإحصائيات</button>
+                    <div id="statsOut" style="margin-top:10px;font-size:14px;line-height:2;"></div>
+                </div>
+
+                <!-- التصنيف التلقائي وسلامة المحتوى -->
+                <div class="admin-card">
+                    <h3>🏷️ التصنيف التلقائي وسلامة المحتوى</h3>
+                    <p>يحوّل التصنيفات الإنجليزية إلى عربية، ويصنّف القنوات «عام» من أسمائها (أخبار، رياضة، أطفال، ديني...).</p>
+                    <button class="btn-primary" onclick="autoCategorize()">🏷️ تصنيف تلقائي</button>
+                    <p style="margin-top:12px;">يبحث في الأسماء والتصنيفات عن قنوات +18 المحتملة لإزالتها بعد مراجعتك.</p>
+                    <button class="btn-danger" onclick="removeNsfw()">🚫 إزالة قنوات +18 المحتملة</button>
+                </div>
+
+                <!-- إزالة المكرر -->
+                <div class="admin-card">
+                    <h3>🧹 إزالة القنوات المكررة</h3>
+                    <p>يجمع القنوات التي لها نفس الاسم (مع تجاهل أرقام الجودة مثل 720p و HD) ونفس الدولة والتصنيف، ويُبقي أفضل جودة من كل مجموعة.</p>
+                    <label style="display:block;margin-bottom:10px;font-size:14px;"><input type="checkbox" id="dupSkip" checked> تجاهل القنوات التي بلا دولة (أكثر أماناً)</label>
+                    <button class="btn-primary" onclick="scanDup()">🔎 فحص المكرر</button>
+                    <div id="dupOut" style="font-size:13px;line-height:1.8;color:#ddd;margin-top:10px;white-space:pre-line;"></div>
+                    <button class="btn-danger" id="dupDel" onclick="deleteDup()" style="display:none;margin-top:10px;">🗑️ حذف المكرر من المسودة</button>
+                </div>
+
+                <!-- حماية بيانات الاشتراك -->
+                <div class="admin-card">
+                    <h3>🔒 حماية بيانات الاشتراك</h3>
+                    <p>ملف channels.json عام، وروابط Xtream تحمل اسم المستخدم وكلمة المرور. هذا الزر يحذف من المسودة كل القنوات التي روابطها بهذا الشكل، ثم تنشر الملف.</p>
+                    <button class="btn-danger" onclick="removeXtream()">🔒 حذف قنوات Xtream من المسودة قبل النشر</button>
+                </div>
+
+                <!-- فحص القنوات الميتة -->
+                <div class="admin-card">
+                    <h3>🔍 فحص القنوات الميتة</h3>
+                    <p>يفحص كل قناة عبر الـ Worker (أول 1KB، مهلة 5 ثوانٍ). النتائج تُحفظ فتتابع لاحقاً من حيث توقفت. القنوات الميتة تُحذف من المسودة ثم تنشرها.</p>
+                    <p style="color:#ff9800;">⚠️ بعض المزوّدين يحددون عدد الاتصالات فقد تظهر قنوات صالحة كميتة. جرّب الفحص السريع أولاً، وأبقِ الشاشة شغّالة أثناء الفحص.</p>
+                    <button class="btn-primary" id="chkStartBtn" onclick="runCheck(0)">🔍 فحص وحذف القنوات الميتة</button>
+                    <button class="btn-primary btn-info" id="chkQuickBtn" onclick="runCheck(100)">⚡ فحص سريع (أول 100 قناة)</button>
+                    <button class="btn-danger" id="chkStopBtn" onclick="stopCheck()" style="display:none;margin-top:10px;">⏹ إيقاف</button>
+                    <div class="progress-bar" style="display:block;"><div class="progress-fill" id="chkFill"></div></div>
+                    <div id="chkText" style="font-size:14px;line-height:1.8;"></div>
+                    <div id="chkDeadBox" style="display:none;max-height:220px;overflow-y:auto;background:#000;padding:8px;border-radius:4px;margin-top:10px;"></div>
+                    <div id="chkActions" style="display:none;margin-top:10px;">
+                        <button class="btn-danger" onclick="deleteDead()">🗑️ حذف القنوات الميتة</button>
+                        <button class="btn-primary" style="margin-top:10px;" onclick="exportChannels()">⬇️ تصدير channels.json</button>
+                        <button class="btn-primary btn-success" onclick="publishChannels()">☁️ نشر القنوات على GitHub (الصق التوكن في الحقل أعلاه)</button>
+                    </div>
+                    <button class="btn-secondary" onclick="resetCheck()" style="margin-top:10px;">↺ فحص من جديد (مسح النتائج)</button>
+                </div>
+
+
+                <!-- Xtream Codes -->
+                <div class="admin-card">
+                    <h3> Xtream Codes API</h3>
+                    <p>استيراد القنوات من سيرفر Xtream Codes.</p>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label style="color:#aaa; font-size:13px;">Server URL</label>
+                            <input type="text" id="xtreamServer" placeholder="http://example.com">
+                        </div>
+                        <div class="form-group">
+                            <label style="color:#aaa; font-size:13px;">Port</label>
+                            <input type="text" id="xtreamPort" placeholder="8080" value="80">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label style="color:#aaa; font-size:13px;">Username</label>
+                            <input type="text" id="xtreamUser" placeholder="username">
+                        </div>
+                        <div class="form-group">
+                            <label style="color:#aaa; font-size:13px;">Password</label>
+                            <input type="password" id="xtreamPass" placeholder="password">
+                        </div>
+                    </div>
+                    
+                    <button class="btn-primary btn-info" onclick="testXtream()" style="margin-top:10px;"> اختبار الاتصال</button>
+                    <div id="xtreamStatus" style="margin-top:10px;"></div>
+                    <button class="btn-primary btn-warning" onclick="diagXtream()" style="margin-top:10px;">🩺 تشخيص بث Xtream (قناة واحدة)</button>
+                    <pre id="diagOut" style="display:none;white-space:pre-wrap;word-break:break-all;background:#000;color:#ddd;padding:10px;border-radius:4px;margin-top:10px;font-size:12px;line-height:1.7;font-family:Cairo,monospace;"></pre>
+
+                    <div class="xtream-tabs" style="margin-top:20px;">
+                        <div class="xtream-tab active" onclick="switchXtreamTab('live', this)">📺 قنوات مباشرة</div>
+                        <div class="xtream-tab" onclick="switchXtreamTab('vod', this)">🎬 أفلام VOD</div>
+                        <div class="xtream-tab" onclick="switchXtreamTab('series', this)"> مسلسلات</div>
+                    </div>
+
+                    <div class="xtream-section active" id="xtreamLive">
+                        <button class="btn-primary btn-success" onclick="importXtream('live')">📥 استيراد القنوات المباشرة</button>
+                    </div>
+                    <div class="xtream-section" id="xtreamVod">
+                        <button class="btn-primary btn-success" onclick="importXtream('vod')">📥 استيراد الأفلام</button>
+                    </div>
+                    <div class="xtream-section" id="xtreamSeries">
+                        <button class="btn-primary btn-success" onclick="importXtream('series')"> استيراد المسلسلات</button>
+                    </div>
+
+                    <div class="progress-bar" id="xtreamProgress"><div class="progress-fill" id="xtreamProgressFill"></div></div>
+                    <div class="log-box" id="xtreamLog"></div>
+                </div>
+
+                <!-- M3U Import -->
+                <div class="admin-card">
+                    <h3>📄 استيراد M3U</h3>
+                    <div class="form-group">
+                        <select id="importMethod" onchange="toggleImportUI()" style="width:100%; padding:12px; background:#333; color:white; border:none; border-radius:4px;">
+                            <option value="url">رابط القائمة (URL)</option>
+                            <option value="text">لصق النص (M3U Text)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <select id="importGroupMode" style="width:100%; padding:12px; background:#333; color:white; border:none; border-radius:4px;">
+                            <option value="category">اسم المجموعة = التصنيف (الافتراضي)</option>
+                            <option value="country">اسم المجموعة = الدولة (مثل index.country.m3u)</option>
+                            <option value="language">اسم المجموعة = اللغة (مثل index.language.m3u)</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="importUrlGroup">
+                        <input type="text" id="importUrl" placeholder="https://example.com/playlist.m3u">
+                    </div>
+                    <div class="form-group" id="importTextGroup" style="display:none;">
+                        <textarea id="importText" placeholder="#EXTM3U..." style="width:100%; padding:12px; background:#333; color:white; border:none; border-radius:4px; min-height:100px;"></textarea>
+                    </div>
+                    <button class="btn-primary" id="startImportBtn" onclick="startImport()">🚀 بدء الاستيراد</button>
+                    <button class="btn-danger" id="stopImportBtn" onclick="stopImport()" style="display:none; margin-top:10px;">⏹ إيقاف</button>
+                    <div class="progress-bar" id="importProgress"><div class="progress-fill" id="importProgressFill"></div></div>
+                    <div class="log-box" id="importLog"></div>
+                </div>
+
+                <!-- Manual Add -->
+                <div class="admin-card">
+                    <h3>➕ إضافة قناة يدوياً</h3>
+                    <div class="form-group"><input type="text" id="addName" placeholder="اسم القناة"></div>
+                    <div class="form-group"><input type="text" id="addUrl" placeholder="رابط البث (M3U8)"></div>
+                    <div class="form-group">
+                        <select id="addCategory" style="width:100%; padding:12px; background:#333; color:white; border:none; border-radius:4px;">
+                            <option value="رياضة">⚽ رياضة</option>
+                            <option value="أخبار">📰 أخبار</option>
+                            <option value="أفلام">🎬 أفلام</option>
+                            <option value="مسلسلات"> مسلسلات</option>
+                            <option value="أطفال">👶 أطفال</option>
+                            <option value="موسيقى">🎵 موسيقى</option>
+                            <option value="ديني">🕌 ديني</option>
+                            <option value="عام">📡 عام</option>
+                        </select>
+                    </div>
+                    <div class="form-group"><input type="text" id="addLogo" placeholder="رابط الشعار (اختياري)"></div>
+                    <button class="btn-primary" onclick="addChannelManual()">إضافة القناة</button>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Bottom Navigation -->
+        <div class="bottom-nav">
+            <div class="nav-item active" onclick="switchView('home', this)">
+                <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                <span>الرئيسية</span>
+            </div>
+            <div class="nav-item" onclick="switchView('channels', this)">
+                <svg viewBox="0 0 24 24"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9H9V9h10v2zm-4 4H9v-2h6v2zm4-8H9V5h10v2z"/></svg>
+                <span>القنوات</span>
+            </div>
+            <div class="nav-item" onclick="switchView('library', this)">
+                <svg viewBox="0 0 24 24"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9H9V9h10v2zm-4 4H9v-2h6v2zm4-8H9V5h10v2z"/></svg>
+                <span>المكتبة</span>
+            </div>
+            <div class="nav-item" onclick="switchView('settings', this)">
+                <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.04.17 0 .34.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.04-.22 0-.45-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+                <span>الإعدادات</span>
+            </div>
+            <div class="nav-item" id="navAdmin" onclick="switchView('admin', this)" style="display:none;">
+                <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>
+                <span>المدير</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Details Modal -->
+    <div class="modal" id="detailsModal">
+        <button class="close-modal" onclick="closeDetails()">✕</button>
+        <div class="modal-hero" id="modalHero"></div>
+        <div class="modal-content">
+            <h1 class="modal-title" id="modalTitle">عنوان القناة</h1>
+            <div class="hero-meta" style="margin-bottom:20px;">
+                <span class="match" id="modalType">مباشر</span>
+                <span id="modalCategory">رياضة</span>
+                <span style="border:1px solid #fff; padding:0 4px; font-size:12px;">HD</span>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-hero play" id="modalPlayBtn">▶ تشغيل</button>
+                <button class="btn-hero info" id="modalFavBtn" onclick="toggleFavorite()">❤️ المفضلة</button>
+            </div>
+            <p class="modal-desc" id="modalDesc">شاهد هذه القناة بجودة عالية.</p>
+        </div>
+    </div>
+
+    <!-- Player Modal -->
+    <div class="player-modal" id="playerModal">
+        <div class="player-wrapper">
+            <button class="close-modal" onclick="closePlayer()" style="top:20px; left:20px; z-index:10;">✕</button>
+            <video id="videoPlayer" controls playsinline></video>
+        </div>
+        <div class="player-controls-bar">
+            <div>
+                <div class="player-title" id="playerTitle">عنوان القناة</div>
+                <div style="font-size:12px; color:#aaa;" id="playerCategory">التصنيف</div>
+            </div>
+            <div>
+                <button class="player-btn" onclick="switchChannel(-1)">⏮ السابقة</button>
+                <button class="player-btn" onclick="switchChannel(1)">التالية ⏭</button>
+                <button class="player-btn" onclick="toggleFit()">تغيير الحجم</button>
+                <button class="player-btn" onclick="toggleFullscreen()">ملء الشاشة</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===== Firebase Config =====
+        // ===== كشف الأخطاء: أي خطأ برمجي يظهر في شريط أحمر أعلى الشاشة (اضغط عليه لإخفائه) =====
+        function showFatal(msg) {
+            if(/ResizeObserver|Script error/i.test(msg)) return;
+            let b = document.getElementById('fatalBar');
+            if(!b) {
+                b = document.createElement('div'); b.id = 'fatalBar';
+                b.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:#b00020;color:#fff;font-size:12px;padding:8px 12px;direction:ltr;text-align:left;white-space:pre-wrap;max-height:30vh;overflow:auto;';
+                b.onclick = () => b.remove(); document.body.appendChild(b);
+            }
+            b.textContent += msg + '\n';
+        }
+        window.addEventListener('error', e => showFatal((e.message || 'error') + (e.lineno ? ' @' + e.lineno : '')));
+        window.addEventListener('unhandledrejection', e => showFatal('Promise: ' + ((e.reason && e.reason.message) || e.reason)));
+        async function resetApp() {
+            if(!confirm('إعادة ضبط التطبيق؟ يمسح الذاكرة المؤقتة وملفات التشغيل فقط، ولا يحذف حسابك ولا مفضلتك.')) return;
+            try { for(const r of await navigator.serviceWorker.getRegistrations()) await r.unregister(); } catch(e) {}
+            try { for(const k of await caches.keys()) await caches.delete(k); } catch(e) {}
+            try { indexedDB.deleteDatabase('iptvmax'); } catch(e) {}
+            location.reload();
+        }
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyB_q5oVLcsJatJhhjLhzPOfSSjodMac258",
+            authDomain: "iptv-platform-683da.firebaseapp.com",
+            projectId: "iptv-platform-683da",
+            storageBucket: "iptv-platform-683da.firebasestorage.app",
+            messagingSenderId: "776346779345",
+            appId: "1:776346779345:web:7b55ff2676c0aa1752cff0"
+        };
+        
+        // ✅ تهيئة Firebase
+        if (typeof firebase === 'undefined') {
+            document.body.innerHTML = '<div style="padding:40px 20px;text-align:center;color:#fff;font-family:Cairo,sans-serif;direction:rtl"><h2 style="color:#e50914">تعذر تحميل Firebase</h2><p style="margin-top:12px;line-height:1.9">الاتصال بـ gstatic.com محجوب أو فشل.<br>جرّب: إيقاف مانع الإعلانات، أو شبكة/VPN مختلف، أو تحديث الصفحة بقوة (Ctrl+Shift+R).</p></div>';
+            throw new Error('Firebase SDK failed to load');
+        }
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        const ADMIN_EMAIL = 'tantanporte@gmail.com';
+
+        // ===== Cloudflare Proxy (الخيار الأول) =====
+        const MY_PROXY = 'https://iptv-proxy.tantanporte.workers.dev/?url=';
+        const CORS_PROXIES = [
+            url => MY_PROXY + encodeURIComponent(url),
+            url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+            url => `https://corsproxy.io/?${encodeURIComponent(url)}`
+        ];
+
+        let allChannels = [];
+        let currentUser = null;
+        let isAdmin = false;
+        let hls = null;
+        let stopImportFlag = false;
+        let currentChannel = null;
+
+        // ===== Auth =====
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                currentUser = user;
+                isAdmin = (user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase());
+                document.getElementById('authScreen').style.display = 'none';
+                document.getElementById('mainApp').style.display = 'block';
+                document.getElementById('navAdmin').style.display = isAdmin ? 'flex' : 'none';
+                document.getElementById('settingsEmail').textContent = user.email + ' ›';
+                document.getElementById('userAvatar').textContent = user.email.charAt(0).toUpperCase();
+                updateVerifyRow();
+                loadChannels();
+                syncCloud();
+                checkBlocked(user);
+            } else {
+                document.getElementById('authScreen').style.display = 'flex';
+                document.getElementById('mainApp').style.display = 'none';
+            }
+        });
+
+        function toggleAuth(mode) {
+            document.getElementById('loginForm').style.display = mode === 'login' ? 'block' : 'none';
+            document.getElementById('registerForm').style.display = mode === 'register' ? 'block' : 'none';
+            document.getElementById('authError').style.display = 'none';
+        }
+
+        async function login() {
+            try {
+                await auth.signInWithEmailAndPassword(document.getElementById('loginEmail').value, document.getElementById('loginPassword').value);
+            } catch (e) { showError(e.message); }
+        }
+
+        async function register() {
+            try {
+                const cred = await auth.createUserWithEmailAndPassword(document.getElementById('regEmail').value, document.getElementById('regPassword').value);
+                await db.collection('users').doc(cred.user.uid).set({
+                    name: document.getElementById('regName').value,
+                    email: cred.user.email,
+                    role: 'user',
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            } catch (e) { showError(e.message); }
+        }
+
+        function showError(msg) {
+            const el = document.getElementById('authError');
+            el.textContent = msg.includes('auth/') ? 'بيانات الدخول غير صحيحة' : msg;
+            el.style.display = 'block';
+        }
+
+        function logout() { auth.signOut(); }
+
+        // ===== Navigation =====
+        function switchView(viewName, navEl) {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.getElementById('view-' + viewName).classList.add('active');
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            if(navEl) navEl.classList.add('active');
+            window.scrollTo(0,0);
+            if(viewName === 'channels') renderChannelsGrid();
+            if(viewName === 'library') renderLibrary();
+        }
+
+        function switchLibTab(tab, el) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            el.classList.add('active');
+            renderLibrary(tab);
+        }
+
+        // ===== أدوات =====
+        const esc = s => String(s ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+        const hid = s => { let h1=0xdeadbeef,h2=0x41c6ce57; for(let i=0;i<s.length;i++){const c=s.charCodeAt(i);h1=Math.imul(h1^c,2654435761);h2=Math.imul(h2^c,1597334677)} h1=Math.imul(h1^(h1>>>16),2246822507)^Math.imul(h2^(h2>>>13),3266489909); h2=Math.imul(h2^(h2>>>16),2246822507)^Math.imul(h1^(h1>>>13),3266489909); return (4294967296*(2097151&h2)+(h1>>>0)).toString(36); };
+        const idb = {
+            open: () => new Promise((res,rej)=>{const r=indexedDB.open('iptvmax',1);r.onupgradeneeded=()=>r.result.createObjectStore('kv');r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}),
+            async get(k){try{const d=await this.open();return await new Promise(res=>{const q=d.transaction('kv').objectStore('kv').get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>res(null)})}catch(e){return null}},
+            async set(k,v){try{const d=await this.open();d.transaction('kv','readwrite').objectStore('kv').put(v,k)}catch(e){}}
+        };
+
+        // ===== القنوات: من channels.json (بلا حصة Firestore) =====
+        async function loadChannels(force) {
+            const c = await idb.get('channels');
+            if(isAdmin && c && c.draft && !force) allChannels = c.l;
+            else {
+                try {
+                    const r = await fetch('channels.json', {cache: force ? 'reload' : 'no-cache'});
+                    if(!r.ok) throw new Error('HTTP '+r.status);
+                    allChannels = await r.json();
+                    idb.set('channels', {t:Date.now(), l:allChannels, draft:false});
+                } catch(e) { allChannels = c ? c.l : []; }
+            }
+            updateCount(); renderHome();
+            showLastUpdate();
+            if(typeof chkPaint === 'function') { chkLoad(); chk.pool = allChannels; chkPaint(); }
+        }
+        function persistLocal() { idb.set('channels', {t:Date.now(), l:allChannels, draft:true}); }
+        function updateCount() { const e=document.getElementById('chCount'); if(e) e.textContent = allChannels.length; }
+        async function addLocal(list, fillId, logId) {
+            const byUrl = new Map(allChannels.map(c => [c.url, c]));
+            let merged = 0;
+            list = list.filter(c => {
+                if(!c.url) return false;
+                const ex = byUrl.get(c.url);
+                if(!ex) return true;
+                if(c.country && !ex.country) { ex.country = c.country; merged++; }
+                if(c.language && !ex.language) { ex.language = c.language; merged++; }
+                return false;
+            });
+            if(merged) addLog('🧩 تم تحديث الدولة/اللغة لـ ' + merged + ' قناة موجودة', 'info', logId);
+            const fill = document.getElementById(fillId);
+            let n = 0;
+            for(let i=0;i<list.length;i+=2000) {
+                if(stopImportFlag) { addLog('⏹ تم الإيقاف','warn',logId); break; }
+                const chunk = list.slice(i,i+2000);
+                chunk.forEach(c => allChannels.push({id:hid(c.url), ...c}));
+                n += chunk.length;
+                if(fill) fill.style.width = Math.min(100,(i+2000)/list.length*100)+'%';
+                await new Promise(r=>setTimeout(r,50));
+            }
+            persistLocal(); updateCount();
+            addLog('⬇️ صدّر channels.json وارفعه للمستودع لنشر القنوات','info',logId);
+            return n;
+        }
+        function exportChannels() {
+            if(!allChannels.length) { alert('المسودة فارغة. استورد القنوات أولاً ثم صدّر.'); return; }
+            const data = allChannels.map(c => { const o={id:c.id,name:c.name,url:c.url,category:c.category,type:c.type}; if(c.logo)o.logo=c.logo; if(c.description)o.description=c.description; if(c.country)o.country=c.country; if(c.language)o.language=c.language; if(c.manual)o.manual=1; if(c.geo)o.geo=1; if(c.featured)o.featured=1; if(c.ramadan)o.ramadan=1; return o; }).sort((a,b)=>(a.name||'')<(b.name||'')?-1:1);
+            const blob = new Blob([JSON.stringify(data)], {type:'application/json'});
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'channels.json';
+            document.body.appendChild(a); a.click();
+            setTimeout(() => { a.remove(); URL.revokeObjectURL(a.href); }, 60000);
+            alert('تم تصدير ' + data.length + ' قناة (' + Math.round(blob.size/1024) + ' KB).\nتأكد أن حجم الملف في التنزيلات قريب من هذا الرقم قبل رفعه.');
+        }
+        const GH_REPO = 'baratantan/iptv-max', GH_BRANCH = 'main';
+        async function publishChannels() {
+            if(!allChannels.length) { alert('المسودة فارغة. استورد القنوات أولاً.'); return; }
+            const inp = document.getElementById('ghToken');
+            const token = inp ? inp.value.trim() : '';
+            try { localStorage.removeItem('gh_token'); } catch(e) {}
+            if(!token) { alert('أدخل GitHub Token أولاً'); return; }
+            const btn = document.getElementById('publishBtn');
+            btn.disabled = true; btn.textContent = '⏳ جاري النشر...';
+            try {
+                const data = allChannels.map(c => { const o={id:c.id,name:c.name,url:c.url,category:c.category,type:c.type}; if(c.logo)o.logo=c.logo; if(c.description)o.description=c.description; if(c.country)o.country=c.country; if(c.language)o.language=c.language; if(c.manual)o.manual=1; if(c.geo)o.geo=1; if(c.featured)o.featured=1; if(c.ramadan)o.ramadan=1; return o; }).sort((a,b)=>(a.name||'')<(b.name||'')?-1:1);
+                const bytes = new TextEncoder().encode(JSON.stringify(data));
+                let bin = '';
+                for(let i=0;i<bytes.length;i+=0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i+0x8000));
+                const api = `https://api.github.com/repos/${GH_REPO}/contents/channels.json`;
+                const h = { 'Authorization': 'Bearer ' + token, 'Accept': 'application/vnd.github+json' };
+                let sha;
+                const g = await fetch(api + '?ref=' + GH_BRANCH, { headers: h });
+                if(g.ok) sha = (await g.json()).sha;
+                else if(g.status !== 404) throw new Error('HTTP ' + g.status + (g.status===401 ? ' (التوكن غير صحيح أو منتهي)' : g.status===403||g.status===404 ? ' (لا صلاحية Contents)' : ''));
+                const r = await fetch(api, { method:'PUT', headers:{ ...h, 'Content-Type':'application/json' },
+                    body: JSON.stringify({ message:'Update channels.json (' + data.length + ' channels)', content: btoa(bin), branch: GH_BRANCH, ...(sha ? {sha} : {}) }) });
+                if(!r.ok) throw new Error('HTTP ' + r.status + ' ' + (await r.text()).slice(0,150));
+                alert('✅ تم نشر ' + data.length + ' قناة (' + Math.round(bytes.length/1024) + ' KB). تظهر للجميع خلال 1-2 دقيقة.');
+                idb.set('channels', { t: Date.now(), l: allChannels, draft: false });
+            } catch(e) { alert('❌ فشل النشر: ' + e.message); }
+            if(inp) inp.value = '';
+            btn.disabled = false; btn.textContent = '☁️ نشر القنوات على GitHub';
+        }
+
+        // ===== فحص القنوات الميتة =====
+        const CHK_KEY = 'iptvmax_check_v1', CHK_CONC = 3, CHK_TIMEOUT = 5000;
+        let chk = { res: {}, running: false, stop: false, pool: null };
+        function chkLoad() { try { chk.res = JSON.parse(localStorage.getItem(CHK_KEY) || '{}'); } catch(e) { chk.res = {}; } }
+        function chkSave() { try { localStorage.setItem(CHK_KEY, JSON.stringify(chk.res)); } catch(e) {} }
+
+        async function probeChannel(url) {
+            const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), CHK_TIMEOUT);
+            try {
+                const r = await fetch(MY_PROXY + encodeURIComponent(url), { headers: { Range: 'bytes=0-1023' }, signal: ctl.signal });
+                if(!r.ok) return false;
+                const reader = r.body.getReader();
+                const { value } = await reader.read();
+                try { reader.cancel(); } catch(e) {}
+                return !!(value && value.length > 0);
+            } catch(e) { return false; }
+            finally { clearTimeout(t); }
+        }
+
+        function chkStats() {
+            const pool = chk.pool || allChannels; let ok = 0, dead = 0;
+            for(const c of pool) { const v = chk.res[c.id]; if(v === 1) ok++; else if(v === 0) dead++; }
+            return { total: pool.length, ok, dead, done: ok + dead };
+        }
+        function chkPaint() {
+            const s = chkStats(), f = document.getElementById('chkFill'), t = document.getElementById('chkText');
+            if(!f || !t) return;
+            f.style.width = (s.total ? s.done / s.total * 100 : 0) + '%';
+            t.innerHTML = `المفحوصة: <b>${s.done}</b> / ${s.total}<br>✅ صالحة: <b style="color:#46d369">${s.ok}</b> &nbsp; ❌ ميتة: <b style="color:#f44336">${s.dead}</b>`;
+            if(!chk.running) chkShowDead();
+        }
+        function chkShowDead() {
+            const dead = allChannels.filter(c => chk.res[c.id] === 0);
+            const box = document.getElementById('chkDeadBox'), act = document.getElementById('chkActions');
+            if(!box || !act) return;
+            box.style.display = dead.length ? 'block' : 'none';
+            act.style.display = dead.length ? 'block' : 'none';
+            box.innerHTML = dead.slice(0, 300).map(c => `<div style="padding:4px 0;border-bottom:1px solid #222;font-size:12px;color:#f44336;">${esc(c.name)}</div>`).join('')
+                + (dead.length > 300 ? `<div style="padding:6px 0;color:#aaa;font-size:12px;">و ${dead.length - 300} قناة أخرى...</div>` : '');
+        }
+        function chkUI(running) {
+            document.getElementById('chkStopBtn').style.display = running ? 'block' : 'none';
+            document.getElementById('chkStartBtn').disabled = running;
+            document.getElementById('chkQuickBtn').disabled = running;
+        }
+        function stopCheck() { chk.stop = true; }
+
+        async function runCheck(limit) {
+            if(chk.running) return;
+            if(!allChannels.length) { alert('لا توجد قنوات للفحص'); return; }
+            // تأكد أن الـ Worker يعمل قبل البدء، حتى لا تُعتبر كل القنوات ميتة بسبب عطل الاتصال
+            try {
+                const c = new AbortController(), t = setTimeout(() => c.abort(), 8000);
+                const r = await fetch(MY_PROXY + encodeURIComponent('https://example.com'), { signal: c.signal });
+                clearTimeout(t); if(!r.ok) throw new Error('HTTP ' + r.status);
+            } catch(e) { alert('تعذر الاتصال بالـ Worker، فلن يكون الفحص صحيحاً. تحقق من الاتصال ثم أعد المحاولة.'); return; }
+
+            chkLoad();
+            const pool = limit ? allChannels.slice(0, limit) : allChannels;
+            const todo = pool.filter(c => !(c.id in chk.res));
+            chk.pool = pool; chk.running = true; chk.stop = false;
+            chkUI(true); chkPaint();
+            let idx = 0, since = 0, last = 0;
+            const run = async () => {
+                while(!chk.stop) {
+                    const i = idx++; if(i >= todo.length) break;
+                    const c = todo[i];
+                    chk.res[c.id] = (await probeChannel(c.url)) ? 1 : 0;
+                    if(++since >= 25) { chkSave(); since = 0; }
+                    const now = Date.now(); if(now - last > 250) { last = now; chkPaint(); }
+                }
+            };
+            await Promise.all(Array.from({ length: CHK_CONC }, run));
+            chkSave(); chk.running = false; chkUI(false); chkPaint();
+            alert(chk.stop ? '⏹ تم الإيقاف. النتائج محفوظة ويمكنك المتابعة لاحقاً.' : '✅ اكتمل الفحص.');
+        }
+
+        function resetCheck() {
+            if(chk.running) { alert('أوقف الفحص أولاً'); return; }
+            if(!confirm('مسح كل نتائج الفحص المحفوظة؟')) return;
+            chk.res = {}; chkSave(); chk.pool = allChannels; chkPaint();
+        }
+
+        // الحذف من المسودة (القنوات صارت في channels.json وليست في Firebase) ثم النشر أو التصدير
+        function deleteDead() {
+            const dead = new Set(allChannels.filter(c => chk.res[c.id] === 0).map(c => c.id));
+            if(!dead.size) { alert('لا توجد قنوات ميتة'); return; }
+            const st = chkStats();
+            if(st.done && dead.size / st.done > 0.8 && !confirm('⚠️ نسبة القنوات الميتة عالية جداً (أكثر من 80%). قد يكون السبب الاتصال أو حجب المزوّد لا القنوات نفسها. هل تتابع الحذف؟')) return;
+            if(!confirm('حذف ' + dead.size + ' قناة ميتة من المسودة؟\nبعدها اضغط «نشر القنوات على GitHub» لتصل التغييرات للجميع.')) return;
+            allChannels = allChannels.filter(c => !dead.has(c.id));
+            dead.forEach(id => delete chk.res[id]); chkSave();
+            persistLocal(); updateCount(); renderHome();
+            chk.pool = allChannels; chkPaint();
+            alert('تم الحذف من المسودة. اضغط «نشر القنوات على GitHub» أو «تصدير» لتحديث الموقع.');
+        }
+
+        // ===== تشخيص بث Xtream: يتتبع القناة عبر الـ Worker خطوة بخطوة ويحدد مكان الفشل =====
+        async function diagXtream() {
+            const out = document.getElementById('diagOut'); out.style.display = 'block';
+            const lines = []; const log = t => { lines.push(t); out.textContent = lines.join('\n'); };
+            const hide = u => String(u || '').replace(/(\/(?:live|movie|series)\/)[^\/]+\/[^\/]+\//, '$1***/***/');
+            const ch = allChannels.find(c => /\/live\//.test(c.url)) || allChannels[0];
+            if(!ch) { log('لا توجد قنوات في المسودة. استورد قنوات Xtream أولاً.'); return; }
+            log('القناة: ' + ch.name); log('الرابط: ' + hide(ch.url)); log('---');
+            const get = async (url, range) => {
+                const c = new AbortController(), t = setTimeout(() => c.abort(), 15000);
+                try { return await fetch(url, { headers: range ? { Range: 'bytes=0-1023' } : {}, signal: c.signal }); }
+                finally { clearTimeout(t); }
+            };
+            const why = st => st === 502 ? 'الـ Worker لا يصل إلى السيرفر (غالباً حجب Cloudflare أو منفذ غير مدعوم)'
+                : (st === 401 || st === 403) ? 'المزوّد يرفض اتصال الـ Worker (حجب عناوين Cloudflare أو ترويسة غير مقبولة)'
+                : st === 404 ? 'المزوّد لا يجد هذا البث بصيغة m3u8'
+                : (st === 509 || st === 458) ? 'تجاوز حد الاتصالات المسموحة في الاشتراك' : 'رد غير متوقع';
+            try {
+                const t0 = Date.now();
+                const r = await get(MY_PROXY + encodeURIComponent(ch.url), false);
+                log('1) قائمة البث عبر الـ Worker: HTTP ' + r.status + ' (' + (Date.now() - t0) + 'ms)');
+                const ct = r.headers.get('content-type'); if(ct) log('   النوع: ' + ct);
+                const up = r.headers.get('x-upstream-url'); if(up) log('   وجهة البث الفعلية: ' + hide(up));
+                const ua = r.headers.get('x-ua'); if(ua) log('   User-Agent الناجح/الأخير: ' + ua);
+                const rd = r.body.getReader(); const first = await rd.read(); try { rd.cancel(); } catch(e) {}
+                let body = new TextDecoder().decode(first.value || new Uint8Array());
+                if(!r.ok) { log('   ' + body.slice(0, 160).replace(/\s+/g, ' ')); log('\n❌ ' + why(r.status)); return; }
+                if(!body.includes('#EXTM3U')) { log('   بداية الرد: ' + body.slice(0, 120).replace(/\s+/g, ' ')); log('\n⚠️ الرد ليس قائمة HLS. قد يكون البث TS مباشراً (لا يعمل في المتصفح) أو صفحة خطأ.'); return; }
+                for(let depth = 0; depth < 2; depth++) {
+                    const seg = body.split(/\r?\n/).map(l => l.trim()).find(l => l && !l.startsWith('#'));
+                    if(!seg) { log('⚠️ القائمة بلا مقاطع'); return; }
+                    if(!/^https?:/i.test(seg)) { log('\n⚠️ روابط المقاطع نسبية، أي أن الـ Worker المنشور قديم. انشر الـ Worker الجديد.'); return; }
+                    const isPl = /\.m3u8/i.test(decodeURIComponent(seg));
+                    const rr = await get(seg, !isPl);
+                    log((depth + 2) + ') ' + (isPl ? 'قائمة فرعية' : 'مقطع فيديو') + ': HTTP ' + rr.status);
+                    if(!rr.ok) { log('\n❌ ' + why(rr.status)); return; }
+                    if(isPl) { body = await rr.text(); continue; }
+                    const r2 = rr.body.getReader(); const v = await r2.read(); try { r2.cancel(); } catch(e) {}
+                    log('\n✅ وصل مقطع بحجم ' + (v.value ? v.value.length : 0) + ' بايت. البث يصل عبر الـ Worker، فالمشكلة ليست في الاتصال بالمزوّد.');
+                    return;
+                }
+            } catch(e) { log('\n❌ ' + (e.name === 'AbortError' ? 'انتهت المهلة (15 ثانية)' : e.message)); }
+        }
+
+        // ===== حماية بيانات الاشتراك: إزالة روابط Xtream (تحمل user/pass) قبل النشر العام =====
+        const XTREAM_RE = /^https?:\/\/[^\/]+\/(live|movie|series)\/[^\/]+\/[^\/]+\/[^\/?]+$/i;
+        function removeXtream() {
+            const x = allChannels.filter(c => XTREAM_RE.test(c.url || ''));
+            if(!x.length) { alert('لا توجد في المسودة قنوات بروابط تحمل بيانات اشتراك.'); return; }
+            if(!confirm('وُجدت ' + x.length + ' قناة روابطها تحمل بيانات اشتراك (Xtream).\\nحذفها من المسودة؟ بعدها انشر القنوات لتخلو الملف العام منها.')) return;
+            const ids = new Set(x.map(c => c.id));
+            allChannels = allChannels.filter(c => !ids.has(c.id));
+            persistLocal(); updateCount(); renderHome();
+            alert('تم حذف ' + x.length + ' قناة من المسودة.\\nالآن اضغط «نشر القنوات على GitHub» بتوكن جديد قصير المدة.');
+        }
+
+        // ===== المرحلة 2: PWA + تجربة الهاتف =====
+        let curPlaying = null, deferredInstall = null;
+        if('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+        window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredInstall = e; });
+        async function installApp() {
+            if(deferredInstall) { deferredInstall.prompt(); try { await deferredInstall.userChoice; } catch(e) {} deferredInstall = null; }
+            else alert('لتثبيت التطبيق: افتح قائمة Chrome ⋮ ثم اختر «إضافة إلى الشاشة الرئيسية» (Add to Home screen).');
+        }
+        function switchChannel(dir) {
+            if(!curPlaying) return;
+            const list = allChannels.filter(c => c.category === curPlaying.category && c.type === curPlaying.type);
+            if(list.length < 2) return;
+            const i = list.findIndex(c => c.id === curPlaying.id);
+            playChannel(list[(i + dir + list.length) % list.length]);
+        }
+        function renderLastBtn() {
+            const box = document.querySelector('.hero-buttons'); if(!box) return;
+            const old = document.getElementById('lastBtn'); if(old) old.remove();
+            let id = null; try { id = localStorage.getItem('iptvmax_last'); } catch(e) {}
+            const c = id && allChannels.find(x => x.id === id); if(!c) return;
+            const b = document.createElement('button');
+            b.id = 'lastBtn'; b.className = 'btn-hero info';
+            b.textContent = '⏯ ' + String(c.name).slice(0, 22);
+            b.onclick = () => playChannel(c);
+            box.appendChild(b);
+        }
+
+        // ===== المرحلة 4: الدول واللغات والتصفح بالصفحات =====
+        const PAGE_SIZE = 60;
+        let chFilter = { cat: '', country: '', lang: '', q: '' }, chPage = 1, chList = [], moreObs = null;
+        const nc = new WeakMap();
+        const normTxt = s => String(s || '').toLowerCase().replace(/[\u064B-\u065F\u0670]/g, '').replace(/[أإآ]/g, 'ا').replace(/ى/g, 'ي').replace(/ة/g, 'ه');
+        let _cn = null, _ln = null, _en = null, _ar = null;
+        const canonReg = c => { try { return Intl.getCanonicalLocales('und-' + c)[0].split('-')[1]; } catch(e) { return c; } };
+        const canonLang = l => { try { return Intl.getCanonicalLocales(l)[0]; } catch(e) { return l; } };
+        function nameMaps() {
+            if(_cn) return; _cn = {}; _ln = {};
+            try {
+                _en = { r: new Intl.DisplayNames(['en'], { type: 'region' }), l: new Intl.DisplayNames(['en'], { type: 'language' }) };
+                _ar = { r: new Intl.DisplayNames(['ar'], { type: 'region' }), l: new Intl.DisplayNames(['ar'], { type: 'language' }) };
+            } catch(e) { return; }
+            const A = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            for(const a of A) for(const b of A) {
+                const c = a + b, l = c.toLowerCase();
+                try { const n = _en.r.of(c); if(n && n !== c && !/unknown/i.test(n) && canonReg(c) === c) { const k = n.toLowerCase(); if(!(k in _cn)) _cn[k] = c; } } catch(e) {}
+                try { const m = _en.l.of(l); if(m && m !== l && canonLang(l) === l) { const k = m.toLowerCase(); if(!(k in _ln)) _ln[k] = l; } } catch(e) {}
+            }
+            Object.assign(_cn, { 'czech republic': 'CZ', 'turkey': 'TR', 'uk': 'GB', 'macedonia': 'MK', 'palestine': 'PS' });
+        }
+        function toCountry(v) {
+            if(!v) return ''; v = String(v).trim(); nameMaps();
+            if(/^[A-Za-z]{2}$/.test(v)) { const c = v.toUpperCase(); return Object.values(_cn).includes(c) ? c : ''; }
+            return _cn[v.toLowerCase()] || '';
+        }
+        function toLang(v) {
+            if(!v) return ''; v = String(v).trim().toLowerCase(); nameMaps();
+            if(/^[a-z]{2}$/.test(v)) return Object.values(_ln).includes(v) ? v : '';
+            return _ln[v] || '';
+        }
+        function guessCountry(name, idAttr, cAttr, grp) {
+            let c = toCountry(grp); if(c) return c;
+            if(cAttr) { c = toCountry(cAttr.split(/[;,]/)[0]); if(c) return c; }
+            const m = String(idAttr || '').match(/\.([a-z]{2})(?:@|$)/i); if(m) { c = toCountry(m[1]); if(c) return c; }
+            const p = String(name || '').match(/^([A-Za-z]{2})\s*[-|:]/); if(p) { c = toCountry(p[1]); if(c) return c; }
+            return '';
+        }
+        function guessLang(lAttr, grp) { return toLang(grp) || toLang(String(lAttr || '').split(/[;,]/)[0]); }
+        const flagOf = c => String.fromCodePoint(...[...c].map(x => 127397 + x.charCodeAt(0)));
+        const countryLabel = c => { nameMaps(); return flagOf(c) + ' ' + (_ar ? _ar.r.of(c) : c); };
+        const langLabel = l => { nameMaps(); return _ar ? _ar.l.of(l) : l; };
+
+        function buildFilterOptions() {
+            const cnt = { cat: {}, country: {}, lang: {} };
+            for(const c of allChannels) {
+                if(c.category) cnt.cat[c.category] = (cnt.cat[c.category] || 0) + 1;
+                if(c.country) cnt.country[c.country] = (cnt.country[c.country] || 0) + 1;
+                if(c.language) cnt.lang[c.language] = (cnt.lang[c.language] || 0) + 1;
+            }
+            const fill = (id, all, obj, labelFn, key) => {
+                const sel = document.getElementById(id), keys = Object.keys(obj).sort((a, b) => obj[b] - obj[a]);
+                sel.style.display = keys.length ? '' : 'none';
+                sel.innerHTML = '<option value="">' + all + '</option>' + keys.map(k => '<option value="' + esc(k) + '">' + esc(labelFn(k)) + ' (' + obj[k] + ')</option>').join('');
+                sel.value = (chFilter[key] && obj[chFilter[key]]) ? chFilter[key] : '';
+                chFilter[key] = sel.value;
+            };
+            fill('fCat', 'كل التصنيفات', cnt.cat, k => k, 'cat');
+            fillCountry(cnt.country);
+            fill('fLang', 'كل اللغات', cnt.lang, langLabel, 'lang');
+        }
+        function applyFilters() {
+            chFilter.cat = document.getElementById('fCat').value;
+            chFilter.country = document.getElementById('fCountry').value;
+            chFilter.lang = document.getElementById('fLang').value;
+            chFilter.arab = document.getElementById('fArab').checked;
+            chPage = 1; renderGrid();
+        }
+        function renderGrid() {
+            const f = chFilter, tokens = queryTokens(f.q);
+            chList = allChannels.filter(c => {
+                if(f.cat && c.category !== f.cat) return false;
+                if(f.country && c.country !== f.country) return false;
+                if(f.lang && c.language !== f.lang) return false;
+                if(f.arab && !isArab(c)) return false;
+                if(!tokens.length) return true;
+                let n = nc.get(c); if(n === undefined) { n = normTxt(c.name + ' ' + (c.category || '')); nc.set(c, n); }
+                return tokens.every(t => matchTok(n, t));
+            });
+            chList.sort((a, b) => isArab(b) - isArab(a));
+            document.getElementById('chanCount').textContent = chList.length + ' قناة';
+            document.getElementById('channelsGrid').innerHTML = chList.slice(0, PAGE_SIZE).map(c => createGridCard(c)).join('')
+                || '<div class="empty-state" style="grid-column:1/-1;"><h3>لا نتائج</h3></div>';
+            updateMore();
+        }
+        function chanMore() {
+            const g = document.getElementById('channelsGrid'), from = g.children.length;
+            if(from >= chList.length) return;
+            g.insertAdjacentHTML('beforeend', chList.slice(from, from + PAGE_SIZE).map(c => createGridCard(c)).join(''));
+            updateMore();
+        }
+        function updateMore() {
+            const b = document.getElementById('chanMore'), shown = document.getElementById('channelsGrid').children.length;
+            b.style.display = chList.length > shown ? 'block' : 'none';
+            if(!moreObs && 'IntersectionObserver' in window) {
+                moreObs = new IntersectionObserver(es => { if(es.some(e => e.isIntersecting)) chanMore(); }, { rootMargin: '400px' });
+                moreObs.observe(b);
+            }
+        }
+
+        // ===== المرحلة 5أ: أدوات المدير (المكرر، التعديل، الحذف) =====
+        let dupIds = [];
+        function normName(n) {
+            return normTxt(String(n || '').replace(/\(.*?\)|\[.*?\]/g, ' ').replace(/\b(4k|uhd|fhd|hd|sd|hevc|h265|\d{3,4}p)\b/gi, ' ')).replace(/[^\p{L}\p{N}]+/gu, '');
+        }
+        function quality(c) {
+            const n = String(c.name || ''), m = n.match(/(\d{3,4})p/i);
+            if(m) return +m[1];
+            if(/4k|uhd/i.test(n)) return 2160; if(/fhd/i.test(n)) return 1080; if(/\bhd\b/i.test(n)) return 720; if(/\bsd\b/i.test(n)) return 480;
+            return 0;
+        }
+        function scanDup() {
+            const skip = document.getElementById('dupSkip').checked, groups = new Map();
+            for(const c of allChannels) {
+                const nk = normName(c.name); if(!nk || (skip && !c.country)) continue;
+                const k = [nk, c.country || '', c.category || '', c.type || ''].join('|');
+                if(!groups.has(k)) groups.set(k, []);
+                groups.get(k).push(c);
+            }
+            dupIds = []; const sample = []; let gcount = 0;
+            for(const g of groups.values()) {
+                if(g.length < 2) continue; gcount++;
+                g.sort((a, b) => quality(b) - quality(a) || (b.logo ? 1 : 0) - (a.logo ? 1 : 0));
+                g.slice(1).forEach(c => dupIds.push(c.id));
+                if(sample.length < 8) sample.push('• ' + g[0].name + ' (' + g.length + ' نسخ)');
+            }
+            const out = document.getElementById('dupOut'), btn = document.getElementById('dupDel');
+            if(!dupIds.length) { out.textContent = '✅ لا توجد قنوات مكررة بهذه المعايير.'; btn.style.display = 'none'; return; }
+            out.textContent = 'وُجدت ' + gcount + ' مجموعة مكررة، وسيُحذف ' + dupIds.length + ' قناة.\nأمثلة:\n' + sample.join('\n');
+            btn.style.display = 'block';
+        }
+        function deleteDup() {
+            if(!dupIds.length) return;
+            if(!confirm('حذف ' + dupIds.length + ' قناة مكررة من المسودة؟ بعدها انشر القنوات.')) return;
+            const ids = new Set(dupIds);
+            allChannels = allChannels.filter(c => !ids.has(c.id));
+            persistLocal(); updateCount(); renderHome();
+            document.getElementById('dupOut').textContent = '✅ تم حذف ' + dupIds.length + ' قناة. اضغط «نشر القنوات على GitHub» لتصل للجميع.';
+            document.getElementById('dupDel').style.display = 'none'; dupIds = [];
+        }
+
+        function addAdminButtons() {
+            document.querySelectorAll('.adm-btn').forEach(b => b.remove());
+            const box = document.querySelector('#detailsModal .modal-actions');
+            if(!box || !isAdmin || !currentChannel) return;
+            const mk = (t, f) => { const b = document.createElement('button'); b.className = 'btn-hero info adm-btn'; b.textContent = t; b.onclick = f; box.appendChild(b); };
+            mk((currentChannel.featured ? '⭐ إزالة من المختارات' : '⭐ أضف للمختارات'), () => toggleTag('featured'));
+            mk((currentChannel.ramadan ? '🌙 إزالة من رمضان' : '🌙 أضف لرمضان'), () => toggleTag('ramadan'));
+            mk('✏️ تعديل', () => editChannel(currentChannel.id));
+            mk('🗑️ حذف', () => deleteChannel(currentChannel.id));
+        }
+        function refreshAfterEdit() {
+            persistLocal(); updateCount(); renderHome();
+            if(document.getElementById('view-channels').classList.contains('active')) renderChannelsGrid();
+        }
+        function deleteChannel(id) {
+            if(!confirm('حذف هذه القناة من المسودة؟')) return;
+            allChannels = allChannels.filter(c => c.id !== id);
+            closeDetails(); refreshAfterEdit();
+            showToast('تم الحذف. انشر القنوات لتصل للجميع');
+        }
+        function editChannel(id) {
+            const c = allChannels.find(x => x.id === id); if(!c) return;
+            closeDetails();
+            const cats = [...new Set(['رياضة', 'أخبار', 'أفلام', 'مسلسلات', 'أطفال', 'موسيقى', 'ديني', 'وثائقي', 'عام', ...allChannels.map(x => x.category).filter(Boolean)])];
+            const fld = (i, l, v, dir) => '<label style="color:#aaa;font-size:13px;">' + l + '</label><input id="' + i + '" value="' + esc(v || '') + '"' + (dir ? ' dir="ltr"' : '') + ' style="width:100%;padding:12px;margin:4px 0 10px;background:#333;border:none;border-radius:4px;color:#fff;font-size:15px;font-family:inherit;">';
+            const sel = 'width:100%;padding:12px;margin:4px 0 10px;background:#333;border:none;border-radius:4px;color:#fff;font-size:15px;font-family:inherit;';
+            const ov = document.createElement('div'); ov.id = 'editOv';
+            ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:3500;overflow:auto;padding:20px;';
+            ov.innerHTML = '<div style="max-width:480px;margin:0 auto;background:#1f1f1f;padding:18px;border-radius:10px;"><h3 style="margin-bottom:12px;">✏️ تعديل القناة</h3>'
+                + fld('ed_name', 'الاسم', c.name) + fld('ed_url', 'رابط البث', c.url, true) + fld('ed_logo', 'رابط الشعار', c.logo, true)
+                + '<label style="color:#aaa;font-size:13px;">التصنيف</label><select id="ed_cat" style="' + sel + '">' + cats.map(k => '<option' + (k === c.category ? ' selected' : '') + '>' + esc(k) + '</option>').join('') + '</select>'
+                + '<label style="color:#aaa;font-size:13px;">النوع</label><select id="ed_type" style="' + sel + '">' + [['live', 'مباشر'], ['movie', 'فيلم'], ['series', 'مسلسل']].map(t => '<option value="' + t[0] + '"' + (t[0] === c.type ? ' selected' : '') + '>' + t[1] + '</option>').join('') + '</select>'
+                + fld('ed_country', 'رمز الدولة (مثل SA أو DE)', c.country, true) + fld('ed_lang', 'رمز اللغة (مثل ar أو en)', c.language, true)
+                + '<button class="btn-primary" id="edSave">حفظ</button><button class="btn-secondary" id="edCancel">إلغاء</button></div>';
+            document.body.appendChild(ov);
+            document.getElementById('edCancel').onclick = () => ov.remove();
+            document.getElementById('edSave').onclick = () => {
+                const name = document.getElementById('ed_name').value.trim(), url = document.getElementById('ed_url').value.trim();
+                if(!name || !url) { alert('الاسم والرابط مطلوبان'); return; }
+                c.name = name; c.url = url; c.manual = 1; c.logo = document.getElementById('ed_logo').value.trim();
+                c.category = document.getElementById('ed_cat').value; c.type = document.getElementById('ed_type').value;
+                c.country = toCountry(document.getElementById('ed_country').value); c.language = toLang(document.getElementById('ed_lang').value);
+                if(!c.logo) delete c.logo; if(!c.country) delete c.country; if(!c.language) delete c.language;
+                nc.delete(c); ov.remove(); refreshAfterEdit();
+                showToast('تم الحفظ. انشر القنوات لتصل للجميع');
+            };
+        }
+
+        // ===== المرحلة 5ب: المستخدمون والإحصائيات =====
+        async function checkBlocked(user) {
+            if(!user || isAdmin) return;
+            try {
+                const d = await db.collection('users').doc(user.uid).get();
+                if(d.exists && d.data().blocked) { alert('تم حظر هذا الحساب من قبل المدير.'); auth.signOut(); }
+            } catch(e) {}
+        }
+        function countView(c) {
+            if(!currentUser) return;
+            let seen = {}; try { seen = JSON.parse(sessionStorage.getItem('viewSeen') || '{}'); } catch(e) {}
+            if(Date.now() - (seen[c.id] || 0) < 300000) return;
+            seen[c.id] = Date.now(); try { sessionStorage.setItem('viewSeen', JSON.stringify(seen)); } catch(e) {}
+            db.collection('stats').doc(c.id).set({ views: firebase.firestore.FieldValue.increment(1), name: String(c.name || '').slice(0, 200) }, { merge: true }).catch(() => {});
+        }
+        async function loadUsers() {
+            const out = document.getElementById('usersOut'); out.textContent = '⏳ جاري التحميل...';
+            try {
+                const s = await db.collection('users').limit(200).get();
+                const rows = s.docs.map(d => ({ id: d.id, ...d.data() }));
+                if(!rows.length) { out.textContent = 'لا يوجد مستخدمون.'; return; }
+                out.innerHTML = '<div style="color:#aaa;font-size:13px;margin-bottom:6px;">الإجمالي: ' + rows.length + ' مستخدم</div>' + rows.map(u => {
+                    const isAdm = u.role === 'admin' || String(u.email || '').toLowerCase() === ADMIN_EMAIL.toLowerCase();
+                    return '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #2a2a2a;font-size:13px;"><div style="min-width:0;"><b>' + esc(u.name || '—') + '</b>' + (isAdm ? ' 👑' : '') + (u.blocked ? ' <span style="color:#f44336;">(محظور)</span>' : '')
+                        + '<div dir="ltr" style="color:#999;text-align:right;overflow:hidden;text-overflow:ellipsis;">' + esc(u.email || '') + '</div></div>'
+                        + (isAdm ? '' : '<button class="player-btn" onclick="toggleBlock(\'' + esc(u.id) + '\', ' + (!u.blocked) + ')">' + (u.blocked ? 'إلغاء الحظر' : 'حظر') + '</button>') + '</div>';
+                }).join('');
+            } catch(e) { out.textContent = '❌ ' + e.message + ' (تأكد من نشر القواعد الجديدة وتوثيق بريد المدير)'; }
+        }
+        async function toggleBlock(uid, block) {
+            if(!confirm(block ? 'حظر هذا المستخدم؟' : 'رفع الحظر عن هذا المستخدم؟')) return;
+            try { await db.collection('users').doc(uid).update({ blocked: block }); loadUsers(); }
+            catch(e) { alert('تعذر التنفيذ: ' + e.message); }
+        }
+        async function loadStats() {
+            const out = document.getElementById('statsOut'); out.textContent = '⏳ جاري التحميل...';
+            try {
+                const s = await db.collection('stats').orderBy('views', 'desc').limit(20).get();
+                out.innerHTML = s.empty ? 'لا توجد إحصائيات بعد.' : s.docs.map((d, i) => (i + 1) + '. ' + esc(d.data().name || d.id) + ' — <b>' + d.data().views + '</b> مشاهدة').join('<br>');
+            } catch(e) { out.textContent = '❌ ' + e.message + ' (تأكد من نشر القواعد الجديدة)'; }
+        }
+
+        // ===== المرحلة 1 (الجمهور العربي) =====
+        const ARAB = ['SA','AE','QA','KW','BH','OM','YE','IQ','SY','LB','JO','PS','EG','SD','LY','TN','DZ','MA','MR','SO','DJ','KM'];
+        const isArab = c => c.language === 'ar' || ARAB.includes(c.country);
+
+        function fillCountry(obj) {
+            const sel = document.getElementById('fCountry'), keys = Object.keys(obj).sort((a, b) => obj[b] - obj[a]);
+            sel.style.display = keys.length ? '' : 'none';
+            const opt = k => '<option value="' + esc(k) + '">' + esc(countryLabel(k)) + ' (' + obj[k] + ')</option>';
+            const ar = keys.filter(k => ARAB.includes(k)), ot = keys.filter(k => !ARAB.includes(k));
+            sel.innerHTML = '<option value="">كل الدول</option>' + (ar.length ? '<optgroup label="الدول العربية">' + ar.map(opt).join('') + '</optgroup>' : '') + (ot.length ? '<optgroup label="دول أخرى">' + ot.map(opt).join('') + '</optgroup>' : '');
+            sel.value = (chFilter.country && obj[chFilter.country]) ? chFilter.country : '';
+            chFilter.country = sel.value;
+        }
+
+        // بحث بالعربية والإنجليزية معاً
+        const ALIASES = [['الجزيرة','jazeera'],['العربية','arabiya'],['الحدث','hadath'],['ام بي سي','mbc'],['روتانا','rotana'],['دبي','dubai'],['ابوظبي','abu dhabi'],['ابو ظبي','abu dhabi'],['الكويت','kuwait'],['السعودية','saudi'],['قطر','qatar'],['مصر','egypt'],['النيل','nile'],['العراق','iraq'],['الشرقية','sharqiya'],['سما','sama'],['الاردن','jordan'],['لبنان','lebanon'],['الجديد','jadeed'],['المنار','manar'],['اخبار','news'],['رياضة','sport'],['افلام','movie'],['اطفال','kids'],['قران','quran'],['موسيقى','music'],['وثائقي','documentary'],['مسلسلات','series'],['سبيستون','spacetoon'],['طيور','toyor'],['بي ان','bein'],['اوربت','orbit'],['القاهرة','cairo'],['دراما','drama'],['العالم','alalam'],['المسيرة','masirah'],['فلسطين','palestine'],['سوريا','syria'],['السودان','sudan'],['ليبيا','libya'],['تونس','tunisia'],['الجزائر','algeria'],['المغرب','morocco'],['عمان','oman'],['البحرين','bahrain'],['اليمن','yemen'],['ام تي في','mtv'],['فرانس 24','france 24'],['سكاي نيوز','sky news'],['نات جيو','nat geo'],['ديسكفري','discovery']];
+        let _al = null, _ph = null;
+        function aliasInit() {
+            if(_al) return; _al = new Map(); _ph = [];
+            const add = (k, v) => { if(!_al.has(k)) _al.set(k, []); _al.get(k).push(v); };
+            for(const [ar, en] of ALIASES) {
+                const k = normTxt(ar);
+                if(k.includes(' ')) _ph.push([k, en]); else { add(k, en); add(en, k); }
+            }
+        }
+        function queryTokens(q) {
+            aliasInit(); let s = normTxt(q);
+            for(const [p, r] of _ph) s = s.split(p).join(r);
+            return s.split(/\s+/).filter(Boolean);
+        }
+        function matchTok(n, t) {
+            if(n.includes(t)) return true;
+            const a = _al.get(t); return !!a && a.some(x => n.includes(x));
+        }
+
+        // قنوات بلدك
+        const TZ_COUNTRY = {'Asia/Riyadh':'SA','Asia/Dubai':'AE','Asia/Qatar':'QA','Asia/Kuwait':'KW','Asia/Bahrain':'BH','Asia/Muscat':'OM','Asia/Aden':'YE','Asia/Baghdad':'IQ','Asia/Damascus':'SY','Asia/Beirut':'LB','Asia/Amman':'JO','Asia/Gaza':'PS','Asia/Hebron':'PS','Africa/Cairo':'EG','Africa/Khartoum':'SD','Africa/Tripoli':'LY','Africa/Tunis':'TN','Africa/Algiers':'DZ','Africa/Casablanca':'MA','Africa/El_Aaiun':'MA','Africa/Nouakchott':'MR','Africa/Mogadishu':'SO','Africa/Djibouti':'DJ','Indian/Comoro':'KM'};
+        function guessMyCountry() {
+            let saved = null; try { saved = localStorage.getItem('iptvmax_country'); } catch(e) {}
+            if(saved) return saved;
+            try { const z = Intl.DateTimeFormat().resolvedOptions().timeZone; if(TZ_COUNTRY[z]) return TZ_COUNTRY[z]; } catch(e) {}
+            const m = (navigator.language || '').match(/-([A-Za-z]{2})$/);
+            if(m && ARAB.includes(m[1].toUpperCase())) return m[1].toUpperCase();
+            return '';
+        }
+        function setMyCountry(v) { try { localStorage.setItem('iptvmax_country', v); } catch(e) {} renderMyCountry(); }
+        function renderMyCountry() {
+            const sec = document.getElementById('myCountrySection'); if(!sec) return;
+            const cnt = {};
+            for(const c of allChannels) if(c.country && ARAB.includes(c.country)) cnt[c.country] = (cnt[c.country] || 0) + 1;
+            const keys = Object.keys(cnt).sort((a, b) => cnt[b] - cnt[a]);
+            if(!keys.length) { sec.style.display = 'none'; return; }
+            let code = guessMyCountry(); if(!cnt[code]) code = '';
+            document.getElementById('myCountrySel').innerHTML = (code ? '' : '<option value="">اختر بلدك</option>')
+                + keys.map(k => '<option value="' + k + '"' + (k === code ? ' selected' : '') + '>' + esc(countryLabel(k)) + ' (' + cnt[k] + ')</option>').join('');
+            document.getElementById('myCountryRow').innerHTML = code
+                ? allChannels.filter(c => c.country === code).slice(0, 25).map(c => createCard(c)).join('')
+                : '<div style="padding:20px;color:#888;">اختر بلدك لعرض قنواته</div>';
+            sec.style.display = 'block';
+        }
+
+        // التصنيف التلقائي وسلامة المحتوى
+        const CAT_EN = { news:'أخبار', sports:'رياضة', sport:'رياضة', movies:'أفلام', movie:'أفلام', series:'مسلسلات', kids:'أطفال', animation:'أطفال', children:'أطفال', music:'موسيقى', religious:'ديني', documentary:'وثائقي', entertainment:'منوعات', comedy:'منوعات', culture:'منوعات', lifestyle:'منوعات', family:'منوعات', general:'عام' };
+        const CAT_RULES = [
+            ['أخبار', /news|أخبار|اخبار|jazeera|الجزيرة|arabiya|العربية|الحدث|cnn|bbc world|france ?24|sky news|euronews|alhurra|الحرة|روسيا اليوم/i],
+            ['رياضة', /sport|bein|ssc|رياض|كرة|football|soccer|كأس|مباراة|racing|ufc|wwe|nba|nfl|tennis|golf/i],
+            ['أفلام', /movie|cinema|film|أفلام|افلام|سينما|aflam/i],
+            ['مسلسلات', /series|drama|مسلسل|دراما|soap|telenovela/i],
+            ['أطفال', /kids|cartoon|toon|أطفال|اطفال|junior|baby|nick|disney|spacetoon|سبيستون|طيور|كراميش|boomerang|pogo|animation|anime|انمي/i],
+            ['موسيقى', /music|mtv|موسيق|أغاني|اغاني|melody|ميلودي|vevo/i],
+            ['ديني', /quran|قرآن|قران|islam|إسلام|اسلام|sunna|مكة|makkah|mecca|madina|iqra|اقرأ|ديني|church|christian|الكوثر/i],
+            ['وثائقي', /documentary|discovery|nat ?geo|national geographic|وثائق|history|تاريخ|animal planet|علوم/i]
+        ];
+        function autoCategorize() {
+            let mapped = 0, inferred = 0;
+            for(const c of allChannels) {
+                const k = String(c.category || '').trim(), ar = CAT_EN[k.toLowerCase()];
+                if(ar && ar !== k) { c.category = ar; mapped++; }
+                if(!c.category) c.category = 'عام';
+                if(c.category === 'عام') for(const [cat, re] of CAT_RULES) if(re.test(c.name || '')) { c.category = cat; inferred++; break; }
+            }
+            persistLocal(); renderHome();
+            if(document.getElementById('view-channels').classList.contains('active')) renderChannelsGrid();
+            alert('تم تعريب ' + mapped + ' تصنيف، وتصنيف ' + inferred + ' قناة من أسمائها.\nانشر القنوات لتصل للجميع.');
+        }
+        const NSFW_RE = /(^|[^a-z])(xxx|porn|sex|erotic|adult|playboy|hustler|brazzers)([^a-z]|$)|18\+|اباحي|إباحي/i;
+        function removeNsfw() {
+            const x = allChannels.filter(c => NSFW_RE.test((c.name || '') + ' ' + (c.category || '') + ' ' + (c.description || '')));
+            if(!x.length) { alert('لم أجد قنوات +18 محتملة.'); return; }
+            if(!confirm('وُجدت ' + x.length + ' قناة +18 محتملة، مثل:\n' + x.slice(0, 5).map(c => '• ' + c.name).join('\n') + '\n\nحذفها من المسودة؟')) return;
+            const ids = new Set(x.map(c => c.id));
+            allChannels = allChannels.filter(c => !ids.has(c.id));
+            persistLocal(); updateCount(); renderHome();
+            alert('تم حذف ' + x.length + ' قناة. انشر القنوات لتصل للجميع.');
+        }
+
+        // الصفحات القانونية
+        const DOCS = {
+            terms: ['📜 شروط الاستخدام', 'IPTV MAX دليل روابط لبث تلفزيوني متاح علناً من مصادر مجانية. لا يستضيف الموقع أي بث ولا يخزّن أي محتوى.\n\n• القنوات وحقوقها تعود لأصحابها، ولا نتحكم بتوفر الروابط أو جودتها.\n• يلتزم المستخدم بالقوانين المحلية ولا يستخدم الموقع لانتهاك حقوق الآخرين.\n• إن كنت صاحب حقوق وترغب بإزالة قناة، فراسلنا من «طلب إزالة قناة» في الإعدادات وسنزيلها بعد التحقق.\n• الخدمة تُقدَّم كما هي دون ضمان، وقد تتوقف أو تتغير في أي وقت.\n• يحق للإدارة حظر أي حساب يسيء استخدام الخدمة.'],
+            privacy: ['🔒 سياسة الخصوصية', 'البيانات التي نحفظها:\n• البريد الإلكتروني والاسم عند التسجيل.\n• المفضلة وسجل المشاهدة المرتبطان بحسابك.\n• عدّاد مشاهدات مجهول لكل قناة.\n\nكيف نعالجها:\n• نستخدم خدمات Google Firebase لتسجيل الدخول وتخزين البيانات.\n• بعض البث يمر عبر خادم وسيط (Cloudflare) ليعمل داخل المتصفح.\n• لا نعرض إعلانات ولا نبيع بياناتك.\n• نخزّن بعض البيانات في متصفحك (المفضلة، آخر قناة، ذاكرة مؤقتة) لتسريع الموقع.\n• لحذف حسابك وبياناتك راسلنا عبر البريد في «طلب إزالة قناة».']
+        };
+        function showDoc(kind) {
+            if(kind === 'remove') { location.href = 'mailto:' + ADMIN_EMAIL + '?subject=' + encodeURIComponent('طلب إزالة قناة - IPTV MAX') + '&body=' + encodeURIComponent('اسم القناة:\nالرابط:\nصفة مقدّم الطلب وسبب الإزالة:'); return; }
+            const d = DOCS[kind]; if(!d) return;
+            const ov = document.createElement('div');
+            ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:3600;overflow:auto;padding:20px;';
+            ov.innerHTML = '<div style="max-width:560px;margin:0 auto;background:#1f1f1f;padding:20px;border-radius:10px;"><h3 style="margin-bottom:12px;">' + d[0] + '</h3><div style="white-space:pre-line;line-height:2;color:#ddd;font-size:15px;">' + esc(d[1]) + '</div><div style="margin-top:12px;color:#888;font-size:13px;">للتواصل: <span dir="ltr">' + esc(ADMIN_EMAIL) + '</span></div><button class="btn-primary" style="margin-top:14px;">إغلاق</button></div>';
+            ov.querySelector('button').onclick = () => ov.remove();
+            document.body.appendChild(ov);
+        }
+
+        function showLastUpdate() {
+            fetch('update-info.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : null).then(i => {
+                const e = document.getElementById('lastUpd');
+                if(e && i) e.textContent = new Date(i.updated).toLocaleDateString('ar') + ' • ' + i.total + ' قناة';
+            }).catch(() => {});
+        }
+        async function sendVerifyEmail() {
+            if(!currentUser) return;
+            if(currentUser.emailVerified) { alert('✅ بريدك موثّق بالفعل.'); return; }
+            try {
+                await currentUser.sendEmailVerification();
+                alert('✅ أُرسل رابط التوثيق إلى:\n' + currentUser.email + '\n\nافتح الرابط من بريدك، ثم سجّل خروجاً وادخل مجدداً هنا.');
+            } catch(e) {
+                alert(e.code === 'auth/too-many-requests' ? 'تم إرسال الرابط من قبل، تحقق من بريدك (وملف الرسائل غير المرغوبة Spam).' : 'تعذر الإرسال: ' + e.message);
+            }
+        }
+        function updateVerifyRow() {
+            const row = document.getElementById('verifyRow'), lbl = document.getElementById('verifyLabel');
+            if(!row || !currentUser) return;
+            if(currentUser.emailVerified) { row.style.display = 'none'; return; }
+            row.style.display = 'flex'; lbl.textContent = '⚠️ البريد غير موثّق — اضغط للإرسال';
+        }
+
+        function toggleTag(key) {
+            const c = allChannels.find(x => x.id === currentChannel.id); if(!c) return;
+            if(c[key]) delete c[key]; else c[key] = 1;
+            currentChannel = c; nc.delete(c);
+            persistLocal(); renderHome(); addAdminButtons();
+            showToast(c[key] ? 'أُضيفت' : 'أُزيلت');
+        }
+
+        // ===== بانر علوي متحرك (مختارات المدير أولاً، وإلا قنوات متنوعة بشعار) =====
+        let heroList = [], heroIdx = 0, heroTimer = null;
+        function heroPick() {
+            const featured = allChannels.filter(c => c.featured);
+            if(featured.length >= 2) return featured.slice(0, 8);
+            const withLogo = allChannels.filter(c => c.logo);
+            const pool = withLogo.length >= 5 ? withLogo : allChannels;
+            const seen = new Set(), out = [];
+            for(const c of pool) { const k = c.category || ''; if(seen.has(k) && out.length < pool.length) continue; seen.add(k); out.push(c); if(out.length >= 6) break; }
+            return out.length ? out : allChannels.slice(0, 1);
+        }
+        function heroShow(i) {
+            if(!heroList.length) return;
+            heroIdx = (i + heroList.length) % heroList.length;
+            const c = heroList[heroIdx];
+            document.getElementById('heroBg').style.backgroundImage = c.logo ? `url('${esc(c.logo)}')` : 'none';
+            document.getElementById('heroLogoBox').innerHTML = c.logo ? `<img src="${esc(c.logo)}" onerror="this.parentElement.innerHTML='<span class=&quot;ph&quot;>${esc((c.name||'?')[0])}</span>'">` : `<span class="ph">${esc((c.name||'?')[0])}</span>`;
+            document.getElementById('heroTitle').textContent = c.name;
+            document.getElementById('heroCat').textContent = c.category || 'عام';
+            document.getElementById('heroType').textContent = c.type === 'live' ? 'مباشر' : c.type === 'movie' ? 'فيلم' : 'مسلسل';
+            document.getElementById('heroDots').innerHTML = heroList.map((_, j) => '<span class="hero-dot' + (j === heroIdx ? ' on' : '') + '" onclick="heroGoto(' + j + ')"></span>').join('');
+        }
+        function heroGoto(i) { heroShow(i); clearTimeout(heroTimer); heroTimer = setTimeout(heroTick, 5000); }
+        function heroTick() { heroShow(heroIdx + 1); heroTimer = setTimeout(heroTick, 5000); }
+        function initHero() {
+            clearTimeout(heroTimer);
+            heroList = heroPick();
+            if(!heroList.length) return;
+            heroShow(0);
+            if(heroList.length > 1) heroTimer = setTimeout(heroTick, 5000);
+        }
+
+        async function refreshChannels() {
+            if(isAdmin && !confirm('سيتم تجاهل مسودتك المحلية غير المرفوعة. متابعة؟')) return;
+            await loadChannels(true); alert('تم التحديث');
+        }
+
+        function renderHome() {
+            renderLastBtn();
+            renderMyCountry();
+            const featured = allChannels.filter(c => c.featured);
+            const ramadan = allChannels.filter(c => c.ramadan);
+            const quran = allChannels.filter(c => c.category === 'ديني');
+            const family = allChannels.filter(c => c.category === 'منوعات');
+            const live = allChannels.filter(c => c.type === 'live' && c.category !== 'أفلام' && c.category !== 'مسلسلات').slice(0, 20);
+            const sports = allChannels.filter(c => c.category === 'رياضة').slice(0, 15);
+            const news = allChannels.filter(c => c.category === 'أخبار').slice(0, 15);
+            const movies = allChannels.filter(c => c.type === 'movie' || c.category === 'أفلام').slice(0, 15);
+            const kids = allChannels.filter(c => c.category === 'أطفال').slice(0, 15);
+            
+            document.getElementById('liveCount').textContent = live.length;
+            document.getElementById('sportsCount').textContent = sports.length;
+            document.getElementById('newsCount').textContent = news.length;
+            document.getElementById('moviesCount').textContent = movies.length;
+            document.getElementById('kidsCount').textContent = kids.length;
+            document.getElementById('featuredCount').textContent = featured.length;
+            document.getElementById('ramadanCount').textContent = ramadan.length;
+            document.getElementById('quranCount').textContent = quran.length;
+            document.getElementById('familyCount').textContent = family.length;
+            document.getElementById('featuredSection').style.display = featured.length ? 'block' : 'none';
+            document.getElementById('ramadanSection').style.display = ramadan.length ? 'block' : 'none';
+            document.getElementById('quranSection').style.display = quran.length ? 'block' : 'none';
+            document.getElementById('familySection').style.display = family.length ? 'block' : 'none';
+            document.getElementById('featuredRow').innerHTML = featured.slice(0, 20).map(c => createCard(c)).join('');
+            document.getElementById('ramadanRow').innerHTML = ramadan.slice(0, 20).map(c => createCard(c)).join('');
+            document.getElementById('quranRow').innerHTML = quran.slice(0, 20).map(c => createCard(c)).join('');
+            document.getElementById('familyRow').innerHTML = family.slice(0, 20).map(c => createCard(c)).join('');
+            
+            document.getElementById('liveRow').innerHTML = live.map(c => createCard(c)).join('') || '<div style="padding:20px; color:#666;">لا يوجد محتوى</div>';
+            document.getElementById('sportsRow').innerHTML = sports.map(c => createCard(c)).join('') || '<div style="padding:20px; color:#666;">لا يوجد محتوى</div>';
+            document.getElementById('newsRow').innerHTML = news.map(c => createCard(c)).join('') || '<div style="padding:20px; color:#666;">لا يوجد محتوى</div>';
+            document.getElementById('moviesRow').innerHTML = movies.map(c => createCard(c)).join('') || '<div style="padding:20px; color:#666;">لا يوجد محتوى</div>';
+            document.getElementById('kidsRow').innerHTML = kids.map(c => createCard(c)).join('') || '<div style="padding:20px; color:#666;">لا يوجد محتوى</div>';
+            
+            initHero();
+        }
+
+        function renderChannelsGrid() {
+            if(allChannels.length === 0) {
+                document.getElementById('channelsGrid').innerHTML = '<div class="empty-state" style="grid-column:1/-1;"><h3>لا توجد قنوات</h3><p>استورد قنوات من لوحة التحكم</p></div>';
+                document.getElementById('chanCount').textContent = '';
+                return;
+            }
+            buildFilterOptions();
+            renderGrid();
+        }
+
+        function createCard(channel) {
+            const img = channel.logo && channel.logo.startsWith('http') ? channel.logo : '';
+            return `
+                <div class="card" onclick="openDetails('${channel.id}')">
+                    ${img ? `<img src="${esc(img)}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">` : ''}
+                    <div class="card-placeholder" style="${img ? 'display:none' : ''}"></div>
+                    <div class="card-info">
+                        <div class="card-title">${esc(channel.name)}</div>
+                        <div class="card-category"><span class="dot"></span>${channel.category || 'عام'}</div>
+                    </div>
+                    ${channel.type === 'live' ? '<div class="card-overlay">مباشر</div>' : ''}
+                </div>
+            `;
+        }
+
+        function createGridCard(channel) {
+            const img = channel.logo && channel.logo.startsWith('http') ? channel.logo : '';
+            return `
+                <div class="channel-grid-card" onclick="openDetails('${channel.id}')">
+                    ${img ? `<img src="${esc(img)}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">` : ''}
+                    <div class="card-placeholder" style="${img ? 'display:none' : ''}">📺</div>
+                    <div class="channel-grid-info">
+                        <div class="channel-grid-name">${esc(channel.name)}</div>
+                        <div class="channel-grid-cat"><span class="dot"></span>${channel.category || 'عام'}</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function filterChannels(q) { chFilter.q = q || ''; chPage = 1; renderGrid(); }
+
+        // ===== المفضلة وسجل المشاهدة: نسخة محلية سريعة + مزامنة Firestore (users/{uid}/favorites و watchHistory) =====
+        const nowTS = () => firebase.firestore.FieldValue.serverTimestamp();
+        const uk = base => base + '_' + (currentUser ? currentUser.uid : 'anon');
+        const lsRead = k => { try { return JSON.parse(localStorage.getItem(k) || '[]'); } catch(e) { return []; } };
+        const favCol = () => db.collection('users').doc(currentUser.uid).collection('favorites');
+        const histCol = () => db.collection('users').doc(currentUser.uid).collection('watchHistory');
+        function getFavorites() { return lsRead(uk('favorites')); }
+        function saveFavorites(f) { try { localStorage.setItem(uk('favorites'), JSON.stringify(f)); } catch(e) {} }
+        function getHistory() { return lsRead(uk('watchHistory')); }
+        function saveHistoryLocal(h) { try { localStorage.setItem(uk('watchHistory'), JSON.stringify(h)); } catch(e) {} }
+        function isFavorite(channelId) { return getFavorites().includes(channelId); }
+
+        function showToast(msg) {
+            let t = document.getElementById('appToast');
+            if(!t) {
+                t = document.createElement('div'); t.id = 'appToast';
+                t.style.cssText = 'position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:10px 18px;border-radius:20px;font-size:14px;z-index:3000;display:none;';
+                document.body.appendChild(t);
+            }
+            t.textContent = msg; t.style.display = 'block';
+            clearTimeout(showToast.t); showToast.t = setTimeout(() => t.style.display = 'none', 1800);
+        }
+        function updateFavCount() { const t = document.getElementById('favTab'); if(t) t.textContent = '❤️ المفضلة (' + getFavorites().length + ')'; }
+
+        // العمليات التي فشلت (بلا إنترنت مثلاً) تُحفظ وتُرسل في المزامنة التالية
+        const pendGet = () => { try { return JSON.parse(localStorage.getItem(uk('pendingFav')) || '{}'); } catch(e) { return {}; } };
+        const pendSet = o => { try { localStorage.setItem(uk('pendingFav'), JSON.stringify(o)); } catch(e) {} };
+        const favOp = (id, on) => on ? favCol().doc(id).set({ channelId: id, createdAt: nowTS() }) : favCol().doc(id).delete();
+        async function cloudFav(id, on) {
+            if(!currentUser) return;
+            const p = pendGet(); p[id] = on; pendSet(p);
+            try { await favOp(id, on); const q = pendGet(); delete q[id]; pendSet(q); }
+            catch(e) { console.warn('[sync] المفضلة ستُزامَن لاحقاً:', e.message); }
+        }
+        async function flushPending() {
+            const p = pendGet();
+            for(const id of Object.keys(p)) {
+                try { await favOp(id, p[id]); const q = pendGet(); delete q[id]; pendSet(q); } catch(e) { return false; }
+            }
+            return true;
+        }
+
+        function toggleFavorite() {
+            if(!currentChannel) return;
+            const id = currentChannel.id; const favs = getFavorites(); const idx = favs.indexOf(id);
+            const adding = idx < 0;
+            if(adding) favs.unshift(id); else favs.splice(idx, 1);
+            saveFavorites(favs); updateFavButton(); updateFavCount(); cloudFav(id, adding);
+            showToast(adding ? 'تمت الإضافة للمفضلة ❤️' : 'تمت الإزالة من المفضلة');
+        }
+
+        async function syncCloud() {
+            if(!currentUser) return;
+            const uid = currentUser.uid, mig = 'cloudMigrated_' + uid;
+            try {
+                if(!(await flushPending())) return;
+                const fs = await favCol().orderBy('createdAt', 'desc').get();
+                const cloudF = fs.docs.map(d => d.id);
+                const hs = await histCol().orderBy('watchedAt', 'desc').limit(10).get();
+                const cloudH = hs.docs.map(d => d.id);
+                if(!localStorage.getItem(mig)) {
+                    // أول مزامنة لهذا الحساب: ادمج ما كان محفوظاً على الجهاز (المفتاح القديم أيضاً) وارفع الناقص
+                    const mergedF = [...new Set([...getFavorites(), ...lsRead('favorites'), ...cloudF])];
+                    const missF = mergedF.filter(id => !cloudF.includes(id));
+                    for(let i = 0; i < missF.length; i += 400) {
+                        const b = db.batch(); missF.slice(i, i + 400).forEach(id => b.set(favCol().doc(id), { channelId: id, createdAt: nowTS() })); await b.commit();
+                    }
+                    const mergedH = [...new Set([...getHistory(), ...lsRead('watchHistory'), ...cloudH])].slice(0, 10);
+                    const b2 = db.batch(); const base = Date.now();
+                    mergedH.forEach((id, i) => { if(!cloudH.includes(id)) b2.set(histCol().doc(id), { channelId: id, watchedAt: firebase.firestore.Timestamp.fromMillis(base - i * 1000) }); });
+                    await b2.commit();
+                    saveFavorites(mergedF); saveHistoryLocal(mergedH);
+                    localStorage.setItem(mig, '1'); localStorage.removeItem('favorites'); localStorage.removeItem('watchHistory');
+                } else { saveFavorites(cloudF); saveHistoryLocal(cloudH); }
+                updateFavButton(); updateFavCount();
+                if(document.getElementById('view-library').classList.contains('active')) renderLibrary();
+            } catch(e) { console.warn('[sync] تعذرت المزامنة:', e.message); }
+        }
+        function updateFavButton() {
+            const btn = document.getElementById('modalFavBtn');
+            if(!btn || !currentChannel) return;
+            btn.textContent = isFavorite(currentChannel.id) ? ' إزالة من المفضلة' : '❤️ المفضلة';
+        }
+
+        let libTab = 'favorites';
+        function renderLibrary(tab) {
+            if(tab) libTab = tab;
+            const content = document.getElementById('libContent');
+            const ids = libTab === 'favorites' ? getFavorites() : getHistory();
+            const map = new Map(allChannels.map(c => [c.id, c]));
+            const list = ids.map(id => map.get(id)).filter(Boolean);
+            updateFavCount();
+            if(!list.length) {
+                content.innerHTML = libTab === 'favorites'
+                    ? '<div class="empty-state"><h3>المفضلة فارغة</h3><p>اضغط على ❤️ في صفحة التفاصيل لحفظ القنوات</p></div>'
+                    : '<div class="empty-state"><h3>لا يوجد سجل مشاهدة بعد</h3><p>القنوات التي تشاهدها تظهر هنا</p></div>';
+            } else {
+                content.innerHTML = '<div class="channels-grid">' + list.map(c => createGridCard(c)).join('') + '</div>';
+            }
+        }
+
+        // ===== Details & Player =====
+        function openDetails(id) {
+            currentChannel = allChannels.find(c => c.id === id);
+            if(!currentChannel) return;
+            document.getElementById('modalTitle').textContent = currentChannel.name;
+            document.getElementById('modalCategory').textContent = currentChannel.category || 'عام';
+            document.getElementById('modalType').textContent = currentChannel.type === 'live' ? 'مباشر' : currentChannel.type === 'movie' ? 'فيلم' : 'مسلسل';
+            document.getElementById('modalHero').style.backgroundImage = `linear-gradient(to top, #141414 0%, transparent 60%), url('${currentChannel.logo || "https://image.tmdb.org/t/p/original/8b8R8l88Qje9dn9OE8PY05Nez7S.jpg"}')`;
+            document.getElementById('modalPlayBtn').onclick = () => { closeDetails(); playChannel(currentChannel); };
+            updateFavButton();
+            addAdminButtons();
+            document.getElementById('detailsModal').classList.add('active');
+        }
+        function closeDetails() { document.getElementById('detailsModal').classList.remove('active'); }
+        function showFeaturedDetails() { if(heroList.length) openDetails(heroList[heroIdx].id); }
+        function playFeatured() { if(heroList.length) playChannel(heroList[heroIdx]); }
+
+        let playRetry = null, playWatch = null;
+
+        function playerMsg(text, isErr) {
+            let el = document.getElementById('playerMsg');
+            if(!el) {
+                el = document.createElement('div');
+                el.id = 'playerMsg';
+                document.querySelector('.player-wrapper').appendChild(el);
+            }
+            // التحميل: شارة صغيرة في الأعلى لا تحجب الصورة. الخطأ النهائي فقط: شريط في الوسط.
+            el.style.cssText = isErr
+                ? 'position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);text-align:center;padding:16px;background:rgba(0,0,0,.8);font-size:15px;line-height:1.8;z-index:5;pointer-events:none;white-space:pre-line;color:#ff6b6b'
+                : 'position:absolute;top:12px;left:50%;transform:translateX(-50%);padding:5px 14px;border-radius:16px;background:rgba(0,0,0,.55);font-size:12px;z-index:5;pointer-events:none;color:#ddd';
+            el.style.display = text ? 'block' : 'none';
+            el.textContent = text || '';
+        }
+
+        function playChannel(channel) {
+            clearTimeout(playRetry); clearTimeout(playWatch);
+            document.getElementById('playerTitle').textContent = channel.name;
+            document.getElementById('playerCategory').textContent = channel.category || 'عام';
+            document.getElementById('playerModal').classList.add('active');
+            saveToWatchHistory(channel);
+            curPlaying = channel;
+            countView(channel);
+            try { localStorage.setItem("iptvmax_last", channel.id); } catch(e) {}
+            startPlayback(channel, 1, false);
+        }
+
+        // المحاولة 1: الـ Proxy لروابط http فقط. المحاولة 2: الـ Proxy لكل الطلبات (بصمت، دون رسالة خطأ).
+        function startPlayback(channel, attempt, forceProxy) {
+            const video = document.getElementById('videoPlayer');
+            const prox = u => (forceProxy || /^http:/i.test(u)) ? MY_PROXY + encodeURIComponent(u) : u;
+            const isFile = /\.(mp4|mkv|avi|mov|webm|m4v)(\?|$)/i.test(channel.url);
+            const finalUrl = prox(channel.url);
+            console.log(`[IPTV] محاولة ${attempt} | ${channel.name}\n  الرابط الأصلي: ${channel.url}\n  الرابط الفعلي: ${finalUrl}`);
+            playerMsg('⏳ جاري التحميل...');
+
+            clearTimeout(playWatch);
+            if(hls) { hls.destroy(); hls = null; }
+            video.onerror = null; video.onplaying = null; video.onloadeddata = null;
+            video.pause(); video.removeAttribute('src'); video.load();
+
+            let started = false;
+            const ok = () => { started = true; clearTimeout(playWatch); playerMsg(''); };
+            const fail = reason => {
+                console.warn('[IPTV] فشلت المحاولة', attempt, ':', reason);
+                if(started || !document.getElementById('playerModal').classList.contains('active')) return;
+                if(attempt === 1) {
+                    // إعادة محاولة صامتة: لا نُظهر خطأ للمستخدم قبل المحاولة الثانية
+                    playRetry = setTimeout(() => startPlayback(channel, 2, true), 3000);
+                } else {
+                    playerMsg('❌ تعذر تشغيل هذا البث. قد يكون الرابط معطلاً أو السيرفر يرفض الاتصال. جرّب قناة أخرى.\nالسبب: ' + reason, true);
+                }
+            };
+            // مهلة لكل محاولة: إن لم يبدأ التشغيل خلال 15 ثانية تُعدّ فاشلة
+            playWatch = setTimeout(() => {
+                if(started) return;
+                if(hls) { hls.destroy(); hls = null; }
+                fail('انتهت المهلة');
+            }, 15000);
+
+            video.onplaying = ok;
+            video.onloadeddata = ok;
+
+            if(!isFile && window.Hls && Hls.isSupported()) {
+                let recovered = false, netRetried = false;
+                hls = new Hls({
+                    enableWorker: true, lowLatencyMode: true,
+                    manifestLoadingMaxRetry: 1, levelLoadingMaxRetry: 2, fragLoadingMaxRetry: 2,
+                });
+                hls.on(Hls.Events.MANIFEST_PARSED, () => { video.play().catch(()=>{}); });
+                hls.on(Hls.Events.ERROR, (e, data) => {
+                    console.warn('[IPTV] HLS:', data.type, data.details, data.response ? 'HTTP ' + data.response.code : '', data.url || '');
+                    if(!data.fatal || started) return;
+                    if(data.type === Hls.ErrorTypes.MEDIA_ERROR && !recovered) { recovered = true; hls.recoverMediaError(); return; }
+                    if(data.type === Hls.ErrorTypes.NETWORK_ERROR && !netRetried) { netRetried = true; hls.startLoad(); return; }
+                    clearTimeout(playWatch);
+                    hls.destroy(); hls = null;
+                    fail(data.details + (data.response ? ' | HTTP ' + data.response.code : ''));
+                });
+                hls.loadSource(finalUrl);
+                hls.attachMedia(video);
+            } else {
+                video.onerror = () => { clearTimeout(playWatch); fail('video error ' + (video.error ? video.error.code : '')); };
+                video.src = finalUrl;
+                video.play().catch(()=>{});
+            }
+        }
+
+        function saveToWatchHistory(channel) {
+            let h = getHistory().filter(id => id !== channel.id);
+            h.unshift(channel.id);
+            if(h.length > 10) h = h.slice(0, 10);
+            saveHistoryLocal(h);
+            if(currentUser) histCol().doc(channel.id).set({ channelId: channel.id, watchedAt: nowTS() }).catch(() => {});
+        }
+
+        function closePlayer() {
+            clearTimeout(playRetry); clearTimeout(playWatch); playerMsg('');
+            { const v = document.getElementById('videoPlayer'); v.onerror = null; v.onplaying = null; }
+            document.getElementById('playerModal').classList.remove('active');
+            const video = document.getElementById('videoPlayer');
+            video.pause();
+            if(hls) { hls.destroy(); hls = null; }
+            if(document.fullscreenElement) document.exitFullscreen().catch(()=>{});
+        }
+
+        function toggleFit() {
+            const v = document.getElementById('videoPlayer');
+            v.style.objectFit = v.style.objectFit === 'cover' ? 'contain' : 'cover';
+        }
+        function toggleFullscreen() {
+            const el = document.querySelector('.player-wrapper');
+            if(!document.fullscreenElement) el.requestFullscreen().catch(()=>{});
+            else document.exitFullscreen().catch(()=>{});
+        }
+
+        // ===== Admin Functions =====
+        async function deleteAllChannels() {
+            if(!confirm('⚠️ هل أنت متأكد من حذف جميع القنوات؟')) return;
+            const btn = event.target;
+            btn.textContent = 'جاري الحذف...';
+            btn.disabled = true;
+            try {
+                const deleted = allChannels.length; allChannels = []; persistLocal(); updateCount(); renderHome();
+                alert(`✅ تم حذف ${deleted} قناة من المسودة`);
+            } catch(e) { alert('خطأ: ' + e.message); }
+            btn.textContent = '️ حذف جميع القنوات الحالية';
+            btn.disabled = false;
+        }
+
+        function addLog(msg, type='', logId='importLog') {
+            const log = document.getElementById(logId);
+            log.style.display = 'block';
+            log.innerHTML += `<div class="log-item ${type}">${msg}</div>`;
+            log.scrollTop = log.scrollHeight;
+        }
+
+        // ===== CORS Fetch =====
+        async function fetchWithCORS(url) {
+            // 1) اتصال مباشر (ينجح مع المواقع التي تسمح بـ CORS مثل github.io) ثم الـ Worker ثم الاحتياطي
+            const names = ['مباشر', 'Worker', 'allorigins', 'corsproxy'];
+            const tries = [url, ...CORS_PROXIES.map(fn => fn(url))];
+            const errs = [];
+            for(let i = 0; i < tries.length; i++) {
+                const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), 25000);
+                try {
+                    const res = await fetch(tries[i], { signal: ctl.signal });
+                    if(!res.ok) throw new Error('HTTP ' + res.status);
+                    const text = await res.text();
+                    if(!text.trim()) throw new Error('رد فارغ');
+                    try { return JSON.parse(text); } catch(e) { return text; }
+                } catch(e) { errs.push((names[i] || 'proxy') + ': ' + (e.name === 'AbortError' ? 'مهلة' : e.message)); }
+                finally { clearTimeout(t); }
+            }
+            throw new Error('فشل (' + errs.join(' | ') + ')');
+        }
+
+        // ===== Xtream Codes =====
+        function switchXtreamTab(tab, el) {
+            document.querySelectorAll('.xtream-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.xtream-section').forEach(s => s.classList.remove('active'));
+            el.classList.add('active');
+            document.getElementById('xtream' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
+        }
+
+        function getXtreamBase() {
+            let server = document.getElementById('xtreamServer').value.trim();
+            const port = document.getElementById('xtreamPort').value.trim() || '80';
+            const user = document.getElementById('xtreamUser').value.trim();
+            const pass = document.getElementById('xtreamPass').value.trim();
+            if(!server || !user || !pass) return null;
+            if(!/^https?:\/\//i.test(server)) server = 'http://' + server;
+            server = server.replace(/\/+$/, '').replace(/:\d+$/, '');
+            return {
+                base: `${server}:${port}`,
+                user, pass,
+                api: `${server}:${port}/player_api.php?username=${encodeURIComponent(user)}&password=${encodeURIComponent(pass)}`
+            };
+        }
+
+        async function testXtream() {
+            const config = getXtreamBase();
+            const statusEl = document.getElementById('xtreamStatus');
+            if(!config) { statusEl.innerHTML = '<span class="status-badge status-err">❌ أكمل الحقول</span>'; return; }
+            statusEl.innerHTML = '<span class="status-badge status-wait"> جاري...</span>';
+            try {
+                const data = await fetchWithCORS(config.api + '&action=get_account_info');
+                if(data && data.user_info) {
+                    const info = data.user_info;
+                    const expDate = info.exp_date ? new Date(info.exp_date * 1000).toLocaleDateString('ar') : 'غير محدد';
+                    statusEl.innerHTML = `
+                        <div style="background:#1a1a1a; padding:15px; border-radius:8px; margin-top:10px;">
+                            <span class="status-badge status-ok">✅ متصل</span>
+                            <div style="font-size:13px; color:#aaa; line-height:1.8; margin-top:10px;">
+                                <div>👤 ${info.username}</div>
+                                <div> ${info.status === 'Active' ? 'نشط' : 'غير نشط'}</div>
+                                <div>📅 ${expDate}</div>
+                            </div>
+                        </div>`;
+                } else {
+                    statusEl.innerHTML = '<span class="status-badge status-err"> فشل الاتصال</span>';
+                }
+            } catch(e) { statusEl.innerHTML = '<span class="status-badge status-err">❌ ' + e.message + '</span>'; }
+        }
+
+        async function importXtream(type) {
+            const config = getXtreamBase();
+            if(!config) { alert('أكمل البيانات'); return; }
+            stopImportFlag = false;
+            const progress = document.getElementById('xtreamProgress');
+            const progressFill = document.getElementById('xtreamProgressFill');
+            const log = document.getElementById('xtreamLog');
+            progress.style.display = 'block';
+            log.innerHTML = '';
+            addLog('🚀 بدء الاستيراد...', 'info', 'xtreamLog');
+            try {
+                const catAction = type === 'live' ? 'get_live_categories' : type === 'vod' ? 'get_vod_categories' : 'get_series_categories';
+                const streamsAction = type === 'live' ? 'get_live_streams' : type === 'vod' ? 'get_vod_streams' : 'get_series';
+                addLog('📂 جلب التصنيفات...', 'info', 'xtreamLog');
+                let categories = await fetchWithCORS(config.api + '&action=' + catAction);
+                if(!Array.isArray(categories)) { addLog('❌ فشل', 'error', 'xtreamLog'); return; }
+                addLog(`✅ ${categories.length} تصنيف`, 'success', 'xtreamLog');
+                addLog('📺 جلب المحتوى...', 'info', 'xtreamLog');
+                let streams = await fetchWithCORS(config.api + '&action=' + streamsAction);
+                if(!Array.isArray(streams)) { addLog('❌ فشل', 'error', 'xtreamLog'); return; }
+                addLog(`✅ ${streams.length} عنصر`, 'success', 'xtreamLog');
+                const catMap = {};
+                categories.forEach(c => { catMap[c.category_id] = c.category_name; });
+                const channelsToAdd = streams.map(s => {
+                    let streamUrl = '';
+                    if(type === 'live') streamUrl = `${config.base}/live/${config.user}/${config.pass}/${s.stream_id}.m3u8`;
+                    else if(type === 'vod') streamUrl = `${config.base}/movie/${config.user}/${config.pass}/${s.stream_id}.${s.container_extension || 'mp4'}`;
+                    else streamUrl = `${config.base}/series/${config.user}/${config.pass}/${s.series_id}.json`;
+                    return {
+                        name: s.name || 'بدون اسم',
+                        url: streamUrl,
+                        logo: s.stream_icon || s.cover || '',
+                        category: catMap[s.category_id] || mapCategory(s.name, type),
+                        type: type === 'live' ? 'live' : type === 'vod' ? 'movie' : 'series'
+                    };
+                });
+                addLog(`📦 إضافة ${channelsToAdd.length} عنصر...`, 'warn', 'xtreamLog');
+                const added = await addLocal(channelsToAdd, 'xtreamProgressFill', 'xtreamLog');
+                addLog(`✅ تمت إضافة ${added}`, 'success', 'xtreamLog');
+                await loadChannels();
+            } catch(e) { addLog('❌ ' + e.message, 'error', 'xtreamLog'); }
+        }
+
+        function mapCategory(name, type) {
+            const n = (name || '').toLowerCase();
+            if(n.includes('sport') || n.includes('bein')) return 'رياضة';
+            if(n.includes('news')) return 'أخبار';
+            if(n.includes('kids')) return 'أطفال';
+            if(n.includes('movie') || type === 'vod') return 'أفلام';
+            if(type === 'series') return 'مسلسلات';
+            return 'عام';
+        }
+
+        // ===== M3U Import =====
+        function toggleImportUI() {
+            const method = document.getElementById('importMethod').value;
+            document.getElementById('importUrlGroup').style.display = method === 'url' ? 'block' : 'none';
+            document.getElementById('importTextGroup').style.display = method === 'text' ? 'block' : 'none';
+        }
+
+        async function startImport() {
+            stopImportFlag = false;
+            const method = document.getElementById('importMethod').value;
+            let content = '';
+            document.getElementById('startImportBtn').style.display = 'none';
+            document.getElementById('stopImportBtn').style.display = 'block';
+            document.getElementById('importProgress').style.display = 'block';
+            document.getElementById('importLog').innerHTML = '';
+
+            if(method === 'url') {
+                const url = document.getElementById('importUrl').value.trim();
+                if(!url) { alert('أدخل الرابط'); resetImportUI(); return; }
+                addLog('🔄 جاري الجلب...', 'warn');
+                try {
+                    content = await fetchWithCORS(url);
+                    if(typeof content !== 'string') throw new Error('استجابة غير صالحة');
+                    addLog('✅ تم الجلب', 'success');
+                } catch(e) { addLog('❌ ' + e.message, 'error'); resetImportUI(); return; }
+            } else {
+                content = document.getElementById('importText').value.trim();
+                if(!content) { alert('الصق المحتوى'); resetImportUI(); return; }
+            }
+
+            const lines = content.split('\n');
+            const channelsToAdd = [];
+            let currentName = '', currentLogo = '', currentCat = 'عام', currentCountry = '', currentLang = '';
+            const gmode = document.getElementById('importGroupMode').value;
+
+            for(let i=0; i<lines.length; i++) {
+                if(stopImportFlag) break;
+                const line = lines[i].trim();
+                if(line.startsWith('#EXTINF:')) {
+                    const nameMatch = line.match(/,(.+)$/);
+                    const logoMatch = line.match(/tvg-logo="([^"]*)"/);
+                    const groupMatch = line.match(/group-title="([^"]*)"/);
+                    const grp = groupMatch ? groupMatch[1] : '';
+                    currentName = nameMatch ? nameMatch[1].trim() : 'قناة';
+                    currentLogo = logoMatch ? logoMatch[1] : '';
+                    currentCat = mapCategory(gmode === 'category' ? grp : currentName, 'live');
+                    currentCountry = guessCountry(currentName, (line.match(/tvg-id="([^"]*)"/) || [])[1], (line.match(/tvg-country="([^"]*)"/) || [])[1], gmode === 'country' ? grp.split(';')[0] : '');
+                    currentLang = guessLang((line.match(/tvg-language="([^"]*)"/) || [])[1], gmode === 'language' ? grp.split(';')[0] : '');
+                } else if(line && !line.startsWith('#') && currentName && line.startsWith('http')) {
+                    channelsToAdd.push({ name: currentName, url: line, logo: currentLogo, category: currentCat, type: 'live', ...(currentCountry ? { country: currentCountry } : {}), ...(currentLang ? { language: currentLang } : {}) });
+                    currentName = '';
+                }
+            }
+
+            if(channelsToAdd.length === 0) { addLog('❌ لا قنوات', 'error'); resetImportUI(); return; }
+            addLog(`📦 ${channelsToAdd.length} قناة...`, 'warn');
+            const added = await addLocal(channelsToAdd, 'importProgressFill', 'importLog');
+            addLog(`✅ ${added} قناة`, 'success');
+            await loadChannels();
+            resetImportUI();
+        }
+
+        function stopImport() { stopImportFlag = true; addLog('⏹ إيقاف...', 'warn'); }
+        function resetImportUI() {
+            document.getElementById('startImportBtn').style.display = 'block';
+            document.getElementById('stopImportBtn').style.display = 'none';
+            document.getElementById('importProgress').style.display = 'none';
+            document.getElementById('importProgressFill').style.width = '0%';
+        }
+
+        async function addChannelManual() {
+            const name = document.getElementById('addName').value.trim();
+            const url = document.getElementById('addUrl').value.trim();
+            const cat = document.getElementById('addCategory').value;
+            const logo = document.getElementById('addLogo').value.trim();
+            if(!name || !url) { alert('أكمل البيانات'); return; }
+            try {
+                allChannels.push({id:hid(url), name, url, category:cat, logo, type:'live', manual:1}); persistLocal(); updateCount();
+                alert('✅ تمت الإضافة');
+                document.getElementById('addName').value = '';
+                document.getElementById('addUrl').value = '';
+                document.getElementById('addLogo').value = '';
+                loadChannels();
+            } catch(e) { alert('خطأ: ' + e.message); }
+        }
+    </script>
+</body>
+</html>
